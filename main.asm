@@ -6,7 +6,6 @@
 		lda #0
 		sta isend_main
 
-
 		lda #1
 		sta isend_main
 

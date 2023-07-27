@@ -43,7 +43,10 @@
 	bne @CLR_CHR_MEM
 
 	; ここで必要なメモリの初期化
-
+	lda #%10010000						; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
+	sta ppu_ctrl_cpy
+	lda #%00011110						; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+	sta ppu_mask_cpy
 
 	; Vblank待機2回目
 @VBLANK_WAIT2:
@@ -69,10 +72,7 @@
 	sta OAM_DMA
 
 	; スクリーンON
-	lda #%10010000						; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
-	sta PPU_CTRL
-	lda #%00011110						; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
-	sta PPU_MASK
+	restorePPUSet
 
 	jsr setScroll
 

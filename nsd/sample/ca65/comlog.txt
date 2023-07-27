@@ -1,0 +1,10 @@
+======================================================== 		
+[Compile] : testmus.mml 		
+======================================================== 		
+MML Compiler for NES Sound Driver & Library (NSD.Lib)
+    Version 1.30
+        Copyright (c) 2012-2020 S.W.
+
+------------------------------------------------------------
+*Object creating process
+Error!:1
