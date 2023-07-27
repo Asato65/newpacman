@@ -1,8 +1,13 @@
 .setcpu "6502"
 .feature c_comments
 
-.include "macro.asm"
-.include "const.inc"
+.include "inc/const.inc"
+.include "inc/palette.inc"
+
+
+.include "asm/ppu.asm"
+.include "asm/macro.asm"
+.include "asm/init.asm"
 
 .segment "HEADER"
 		.byte $4e, $45, $53, $1a
@@ -17,26 +22,19 @@
 .proc RESET
 		init
 
+		.include "main.asm"
 .endproc
-
-.proc MAINLOOP
-		; jsr MAIN
-		jmp MAINLOOP
-.endproc
-
 
 .proc NMI
-		rti
+		.include "asm/nmi.asm"
 .endproc
-
 
 .proc IRQ
 		rti
 .endproc
 
-
 .segment "CHARS"
-		.incbin "bg-spr.chr"
+		.incbin "spr_bg.chr"
 
 .segment "VECTORS"
 		.word NMI

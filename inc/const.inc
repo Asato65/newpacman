@@ -1,11 +1,13 @@
-.scope ZP
-		tmp1		= $00
-		tmp2		= $01
-		tmp3		= $03
-		nmi_cnt		= $fd
-		frm_cnt		= $fe
-		isend_nmi	= $ff
-.endscope
+; ZeroPage
+tmp1		= $00
+tmp2		= $01
+tmp3		= $03
+scroll_x	= $04
+scroll_y	= $05
+nmi_cnt		= $fd
+frm_cnt		= $fe
+isend_main	= $ff
+
 
 ZP					= $00
 CHR_DATA			= $0300
@@ -13,6 +15,7 @@ MAP1_DATA			= $0400
 MAP2_DATA			= $0500
 PPU_UPDATE_DATA		= $0600
 
+PLT_TABLE_ADDR		= $3f00
 
 PPU_CTRL			= $2000
 PPU_MASK			= $2001
