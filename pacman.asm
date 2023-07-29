@@ -7,7 +7,6 @@
 .include "inc/var_addr.inc"
 .include "inc/palette.inc"
 
-.code
 .include "main.asm"
 .include "./asm/init.asm"
 .include "./asm/ppu.asm"
@@ -27,7 +26,6 @@
 
 .segment "STARTUP"
 .proc RESET
-.code									; ----- code -----
 		init
 
 		jmp MAIN
@@ -35,7 +33,6 @@
 
 
 .proc IRQ
-.code									; ----- code -----
 		rti
 .endproc
 
