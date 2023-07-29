@@ -1,8 +1,0 @@
-[Assemble] : ines.s 		
-[Assemble] : crt0.s 		
-[Assemble] : work.s 		
-[Assemble] : nmi_main.s 		
-[Assemble] : irq_main.s 		
-[Assemble] : main.s 		
-[Compile] : testmus.mml 		
-[ ERROR ] testmus.mml (Line = 3) : unknown command

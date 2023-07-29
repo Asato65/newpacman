@@ -5,6 +5,7 @@
 ; @RETURN void
 ;*------------------------------------------------------------------------------
 
+.code									; ----- code -----
 restorePPUSet:
 		lda ppu_ctrl_cpy
 		sta PPU_CTRL

@@ -5,6 +5,7 @@
 ; @RETURN void
 ;*------------------------------------------------------------------------------
 
+.code									; ----- code -----
 setScroll:
 	lda scroll_x
 	sta PPU_SCROLL

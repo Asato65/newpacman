@@ -54,9 +54,9 @@
 	bpl @VBLANK_WAIT2
 
 	; パレットテーブル転送
-	lda >#PLT_TABLE_ADDR				; HIGH
+	lda #PLT_TABLE_ADDR				; HIGH
 	sta PPU_ADDR
-	lda <#PLT_TABLE_ADDR				; LOW
+	lda #0				; LOW
 	sta PPU_ADDR
 	tax
 @TFR_PAL:								; TFR = transfar
@@ -72,7 +72,7 @@
 	sta OAM_DMA
 
 	; スクリーンON
-	restorePPUSet
+	jsr restorePPUSet
 
 	jsr setScroll
 

@@ -1,13 +1,20 @@
 .setcpu "6502"
 .feature c_comments
 
+.rodata									; ----- data -----
 .include "inc/const.inc"
+.include "inc/const_addr.inc"
+.include "inc/var_addr.inc"
 .include "inc/palette.inc"
 
+.code
+.include "main.asm"
+.include "./asm/init.asm"
+.include "./asm/ppu.asm"
+.include "./asm/macro.asm"
 
-.include "asm/ppu.asm"
-.include "asm/macro.asm"
-.include "asm/init.asm"
+.include "./asm/nmi.asm"
+.include "./asm/sub.asm"
 
 .segment "HEADER"
 		.byte $4e, $45, $53, $1a
@@ -20,16 +27,15 @@
 
 .segment "STARTUP"
 .proc RESET
+.code									; ----- code -----
 		init
 
-		.include "main.asm"
+		jmp MAIN
 .endproc
 
-.proc NMI
-		.include "asm/nmi.asm"
-.endproc
 
 .proc IRQ
+.code									; ----- code -----
 		rti
 .endproc
 

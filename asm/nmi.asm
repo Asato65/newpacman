@@ -13,6 +13,7 @@
 	inx
 .endmacro
 
+.proc NMI
 		registerSave
 		inc nmi_cnt
 		lda isend_main
@@ -22,7 +23,7 @@
 		ldx #0
 @LOOP:
 		lda PPU_UPDATE_DATA, x
-		
+
 		lda PPU_UPDATE_DATA, x
 		sta PPU_ADDR
 		lda PPU_UPDATE_DATA, x
@@ -32,10 +33,11 @@
 		lda PPU_UPDATE_DATA+3, x
 		cmp #$ff						; PPU_END_CODE
 		beq @EXIT
-		sta 
+		sta $80
 		inx
-		bne @PPU_STORE
+		bne @PPU_STORE_LOOP
 
 @EXIT:
 		registerLoad
 		rti	; --------------------------
+.endproc

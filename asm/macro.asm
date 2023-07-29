@@ -29,17 +29,3 @@
 		pla
 		plp
 .endmacro
-
-;*------------------------------------------------------------------------------
-; PPUの設定をコピーからリストアする
-; @PARAM void
-; @BREAK void
-; @RETURN void
-;*------------------------------------------------------------------------------
-
-.macro restorePPUSet
-		lda ppu_ctrl_cpy
-		sta PPU_CTRL
-		lda ppu_mask_cpy
-		sta PPU_MASK
-.endmacro
