@@ -104,5 +104,8 @@
 			"type": "text",
 			"multiline": true
 		}
-	]
+	],
+	"editor.rulers": [
+		40, 80, 120, 160, 200
+	],
 }

@@ -7,7 +7,16 @@ scroll_y			= $05
 ppu_ctrl_cpy		= $06				; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
 ppu_mask_cpy		= $07				; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 
+con1				= $08
+con2				= $09
+con1_prev			= $0A
+con2_prev			= $0B
+con1_pushstart		= $0C
+con2_pushstart		= $0D
+
 nmi_cnt				= $fd
 frm_cnt				= $fe
 isend_main			= $ff
 
+
+; LABEL: .res Len FillVal
