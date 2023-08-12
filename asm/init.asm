@@ -5,8 +5,8 @@
 	ldx #$ff
 	txs
 	inx
-	stx $2000							; NMI無効化
-	stx $2001							; 描画停止
+	stx PPU_CTRL1						; NMI無効化
+	stx PPU_CTRL2						; 描画停止
 	stx $4010							; APU DMCのIRQ（bit7）無効化
 
 	/*
@@ -44,9 +44,9 @@
 
 	; ここで必要なメモリの初期化
 	lda #%10010000						; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
-	sta ppu_ctrl_cpy
+	sta ppu_ctrl1_cpy
 	lda #%00011110						; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
-	sta ppu_mask_cpy
+	sta ppu_ctrl2_cpy
 
 	; Vblank待機2回目
 @VBLANK_WAIT2:

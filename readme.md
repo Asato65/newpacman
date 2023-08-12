@@ -3,14 +3,14 @@
 ## Rule
 
 ### Naming convention
-- constant address: TEST_ADDR
+- constant address/value: TEST_ADDR
 - variable address: test_addr
 - function/macro label: testLabel
 - local label: @TEST_LABEL
 
 ### Comment convention
 #### Function
-```asm:
+```
 ;*------------------------------------------------------------------------------
 ; Function description
 ; @PARAM data1

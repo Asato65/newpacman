@@ -17,9 +17,9 @@
 
 .segment "HEADER"
 		.byte $4e, $45, $53, $1a
-		.byte $02						; プログラムバンク
-		.byte $01						; キャラクターバンク
-		.byte $01						; 垂直ミラー
+		.byte $02						; program bank
+		.byte $01						; charactor bank
+		.byte $01						; vartical mirror
 		.byte $00
 		.byte $00, $00, $00, $00
 		.byte $00, $00, $00, $00
