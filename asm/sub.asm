@@ -21,6 +21,7 @@ restorePPUSet:
 ;*------------------------------------------------------------------------------
 
 getJoyData:
+		; set prev
 		lda joy1
 		sta joy1_prev
 		lda joy2
@@ -41,6 +42,7 @@ getJoyData:
 		sta joy1
 
 @GET_PUSHSTART_BTN:
+		; set pushstart
 		lda joy1_prev
 		eor #%11111111
 		and joy1
