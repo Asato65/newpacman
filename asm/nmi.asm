@@ -34,14 +34,15 @@
 		inc frm_cnt
 
 		ldx #0
+		cpx ppu_update_data_pointer
+		beq @EXIT
 @SET_MODE:
 		lda PPU_UPDATE_DATA, x
-		cmp #PPU_END_CODE
-		beq @EXIT
-		bpl @SET_ADDR					; 0xff~0x7e => @SET_ADDR
-		cmp #%11111100					; $fc
-		bmi @SET_ADDR					; 0xfc~0xff = plus, 0x7c~0xfb => @SET_ADDR
-		and #%00000010					; Get mode
+		bpl @SET_ADDR					; 0x00~0x7f => @SET_ADDR
+		cmp #%11111110
+		bmi @SET_ADDR					; 0xfe~0xff = plus, 0x7e~0xfd => @SET_ADDR
+		and #%00000001					; Get mode
+		asl
 		asl
 		sta tmp1						; Start using tmp1
 		lda ppu_ctrl1_cpy
@@ -60,12 +61,13 @@
 @STORE_DATA:
 		lda PPU_UPDATE_DATA, x
 		tay
-		and #PPU_SP_CODE
-		cmp #PPU_SP_CODE
+		and #%11111110
+		cmp #%11111110
 		beq @SET_MODE					; no inx
 		tya
 		sta PPU_DATA
 		inx
+		cpx ppu_update_data_pointer
 		bne @STORE_DATA
 
 		; @SET_MODE + @SET_ADDR = 56 cycle

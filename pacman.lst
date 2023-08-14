@@ -117,49 +117,42 @@ Current file: pacman.asm
 000024r 2               
 000024r 2  20 rr rr     		jsr _getJoyData
 000027r 2               
-000027r 2               		; chr disp program
-000027r 2               		; TODO: cycle count
-000027r 2               		; addr AB       CD
-000027r 2               		;       or
-000027r 2               		; addr AB addr CD
-000027r 2               
 000027r 2  A2 00        		ldx #0
-000029r 2  86 rr        		stx ppu_update_data_pointer
-00002Br 2               
-00002Br 2               @STORE_PPU_DATA_LOOP:
-00002Br 2  BD rr rr     		lda PPU_DATA_ARR, x
-00002Er 2  C9 FF        		cmp #$ff
-000030r 2  F0 06        		beq @END_STORE
+000029r 2  A0 0C        		ldy #12
+00002Br 2  86 rr        		stx ppu_update_data_pointer
+00002Dr 2               
+00002Dr 2               @STORE_PPU_DATA_LOOP:
+00002Dr 2  BD rr rr     		lda PPU_DATA_ARR, x
+000030r 2  F0 07        		beq @END_STORE
 000032r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
 000035r 2  E8           		inx
-000036r 2  D0 F3        		bne @STORE_PPU_DATA_LOOP
-000038r 2               @END_STORE:
-000038r 2  86 rr        		stx ppu_update_data_pointer
-00003Ar 2               
-00003Ar 2               		; endcode
-00003Ar 2               
-00003Ar 2               		; end main
-00003Ar 2               		; TODO: check pointer overflow
-00003Ar 2  A6 rr        		ldx ppu_update_data_pointer
-00003Cr 2  A9 FF        		lda #PPU_END_CODE
-00003Er 2  9D 00 06     		sta PPU_UPDATE_DATA, x
-000041r 2  E8           		inx
-000042r 2               
-000042r 2  A9 01        		lda #1
-000044r 2  85 FF        		sta isend_main
-000046r 2               
-000046r 2  4C rr rr     		jmp MAIN
-000049r 2               .endproc
-000049r 2               
-000049r 2               
-000049r 2               PPU_DATA_ARR:
-000049r 2  FC           		.byte %11111100					; horizontal
-00004Ar 2  20 40        		.dbyt $2040						; dbyt = Define BYTe?: Define word sized data with the hi and lo bytes swapped. ($1234 = $12, $34)
-00004Cr 2  41 42 43     		.byte "ABC"
-00004Fr 2  FE           		.byte %11111110					; vertical
-000050r 2  22 80        		.dbyt $2280
-000052r 2  31 32 33     		.byte "123"
-000055r 2  FF           		.byte $ff						; loop end code
+000036r 2  88           		dey
+000037r 2  D0 F4        		bne @STORE_PPU_DATA_LOOP
+000039r 2               @END_STORE:
+000039r 2  86 rr        		stx ppu_update_data_pointer
+00003Br 2               
+00003Br 2               		; endcode
+00003Br 2               
+00003Br 2               		; ----- End main -----
+00003Br 2  A6 rr        		ldx ppu_update_data_pointer
+00003Dr 2  A9 FF        		lda #PPU_END_CODE
+00003Fr 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000042r 2  E8           		inx
+000043r 2               
+000043r 2  A9 01        		lda #1
+000045r 2  85 FF        		sta isend_main
+000047r 2               
+000047r 2  4C rr rr     		jmp MAIN
+00004Ar 2               .endproc
+00004Ar 2               
+00004Ar 2               
+00004Ar 2               PPU_DATA_ARR:
+00004Ar 2  FE           		.byte %11111110					; horizontal
+00004Br 2  20 40        		.dbyt $2040						; dbyt = Define BYTe?: Define word sized data with the hi and lo bytes swapped. ($1234 = $12, $34)
+00004Dr 2  41 42 43     		.byte "ABC"
+000050r 2  FF           		.byte %11111111					; vertical
+000051r 2  22 80        		.dbyt $2280
+000053r 2  31 32 33     		.byte "123"
 000056r 2               
 000056r 1               .include "./asm/init.asm"
 000056r 2               .macro init
@@ -325,151 +318,153 @@ Current file: pacman.asm
 000065r 2  98 48        
 000067r 2  E6 FD        		inc nmi_cnt
 000069r 2  A5 FF        		lda isend_main
-00006Br 2  F0 41        		beq @EXIT
+00006Br 2  F0 44        		beq @EXIT
 00006Dr 2               
 00006Dr 2  E6 FE        		inc frm_cnt
 00006Fr 2               
 00006Fr 2  A2 00        		ldx #0
-000071r 2               @SET_MODE:
-000071r 2  BD 00 06     		lda PPU_UPDATE_DATA, x
-000074r 2  C9 FF        		cmp #PPU_END_CODE
-000076r 2  F0 36        		beq @EXIT
-000078r 2  10 14        		bpl @SET_ADDR					; 0xff~0x7e => @SET_ADDR
-00007Ar 2  C9 FC        		cmp #%11111100					; $fc
-00007Cr 2  30 10        		bmi @SET_ADDR					; 0xfc~0xff = plus, 0x7c~0xfb => @SET_ADDR
-00007Er 2  29 02        		and #%00000010					; Get mode
+000071r 2  E4 rr        		cpx ppu_update_data_pointer
+000073r 2  F0 3C        		beq @EXIT
+000075r 2               @SET_MODE:
+000075r 2  BD 00 06     		lda PPU_UPDATE_DATA, x
+000078r 2  10 15        		bpl @SET_ADDR					; 0x00~0x7f => @SET_ADDR
+00007Ar 2  C9 FE        		cmp #%11111110
+00007Cr 2  30 11        		bmi @SET_ADDR					; 0xfe~0xff = plus, 0x7e~0xfd => @SET_ADDR
+00007Er 2  29 01        		and #%00000001					; Get mode
 000080r 2  0A           		asl
-000081r 2  85 rr        		sta tmp1						; Start using tmp1
-000083r 2  A5 rr        		lda ppu_ctrl1_cpy
-000085r 2  29 FB        		and #%11111011
-000087r 2  05 rr        		ora tmp1						; End using tmp1
-000089r 2  85 rr        		sta ppu_ctrl1_cpy
-00008Br 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
-00008Er 2               @SET_ADDR:
-00008Er 2  E8           		inx								; Not do inx when go to @EXIT
-00008Fr 2  BD 00 06     		lda PPU_UPDATE_DATA, x
-000092r 2  8D 06 20     		sta PPU_ADDR
-000095r 2  E8           		inx
-000096r 2  BD 00 06     		lda PPU_UPDATE_DATA, x
-000099r 2  8D 06 20     		sta PPU_ADDR
-00009Cr 2  E8           		inx
-00009Dr 2               @STORE_DATA:
-00009Dr 2  BD 00 06     		lda PPU_UPDATE_DATA, x
-0000A0r 2  A8           		tay
-0000A1r 2  29 F8        		and #PPU_SP_CODE
-0000A3r 2  C9 F8        		cmp #PPU_SP_CODE
-0000A5r 2  F0 CA        		beq @SET_MODE					; no inx
-0000A7r 2  98           		tya
-0000A8r 2  8D 07 20     		sta PPU_DATA
-0000ABr 2  E8           		inx
-0000ACr 2  D0 EF        		bne @STORE_DATA
-0000AEr 2               
-0000AEr 2               		; @SET_MODE + @SET_ADDR = 56 cycle
-0000AEr 2               		; @STORE_DATA (return @STORE_DATA) = 22 cycle
-0000AEr 2               		; @STORE_DATA (return @SET_MODE) = 15 cycle
-0000AEr 2               
-0000AEr 2               		; str1 = "A  B"  => 56 + space_len * 22 cycle
-0000AEr 2               		; |  len  || 1  |  2  |  3  |  4  |  5  |
-0000AEr 2               		; | cycle || 78 | 100 | 122 | 144 | 166 |
-0000AEr 2               		; str2 = 'A', str3 = 'B' => (56 + 15) * 2 = 78 * 2 = 142 cycle
-0000AEr 2               		; str1 max space length = 4
-0000AEr 2               
-0000AEr 2               @EXIT:
-0000AEr 2  A9 00        		lda #0
-0000B0r 2  85 FF        		sta isend_main
-0000B2r 2  20 rr rr     		jsr _setScroll
-0000B5r 2  68 A8 68 AA  		registerLoad
-0000B9r 2  68 28        
-0000BBr 2  40           		rti	; --------------------------
-0000BCr 2               .endproc
-0000BCr 2               
-0000BCr 1               .include "./asm/sub.asm"
-0000BCr 2               ;*------------------------------------------------------------------------------
-0000BCr 2               ; Restore PPU setting
-0000BCr 2               ; @PARAM void
-0000BCr 2               ; @BREAK A
-0000BCr 2               ; @RETURN void
-0000BCr 2               ;*------------------------------------------------------------------------------
-0000BCr 2               
-0000BCr 2               _restorePPUSet:
-0000BCr 2  A5 rr        		lda ppu_ctrl1_cpy
-0000BEr 2  8D 00 20     		sta PPU_CTRL1
-0000C1r 2  A5 rr        		lda ppu_ctrl2_cpy
-0000C3r 2  8D 01 20     		sta PPU_CTRL2
-0000C6r 2  60           		rts	; --------------------------
-0000C7r 2               
-0000C7r 2               
-0000C7r 2               ;*------------------------------------------------------------------------------
-0000C7r 2               ; Get Joypad data (including prev and newly pushed btn)
-0000C7r 2               ; @PARAM void
-0000C7r 2               ; @BREAK A
-0000C7r 2               ; @RETURN void
-0000C7r 2               ;*------------------------------------------------------------------------------
-0000C7r 2               
-0000C7r 2               _getJoyData:
-0000C7r 2               		; set prev
-0000C7r 2  A5 rr        		lda joy1
-0000C9r 2  85 rr        		sta joy1_prev
-0000CBr 2  A5 rr        		lda joy2
-0000CDr 2  85 rr        		sta joy2_prev
-0000CFr 2               
-0000CFr 2  20 rr rr     		jsr _readJoy
+000081r 2  0A           		asl
+000082r 2  85 rr        		sta tmp1						; Start using tmp1
+000084r 2  A5 rr        		lda ppu_ctrl1_cpy
+000086r 2  29 FB        		and #%11111011
+000088r 2  05 rr        		ora tmp1						; End using tmp1
+00008Ar 2  85 rr        		sta ppu_ctrl1_cpy
+00008Cr 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
+00008Fr 2               @SET_ADDR:
+00008Fr 2  E8           		inx								; Not do inx when go to @EXIT
+000090r 2  BD 00 06     		lda PPU_UPDATE_DATA, x
+000093r 2  8D 06 20     		sta PPU_ADDR
+000096r 2  E8           		inx
+000097r 2  BD 00 06     		lda PPU_UPDATE_DATA, x
+00009Ar 2  8D 06 20     		sta PPU_ADDR
+00009Dr 2  E8           		inx
+00009Er 2               @STORE_DATA:
+00009Er 2  BD 00 06     		lda PPU_UPDATE_DATA, x
+0000A1r 2  A8           		tay
+0000A2r 2  29 FE        		and #%11111110
+0000A4r 2  C9 FE        		cmp #%11111110
+0000A6r 2  F0 CD        		beq @SET_MODE					; no inx
+0000A8r 2  98           		tya
+0000A9r 2  8D 07 20     		sta PPU_DATA
+0000ACr 2  E8           		inx
+0000ADr 2  E4 rr        		cpx ppu_update_data_pointer
+0000AFr 2  D0 ED        		bne @STORE_DATA
+0000B1r 2               
+0000B1r 2               		; @SET_MODE + @SET_ADDR = 56 cycle
+0000B1r 2               		; @STORE_DATA (return @STORE_DATA) = 22 cycle
+0000B1r 2               		; @STORE_DATA (return @SET_MODE) = 15 cycle
+0000B1r 2               
+0000B1r 2               		; str1 = "A  B"  => 56 + space_len * 22 cycle
+0000B1r 2               		; |  len  || 1  |  2  |  3  |  4  |  5  |
+0000B1r 2               		; | cycle || 78 | 100 | 122 | 144 | 166 |
+0000B1r 2               		; str2 = 'A', str3 = 'B' => (56 + 15) * 2 = 78 * 2 = 142 cycle
+0000B1r 2               		; str1 max space length = 4
+0000B1r 2               
+0000B1r 2               @EXIT:
+0000B1r 2  A9 00        		lda #0
+0000B3r 2  85 FF        		sta isend_main
+0000B5r 2  20 rr rr     		jsr _setScroll
+0000B8r 2  68 A8 68 AA  		registerLoad
+0000BCr 2  68 28        
+0000BEr 2  40           		rti	; --------------------------
+0000BFr 2               .endproc
+0000BFr 2               
+0000BFr 1               .include "./asm/sub.asm"
+0000BFr 2               ;*------------------------------------------------------------------------------
+0000BFr 2               ; Restore PPU setting
+0000BFr 2               ; @PARAM void
+0000BFr 2               ; @BREAK A
+0000BFr 2               ; @RETURN void
+0000BFr 2               ;*------------------------------------------------------------------------------
+0000BFr 2               
+0000BFr 2               _restorePPUSet:
+0000BFr 2  A5 rr        		lda ppu_ctrl1_cpy
+0000C1r 2  8D 00 20     		sta PPU_CTRL1
+0000C4r 2  A5 rr        		lda ppu_ctrl2_cpy
+0000C6r 2  8D 01 20     		sta PPU_CTRL2
+0000C9r 2  60           		rts	; --------------------------
+0000CAr 2               
+0000CAr 2               
+0000CAr 2               ;*------------------------------------------------------------------------------
+0000CAr 2               ; Get Joypad data (including prev and newly pushed btn)
+0000CAr 2               ; @PARAM void
+0000CAr 2               ; @BREAK A
+0000CAr 2               ; @RETURN void
+0000CAr 2               ;*------------------------------------------------------------------------------
+0000CAr 2               
+0000CAr 2               _getJoyData:
+0000CAr 2               		; set prev
+0000CAr 2  A5 rr        		lda joy1
+0000CCr 2  85 rr        		sta joy1_prev
+0000CEr 2  A5 rr        		lda joy2
+0000D0r 2  85 rr        		sta joy2_prev
 0000D2r 2               
-0000D2r 2  A5 rr        		lda joy1
-0000D4r 2  29 0A        		and #BTN_U|BTN_L				; Compare Up and Left...
-0000D6r 2  4A           		lsr
-0000D7r 2  25 rr        		and joy1						; to Down and Right
-0000D9r 2  F0 0A        		beq @GET_PUSHSTART_BTN
-0000DBr 2               		; Use previous frame's directions
-0000DBr 2  A5 rr        		lda joy1
-0000DDr 2  45 rr        		eor joy1_prev
-0000DFr 2  29 F0        		and #%11110000
-0000E1r 2  45 rr        		eor joy1_prev
-0000E3r 2  85 rr        		sta joy1
-0000E5r 2               
-0000E5r 2               @GET_PUSHSTART_BTN:
-0000E5r 2               		; set pushstart
-0000E5r 2  A5 rr        		lda joy1_prev
-0000E7r 2  49 FF        		eor #%11111111
-0000E9r 2  25 rr        		and joy1
-0000EBr 2  85 rr        		sta joy1_pushstart
-0000EDr 2  A5 rr        		lda joy2_prev
-0000EFr 2  49 FF        		eor #%11111111
-0000F1r 2  25 rr        		and joy2
-0000F3r 2  85 rr        		sta joy2_pushstart
-0000F5r 2               
-0000F5r 2  60           		rts	; --------------------------
-0000F6r 2               
-0000F6r 2               
-0000F6r 2               ;*------------------------------------------------------------------------------
-0000F6r 2               ; Read controller
-0000F6r 2               ; @PARAM void
-0000F6r 2               ; @BREAK A
-0000F6r 2               ; @RETURN void
-0000F6r 2               ;*------------------------------------------------------------------------------
-0000F6r 2               
-0000F6r 2               _readJoy:
-0000F6r 2               		; Init controller & Set a ring counter
-0000F6r 2  A9 01        		lda #1
-0000F8r 2  8D 16 40     		sta JOYPAD1
-0000FBr 2  85 rr        		sta joy2						; ring counter
-0000FDr 2  4A           		lsr								; A = 0
-0000FEr 2  8D 16 40     		sta JOYPAD1
-000101r 2               
-000101r 2               @READ_JOY_LOOP:
-000101r 2  AD 16 40     		lda JOYPAD1
-000104r 2  29 03        		and #%00000011
-000106r 2  C9 01        		cmp #$01						; A - 1 = A + 0xff; if A > 0 then Carry=1
-000108r 2  26 rr        		rol joy1						; Carry -> bit 0; bit 7 -> Carry
-00010Ar 2  AD 17 40     		lda JOYPAD2
-00010Dr 2  29 03        		and #%00000011
-00010Fr 2  C9 01        		cmp #$01
-000111r 2  26 rr        		rol joy2
-000113r 2  90 EC        		bcc @READ_JOY_LOOP				; CarryON -> end
-000115r 2  60           		rts	; --------------------------
-000116r 2               
-000116r 1               
-000116r 1               .segment "HEADER"
+0000D2r 2  20 rr rr     		jsr _readJoy
+0000D5r 2               
+0000D5r 2  A5 rr        		lda joy1
+0000D7r 2  29 0A        		and #BTN_U|BTN_L				; Compare Up and Left...
+0000D9r 2  4A           		lsr
+0000DAr 2  25 rr        		and joy1						; to Down and Right
+0000DCr 2  F0 0A        		beq @GET_PUSHSTART_BTN
+0000DEr 2               		; Use previous frame's directions
+0000DEr 2  A5 rr        		lda joy1
+0000E0r 2  45 rr        		eor joy1_prev
+0000E2r 2  29 F0        		and #%11110000
+0000E4r 2  45 rr        		eor joy1_prev
+0000E6r 2  85 rr        		sta joy1
+0000E8r 2               
+0000E8r 2               @GET_PUSHSTART_BTN:
+0000E8r 2               		; set pushstart
+0000E8r 2  A5 rr        		lda joy1_prev
+0000EAr 2  49 FF        		eor #%11111111
+0000ECr 2  25 rr        		and joy1
+0000EEr 2  85 rr        		sta joy1_pushstart
+0000F0r 2  A5 rr        		lda joy2_prev
+0000F2r 2  49 FF        		eor #%11111111
+0000F4r 2  25 rr        		and joy2
+0000F6r 2  85 rr        		sta joy2_pushstart
+0000F8r 2               
+0000F8r 2  60           		rts	; --------------------------
+0000F9r 2               
+0000F9r 2               
+0000F9r 2               ;*------------------------------------------------------------------------------
+0000F9r 2               ; Read controller
+0000F9r 2               ; @PARAM void
+0000F9r 2               ; @BREAK A
+0000F9r 2               ; @RETURN void
+0000F9r 2               ;*------------------------------------------------------------------------------
+0000F9r 2               
+0000F9r 2               _readJoy:
+0000F9r 2               		; Init controller & Set a ring counter
+0000F9r 2  A9 01        		lda #1
+0000FBr 2  8D 16 40     		sta JOYPAD1
+0000FEr 2  85 rr        		sta joy2						; ring counter
+000100r 2  4A           		lsr								; A = 0
+000101r 2  8D 16 40     		sta JOYPAD1
+000104r 2               
+000104r 2               @READ_JOY_LOOP:
+000104r 2  AD 16 40     		lda JOYPAD1
+000107r 2  29 03        		and #%00000011
+000109r 2  C9 01        		cmp #$01						; A - 1 = A + 0xff; if A > 0 then Carry=1
+00010Br 2  26 rr        		rol joy1						; Carry -> bit 0; bit 7 -> Carry
+00010Dr 2  AD 17 40     		lda JOYPAD2
+000110r 2  29 03        		and #%00000011
+000112r 2  C9 01        		cmp #$01
+000114r 2  26 rr        		rol joy2
+000116r 2  90 EC        		bcc @READ_JOY_LOOP				; CarryON -> end
+000118r 2  60           		rts	; --------------------------
+000119r 2               
+000119r 1               
+000119r 1               .segment "HEADER"
 000000r 1  4E 45 53 1A  		.byte $4e, $45, $53, $1a
 000004r 1  02           		.byte $02						; program bank
 000005r 1  01           		.byte $01						; charactor bank
@@ -479,7 +474,7 @@ Current file: pacman.asm
 00000Cr 1  00 00 00 00  		.byte $00, $00, $00, $00
 000010r 1               
 000010r 1               .code
-000116r 1               .segment "STARTUP"
+000119r 1               .segment "STARTUP"
 000000r 1               .proc RESET
 000000r 1  78 D8 A2 FF  		init
 000004r 1  9A E8 8E 00  
