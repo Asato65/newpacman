@@ -1,0 +1,521 @@
+ca65 V2.19 - Git de30a57
+Main file   : pacman.asm
+Current file: pacman.asm
+
+000000r 1               .setcpu "6502"
+000000r 1               .feature c_comments
+000000r 1               
+000000r 1               .rodata									; ----- data -----
+000000r 1               .include "inc/const.inc"
+000000r 2               BTN_A									= %10000000
+000000r 2               BTN_B									= %01000000
+000000r 2               BTN_S									= %00100000
+000000r 2               BTN_T									= %00010000
+000000r 2               BTN_U									= %00001000
+000000r 2               BTN_D									= %00000100
+000000r 2               BTN_L									= %00000010
+000000r 2               BTN_R									= %00000001
+000000r 2               
+000000r 2               PPU_END_CODE							= %11111111			; $ff
+000000r 2               PPU_VERTICAL_MODE						= %11111110			; $fe
+000000r 2               PPU_HORIZONTAL_MODE						= %11111100			; $fc
+000000r 2               PPU_SP_CODE								= %11111000			; special code
+000000r 2               
+000000r 2               PPU_CTRL1_STD							= %10010000		; |NMION|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCRN$2000(2)|
+000000r 2               PPU_CTRL2_STD							= %00011110		; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8SPR|SHOW-L8BG|MODE=COLOR|
+000000r 2               
+000000r 1               .include "inc/const_addr.inc"
+000000r 2               ZP					= $00
+000000r 2               CHR_DATA			= $0300
+000000r 2               MAP1_DATA			= $0400
+000000r 2               MAP2_DATA			= $0500
+000000r 2               PPU_UPDATE_DATA		= $0600
+000000r 2               
+000000r 2               PLT_TABLE_ADDR		= $3f
+000000r 2               
+000000r 2               PPU_CTRL1			= $2000
+000000r 2               PPU_CTRL2			= $2001
+000000r 2               PPU_STATUS			= $2002
+000000r 2               OAM_ADDR			= $2003
+000000r 2               OAM_DATA			= $2004
+000000r 2               PPU_SCROLL			= $2005
+000000r 2               PPU_ADDR			= $2006
+000000r 2               PPU_DATA			= $2007
+000000r 2               OAM_DMA				= $4014
+000000r 2               
+000000r 2               /*
+000000r 2               SOUND_SQ1_1			= $4000		; Duty(2)|時間カウンタ|音響変化|ボリューム(4)
+000000r 2               SOUND_SQ1_2			= $4001		; 周波数変化|変化速度(3)|変化方向|変化範囲(3)
+000000r 2               SOUND_SQ1_3			= $4002		; 周波数下位
+000000r 2               SOUND_SQ1_4			= $4003		; 再生時間(5)|周波数上位(3)
+000000r 2               SOUND_SQ2_1			= $4004
+000000r 2               SOUND_SQ2_2			= $4005
+000000r 2               SOUND_SQ2_3			= $4006
+000000r 2               SOUND_SQ2_4			= $4007
+000000r 2               SOUND_TR_1			= $4008		; 再生時間カウンタ|カウンタを使用した長さ(7)
+000000r 2               SOUND_TR_2			= $400A		; 周波数下位
+000000r 2               SOUND_TR_3			= $400B		; 再生時間(5)|周波数上位(3)
+000000r 2               SOUND_NS_1			= $400C		; 未使用(2)|再生時間カウンタ|音響固定|ボリューム(3)
+000000r 2               SOUND_NS_2			= $400E		; 乱数タイプ(高周波)|未使用(3)|サンプルレート(4)
+000000r 2               SOUND_NS_3			= $400F		; 再生時間(5)|未使用(3)
+000000r 2               SOUND_CHANNEL		= $4015		; 未使用(3)|DPCM|ノイズ|三角波|CH2|CH1
+000000r 2               */
+000000r 2               
+000000r 2               JOYPAD1				= $4016
+000000r 2               JOYPAD2				= $4017
+000000r 2               
+000000r 1               .include "inc/var_addr.inc"
+000000r 2               ; ZeroPage
+000000r 2               .segment "ZEROPAGE"
+000000r 2  01           tmp1						: .byte 1
+000001r 2  01           tmp2						: .byte 1
+000002r 2  01           tmp3						: .byte 1
+000003r 2  01           scroll_x					: .byte 1
+000004r 2  01           scroll_y					: .byte 1
+000005r 2  01           ppu_ctrl1_cpy				: .byte 1	; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000(2)|
+000006r 2  01           ppu_ctrl2_cpy				: .byte 1	; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+000007r 2               
+000007r 2  01           joy1						: .byte 1
+000008r 2  01           joy2						: .byte 1
+000009r 2  01           joy1_prev					: .byte 1
+00000Ar 2  01           joy2_prev					: .byte 1
+00000Br 2  01           joy1_pushstart				: .byte 1
+00000Cr 2  01           joy2_pushstart				: .byte 1
+00000Dr 2               
+00000Dr 2  01           ppu_update_data_pointer		: .byte 1
+00000Er 2               
+00000Er 2               nmi_cnt				= $fd
+00000Er 2               frm_cnt				= $fe
+00000Er 2               isend_main			= $ff
+00000Er 2               
+00000Er 2               .code
+000000r 2               
+000000r 2               
+000000r 2               ; LABEL: .res Len FillVal
+000000r 2               
+000000r 1               .include "inc/palette.inc"
+000000r 2               DEFAULT_PLT:
+000000r 2               		; BG
+000000r 2  22 17 36 0F  		.byte $22,$17,$36,$0f
+000004r 2  00 28 17 07  		.byte $00,$28,$17,$07
+000008r 2  00 22 00 00  		.byte $00,$22,$00,$00
+00000Cr 2  00 00 00 00  		.byte $00,$00,$00,$00
+000010r 2               		; SPR
+000010r 2  22 16 27 18  		.byte $22,$16,$27,$18
+000014r 2  00 00 00 00  		.byte $00,$00,$00,$00
+000018r 2  00 00 00 00  		.byte $00,$00,$00,$00
+00001Cr 2  00 00 00 00  		.byte $00,$00,$00,$00
+000020r 2               
+000020r 1               
+000020r 1               .include "main.asm"
+000020r 2               ;*------------------------------------------------------------------------------
+000020r 2               ; メイン関数
+000020r 2               ;*------------------------------------------------------------------------------
+000020r 2               
+000020r 2               .proc MAIN
+000020r 2  A5 FF        		lda isend_main
+000022r 2  D0 FC        		bne MAIN
+000024r 2               
+000024r 2  20 rr rr     		jsr _getJoyData
+000027r 2               
+000027r 2               		; chr disp program
+000027r 2               		; TODO: cycle count
+000027r 2               		; addr AB       CD
+000027r 2               		;       or
+000027r 2               		; addr AB addr CD
+000027r 2               
+000027r 2  A2 00        		ldx #0
+000029r 2  86 rr        		stx ppu_update_data_pointer
+00002Br 2               
+00002Br 2  A9 FC        		lda #%11111100					; horizontal
+00002Dr 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000030r 2  E8           		inx
+000031r 2               
+000031r 2  A9 20        		lda #$20
+000033r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000036r 2  E8           		inx
+000037r 2  A9 40        		lda #$40
+000039r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+00003Cr 2  E8           		inx
+00003Dr 2               
+00003Dr 2  A9 41        		lda #'A'
+00003Fr 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000042r 2  E8           		inx
+000043r 2  A9 42        		lda #'B'
+000045r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000048r 2  E8           		inx
+000049r 2  A9 43        		lda #'C'
+00004Br 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+00004Er 2  E8           		inx
+00004Fr 2               
+00004Fr 2  A9 FE        		lda #%11111110					; vertical
+000051r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000054r 2  E8           		inx
+000055r 2               
+000055r 2  A9 22        		lda #$22
+000057r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+00005Ar 2  E8           		inx
+00005Br 2  A9 80        		lda #$80
+00005Dr 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000060r 2  E8           		inx
+000061r 2               
+000061r 2  A9 31        		lda #'1'
+000063r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000066r 2  E8           		inx
+000067r 2               
+000067r 2  A9 32        		lda #'2'
+000069r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+00006Cr 2  E8           		inx
+00006Dr 2               
+00006Dr 2  A9 33        		lda #'3'
+00006Fr 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+000072r 2  E8           		inx
+000073r 2               
+000073r 2  86 rr        		stx ppu_update_data_pointer
+000075r 2               
+000075r 2               		; endcode
+000075r 2               
+000075r 2               		; end main
+000075r 2               		; TODO: check pointer overflow
+000075r 2  A6 rr        		ldx ppu_update_data_pointer
+000077r 2  A9 FF        		lda #PPU_END_CODE
+000079r 2  9D 00 06     		sta PPU_UPDATE_DATA, x
+00007Cr 2  E8           		inx
+00007Dr 2               
+00007Dr 2  A9 01        		lda #1
+00007Fr 2  85 FF        		sta isend_main
+000081r 2               
+000081r 2  4C rr rr     		jmp MAIN
+000084r 2               .endproc
+000084r 2               
+000084r 1               .include "./asm/init.asm"
+000084r 2               .macro init
+000084r 2               	sei									; IRQ禁止
+000084r 2               	cld									; BCD禁止
+000084r 2               	; NesDevではAPUのフレームIRQを無効にしているが，特定のマッパーでのみ有効
+000084r 2               	ldx #$ff
+000084r 2               	txs
+000084r 2               	inx
+000084r 2               	stx PPU_CTRL1						; NMI無効化
+000084r 2               	stx PPU_CTRL2						; 描画停止
+000084r 2               	stx $4010							; APU DMCのIRQ（bit7）無効化
+000084r 2               
+000084r 2               	/*
+000084r 2               	A & $2002の結果でZ（ゼロフラグ）設定
+000084r 2               	$2002のbit7 -> N（ネガティブフラグ）, bit6 -> V（オーバーフロー）に入る
+000084r 2               	$2002のbit7にはVblank，bit6は0爆弾の状態が入っている
+000084r 2               	リセット後のこのフラグは，状態が不定なので，一回bit命令でリセットが出来るらしい
+000084r 2               	*/
+000084r 2               	bit $2002
+000084r 2               
+000084r 2               	; Vblank待機1回目
+000084r 2               @VBLANK_WAIT1:
+000084r 2               	bit $2002
+000084r 2               	bpl @VBLANK_WAIT1
+000084r 2               
+000084r 2               	; PPUが安定するまで約30,000サイクルの時間がある -> この間にRAMリセット
+000084r 2               
+000084r 2               	txa									; X = A = 0
+000084r 2               @CLR_MEM:
+000084r 2               	sta $00, x
+000084r 2               	sta $0100, x
+000084r 2               	sta $0200, x
+000084r 2               	sta $0400, x
+000084r 2               	sta $0500, x
+000084r 2               	sta $0600, x
+000084r 2               	sta $0700, x
+000084r 2               	inx
+000084r 2               	bne @CLR_MEM
+000084r 2               
+000084r 2               	lda #$ff
+000084r 2               @CLR_CHR_MEM:
+000084r 2               	sta $0300, x
+000084r 2               	inx
+000084r 2               	bne @CLR_CHR_MEM
+000084r 2               
+000084r 2               	; ここで必要なメモリの初期化
+000084r 2               	lda #%10010000						; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
+000084r 2               	sta ppu_ctrl1_cpy
+000084r 2               	lda #%00011110						; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+000084r 2               	sta ppu_ctrl2_cpy
+000084r 2               
+000084r 2               	; Vblank待機2回目
+000084r 2               @VBLANK_WAIT2:
+000084r 2               	bit $2002
+000084r 2               	bpl @VBLANK_WAIT2
+000084r 2               
+000084r 2               	; パレットテーブル転送
+000084r 2               	lda #PLT_TABLE_ADDR				; HIGH
+000084r 2               	sta PPU_ADDR
+000084r 2               	lda #0				; LOW
+000084r 2               	sta PPU_ADDR
+000084r 2               	tax
+000084r 2               @TFR_PAL:								; TFR = transfar
+000084r 2               	lda DEFAULT_PLT, x
+000084r 2               	sta PPU_DATA
+000084r 2               	inx
+000084r 2               	cpx #$20
+000084r 2               	bne @TFR_PAL
+000084r 2               
+000084r 2               	lda #0
+000084r 2               	sta OAM_ADDR
+000084r 2               	lda #$03
+000084r 2               	sta OAM_DMA
+000084r 2               
+000084r 2               	; スクリーンON
+000084r 2               	jsr _restorePPUSet
+000084r 2               
+000084r 2               	jsr _setScroll
+000084r 2               
+000084r 2               .endmacro
+000084r 2               
+000084r 1               .include "./asm/ppu.asm"
+000084r 2               ;*------------------------------------------------------------------------------
+000084r 2               ; Set scroll position
+000084r 2               ; Use during NMI or executing raster scroll.
+000084r 2               ; @PARAM void
+000084r 2               ; @BREAK A
+000084r 2               ; @RETURN void
+000084r 2               ;*------------------------------------------------------------------------------
+000084r 2               
+000084r 2               _setScroll:
+000084r 2  A5 rr        	lda scroll_x
+000086r 2  8D 05 20     	sta PPU_SCROLL
+000089r 2  A5 rr        	lda scroll_y
+00008Br 2  8D 05 20     	sta PPU_SCROLL
+00008Er 2  60           	rts	; ------------------------------
+00008Fr 2               
+00008Fr 1               .include "./asm/macro.asm"
+00008Fr 2               ;*------------------------------------------------------------------------------
+00008Fr 2               ; 割り込み等でレジスタの内容を保存する
+00008Fr 2               ; @PARAM void
+00008Fr 2               ; @BREAK void
+00008Fr 2               ; @RETURN void
+00008Fr 2               ;*------------------------------------------------------------------------------
+00008Fr 2               
+00008Fr 2               .macro registerSave
+00008Fr 2               		php
+00008Fr 2               		pha
+00008Fr 2               		txa
+00008Fr 2               		pha
+00008Fr 2               		tya
+00008Fr 2               		pha
+00008Fr 2               .endmacro
+00008Fr 2               
+00008Fr 2               ;*------------------------------------------------------------------------------
+00008Fr 2               ; 割り込み等終了時にレジスタの内容をリストアする
+00008Fr 2               ; @PARAM void
+00008Fr 2               ; @BREAK void
+00008Fr 2               ; @RETURN void
+00008Fr 2               ;*------------------------------------------------------------------------------
+00008Fr 2               
+00008Fr 2               .macro registerLoad
+00008Fr 2               		pla
+00008Fr 2               		tay
+00008Fr 2               		pla
+00008Fr 2               		tax
+00008Fr 2               		pla
+00008Fr 2               		plp
+00008Fr 2               .endmacro
+00008Fr 2               
+00008Fr 1               
+00008Fr 1               .include "./asm/nmi.asm"
+00008Fr 2               ;*------------------------------------------------------------------------------
+00008Fr 2               ; PPU_UPDATE_DATAを読み取り，指定アドレスに書き込んでカウンタをインクリメント
+00008Fr 2               ; Read PPU update data & store to PPU
+00008Fr 2               ; @PARAM ADDR forwarding address
+00008Fr 2               ; @BREAK A, X
+00008Fr 2               ; @RETURN void
+00008Fr 2               ;*------------------------------------------------------------------------------
+00008Fr 2               
+00008Fr 2               .macro tfrDataToPPU ADDR
+00008Fr 2               	lda PPU_UPDATE_DATA, x
+00008Fr 2               	sta ADDR
+00008Fr 2               	inx
+00008Fr 2               .endmacro
+00008Fr 2               
+00008Fr 2               ; memo
+00008Fr 2               ; データ構造
+00008Fr 2               ; r: データの書き込みの方向 -> 0b111111[0/1]0 -> 0xFC（横方向）/0xFE（縦方向）
+00008Fr 2               ; e: エンドコード -> 0b11111111 -> 0xFF
+00008Fr 2               ; a: addr
+00008Fr 2               ; d: data
+00008Fr 2               ; r a a d d d ... d r a a d d ... d e
+00008Fr 2               
+00008Fr 2               
+00008Fr 2               ;*------------------------------------------------------------------------------
+00008Fr 2               ; NMI (Interrupt)
+00008Fr 2               ;*------------------------------------------------------------------------------
+00008Fr 2               
+00008Fr 2               .proc NMI
+00008Fr 2  08 48 8A 48  		registerSave
+000093r 2  98 48        
+000095r 2  E6 FD        		inc nmi_cnt
+000097r 2  A5 FF        		lda isend_main
+000099r 2  F0 41        		beq @EXIT
+00009Br 2               
+00009Br 2  E6 FE        		inc frm_cnt
+00009Dr 2               
+00009Dr 2  A2 00        		ldx #0
+00009Fr 2               @SET_MODE:
+00009Fr 2  BD 00 06     		lda PPU_UPDATE_DATA, x
+0000A2r 2  C9 FF        		cmp #PPU_END_CODE
+0000A4r 2  F0 36        		beq @EXIT
+0000A6r 2  10 14        		bpl @SET_ADDR					; 0xff~0x7e => @SET_ADDR
+0000A8r 2  C9 FC        		cmp #%11111100					; $fc
+0000AAr 2  30 10        		bmi @SET_ADDR					; 0xfc~0xff = plus, 0x7c~0xfb => @SET_ADDR
+0000ACr 2  29 02        		and #%00000010					; Get mode
+0000AEr 2  0A           		asl
+0000AFr 2  85 rr        		sta tmp1						; Start using tmp1
+0000B1r 2  A5 rr        		lda ppu_ctrl1_cpy
+0000B3r 2  29 FB        		and #%11111011
+0000B5r 2  05 rr        		ora tmp1						; End using tmp1
+0000B7r 2  85 rr        		sta ppu_ctrl1_cpy
+0000B9r 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
+0000BCr 2               @SET_ADDR:
+0000BCr 2  E8           		inx								; Not do inx when go to @EXIT
+0000BDr 2  BD 00 06     		lda PPU_UPDATE_DATA, x
+0000C0r 2  8D 06 20     		sta PPU_ADDR
+0000C3r 2  E8           		inx
+0000C4r 2  BD 00 06     		lda PPU_UPDATE_DATA, x
+0000C7r 2  8D 06 20     		sta PPU_ADDR
+0000CAr 2  E8           		inx
+0000CBr 2               @STORE_DATA:
+0000CBr 2  BD 00 06     		lda PPU_UPDATE_DATA, x
+0000CEr 2  A8           		tay
+0000CFr 2  29 F8        		and #PPU_SP_CODE
+0000D1r 2  C9 F8        		cmp #PPU_SP_CODE
+0000D3r 2  F0 CA        		beq @SET_MODE					; no inx
+0000D5r 2  98           		tya
+0000D6r 2  8D 07 20     		sta PPU_DATA
+0000D9r 2  E8           		inx
+0000DAr 2  D0 EF        		bne @STORE_DATA
+0000DCr 2               
+0000DCr 2               @EXIT:
+0000DCr 2  A9 00        		lda #0
+0000DEr 2  85 FF        		sta isend_main
+0000E0r 2  20 rr rr     		jsr _setScroll
+0000E3r 2  68 A8 68 AA  		registerLoad
+0000E7r 2  68 28        
+0000E9r 2  40           		rti	; --------------------------
+0000EAr 2               .endproc
+0000EAr 2               
+0000EAr 1               .include "./asm/sub.asm"
+0000EAr 2               ;*------------------------------------------------------------------------------
+0000EAr 2               ; Restore PPU setting
+0000EAr 2               ; @PARAM void
+0000EAr 2               ; @BREAK A
+0000EAr 2               ; @RETURN void
+0000EAr 2               ;*------------------------------------------------------------------------------
+0000EAr 2               
+0000EAr 2               _restorePPUSet:
+0000EAr 2  A5 rr        		lda ppu_ctrl1_cpy
+0000ECr 2  8D 00 20     		sta PPU_CTRL1
+0000EFr 2  A5 rr        		lda ppu_ctrl2_cpy
+0000F1r 2  8D 01 20     		sta PPU_CTRL2
+0000F4r 2  60           		rts	; --------------------------
+0000F5r 2               
+0000F5r 2               
+0000F5r 2               ;*------------------------------------------------------------------------------
+0000F5r 2               ; Get Joypad data (including prev and newly pushed btn)
+0000F5r 2               ; @PARAM void
+0000F5r 2               ; @BREAK A
+0000F5r 2               ; @RETURN void
+0000F5r 2               ;*------------------------------------------------------------------------------
+0000F5r 2               
+0000F5r 2               _getJoyData:
+0000F5r 2               		; set prev
+0000F5r 2  A5 rr        		lda joy1
+0000F7r 2  85 rr        		sta joy1_prev
+0000F9r 2  A5 rr        		lda joy2
+0000FBr 2  85 rr        		sta joy2_prev
+0000FDr 2               
+0000FDr 2  20 rr rr     		jsr _readJoy
+000100r 2               
+000100r 2  A5 rr        		lda joy1
+000102r 2  29 0A        		and #BTN_U|BTN_L				; Compare Up and Left...
+000104r 2  4A           		lsr
+000105r 2  25 rr        		and joy1						; to Down and Right
+000107r 2  F0 0A        		beq @GET_PUSHSTART_BTN
+000109r 2               		; Use previous frame's directions
+000109r 2  A5 rr        		lda joy1
+00010Br 2  45 rr        		eor joy1_prev
+00010Dr 2  29 F0        		and #%11110000
+00010Fr 2  45 rr        		eor joy1_prev
+000111r 2  85 rr        		sta joy1
+000113r 2               
+000113r 2               @GET_PUSHSTART_BTN:
+000113r 2               		; set pushstart
+000113r 2  A5 rr        		lda joy1_prev
+000115r 2  49 FF        		eor #%11111111
+000117r 2  25 rr        		and joy1
+000119r 2  85 rr        		sta joy1_pushstart
+00011Br 2  A5 rr        		lda joy2_prev
+00011Dr 2  49 FF        		eor #%11111111
+00011Fr 2  25 rr        		and joy2
+000121r 2  85 rr        		sta joy2_pushstart
+000123r 2               
+000123r 2  60           		rts	; --------------------------
+000124r 2               
+000124r 2               
+000124r 2               ;*------------------------------------------------------------------------------
+000124r 2               ; Read controller
+000124r 2               ; @PARAM void
+000124r 2               ; @BREAK A
+000124r 2               ; @RETURN void
+000124r 2               ;*------------------------------------------------------------------------------
+000124r 2               
+000124r 2               _readJoy:
+000124r 2               		; Init controller & Set a ring counter
+000124r 2  A9 01        		lda #1
+000126r 2  8D 16 40     		sta JOYPAD1
+000129r 2  85 rr        		sta joy2						; ring counter
+00012Br 2  4A           		lsr								; A = 0
+00012Cr 2  8D 16 40     		sta JOYPAD1
+00012Fr 2               
+00012Fr 2               @READ_JOY_LOOP:
+00012Fr 2  AD 16 40     		lda JOYPAD1
+000132r 2  29 03        		and #%00000011
+000134r 2  C9 01        		cmp #$01						; A - 1 = A + 0xff; if A > 0 then Carry=1
+000136r 2  26 rr        		rol joy1						; Carry -> bit 0; bit 7 -> Carry
+000138r 2  AD 17 40     		lda JOYPAD2
+00013Br 2  29 03        		and #%00000011
+00013Dr 2  C9 01        		cmp #$01
+00013Fr 2  26 rr        		rol joy2
+000141r 2  90 EC        		bcc @READ_JOY_LOOP				; CarryON -> end
+000143r 2  60           		rts	; --------------------------
+000144r 2               
+000144r 1               
+000144r 1               .segment "HEADER"
+000000r 1  4E 45 53 1A  		.byte $4e, $45, $53, $1a
+000004r 1  02           		.byte $02						; program bank
+000005r 1  01           		.byte $01						; charactor bank
+000006r 1  01           		.byte $01						; vartical mirror
+000007r 1  00           		.byte $00
+000008r 1  00 00 00 00  		.byte $00, $00, $00, $00
+00000Cr 1  00 00 00 00  		.byte $00, $00, $00, $00
+000010r 1               
+000010r 1               .code
+000144r 1               .segment "STARTUP"
+000000r 1               .proc RESET
+000000r 1  78 D8 A2 FF  		init
+000004r 1  9A E8 8E 00  
+000008r 1  20 8E 01 20  
+00006Ar 1               
+00006Ar 1  4C rr rr     		jmp MAIN
+00006Dr 1               .endproc
+00006Dr 1               
+00006Dr 1               .proc IRQ
+00006Dr 1  40           		rti
+00006Er 1               .endproc
+00006Er 1               
+00006Er 1               .segment "CHARS"
+000000r 1  00 E0 E0 C0  		.incbin "spr_bg.chr"
+000004r 1  80 00 00 00  
+000008r 1  00 00 00 00  
+002000r 1               
+002000r 1               .segment "VECINFO"
+000000r 1  rr rr        		.word NMI
+000002r 1  rr rr        		.word RESET
+000004r 1  rr rr        		.word IRQ
+000004r 1               

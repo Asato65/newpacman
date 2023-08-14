@@ -3,14 +3,12 @@
 ;*------------------------------------------------------------------------------
 
 .proc MAIN
-		lda #0
-		sta isend_main
+		lda isend_main
+		bne MAIN
 
-		jsr getJoyData
+		jsr _getJoyData
 
 		; chr disp program
-		; AB -> horizontal
-		; 12 -> vertical
 		; TODO: cycle count
 		; addr AB       CD
 		;       or
@@ -36,6 +34,9 @@
 		lda #'B'
 		sta PPU_UPDATE_DATA, x
 		inx
+		lda #'C'
+		sta PPU_UPDATE_DATA, x
+		inx
 
 		lda #%11111110					; vertical
 		sta PPU_UPDATE_DATA, x
@@ -55,6 +56,12 @@
 		lda #'2'
 		sta PPU_UPDATE_DATA, x
 		inx
+
+		lda #'3'
+		sta PPU_UPDATE_DATA, x
+		inx
+
+		stx ppu_update_data_pointer
 
 		; endcode
 

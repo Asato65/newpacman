@@ -5,7 +5,7 @@
 ; @RETURN void
 ;*------------------------------------------------------------------------------
 
-restorePPUSet:
+_restorePPUSet:
 		lda ppu_ctrl1_cpy
 		sta PPU_CTRL1
 		lda ppu_ctrl2_cpy
@@ -20,14 +20,14 @@ restorePPUSet:
 ; @RETURN void
 ;*------------------------------------------------------------------------------
 
-getJoyData:
+_getJoyData:
 		; set prev
 		lda joy1
 		sta joy1_prev
 		lda joy2
 		sta joy2_prev
 
-		jsr readJoy
+		jsr _readJoy
 
 		lda joy1
 		and #BTN_U|BTN_L				; Compare Up and Left...
@@ -52,6 +52,8 @@ getJoyData:
 		and joy2
 		sta joy2_pushstart
 
+		rts	; --------------------------
+
 
 ;*------------------------------------------------------------------------------
 ; Read controller
@@ -60,13 +62,13 @@ getJoyData:
 ; @RETURN void
 ;*------------------------------------------------------------------------------
 
-readJoy:
+_readJoy:
 		; Init controller & Set a ring counter
 		lda #1
 		sta JOYPAD1
 		sta joy2						; ring counter
 		lsr								; A = 0
-		sta JOYPAD2
+		sta JOYPAD1
 
 @READ_JOY_LOOP:
 		lda JOYPAD1

@@ -24,13 +24,13 @@
 		.byte $00, $00, $00, $00
 		.byte $00, $00, $00, $00
 
+.code
 .segment "STARTUP"
 .proc RESET
 		init
 
 		jmp MAIN
 .endproc
-
 
 .proc IRQ
 		rti
@@ -39,7 +39,7 @@
 .segment "CHARS"
 		.incbin "spr_bg.chr"
 
-.segment "VECTORS"
+.segment "VECINFO"
 		.word NMI
 		.word RESET
 		.word IRQ

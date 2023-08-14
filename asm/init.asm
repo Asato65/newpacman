@@ -72,8 +72,8 @@
 	sta OAM_DMA
 
 	; スクリーンON
-	jsr restorePPUSet
+	jsr _restorePPUSet
 
-	jsr setScroll
+	jsr _setScroll
 
 .endmacro

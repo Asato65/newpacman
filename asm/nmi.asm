@@ -32,67 +32,31 @@
 		beq @EXIT
 
 		inc frm_cnt
+
 		ldx #0
 @SET_MODE:
 		lda PPU_UPDATE_DATA, x
 		cmp #PPU_END_CODE
 		beq @EXIT
-		inx								; inx before branching
-		cmp #PPU_HORIZONTAL_MODE
-		beq @HORIZON
-		cmp #PPU_VERTICAL_MODE
-		beq @VERTICAL
-		bne @SET_ADDR
-@HORIZON:
-		lda #%00000000
-		beq @SET_PPU_CTRL
-@VERTICAL:
-		lda #%00000010
-@SET_PPU_CTRL:
-		sta tmp1
+		bpl @SET_ADDR					; 0xff~0x7e => @SET_ADDR
+		cmp #%11111100					; $fc
+		bmi @SET_ADDR					; 0xfc~0xff = plus, 0x7c~0xfb => @SET_ADDR
+		and #%00000010					; Get mode
+		asl
+		sta tmp1						; Start using tmp1
 		lda ppu_ctrl1_cpy
-		and #PPU_SP_CODE|1				; Mask the bit 1
-		ora tmp1						; Insert vertical/horizon mode in bit1
+		and #%11111011
+		ora tmp1						; End using tmp1
 		sta ppu_ctrl1_cpy
-
-/*
-Short ver.
-; Insert after inx
-01		tay
-02		and #%11111100					; Mask bit 0 and 1
-03		cmp #%11111100
-04		bne @SET_ADDR					; beq => 0b111111XX(0xfc~0xff)
-05		tya
-06		and #%00000010
-07		sta tmp1						; Start using tmp1
-08		lda ppu_ctrl1_cpy
-09		and #%11111101
-10		ora tmp1						; End using tmp1
-11		sta ppu_ctrl1_cpy
-
-Shorter ver.
-; Move inx to the beginning of @SET_ADDR
-01		bpl @SET_ADDR					; 0x00~0x7f => @SET_ADDR
-02		cmp #%11111100					; $fc
-03		bmi @SET_ADDR					; 0xfc~0xff = plus, 0x80~0xfb => @SET_ADDR
-04		and #%00000010					; Get flag
-05		sta tmp1						; Start using tmp1
-06		lda ppu_ctrl1_cpy
-07		and #%11111101
-08		ora tmp1						; End using tmp1
-09		sta ppu_ctrl1_cpy
-
-*/
-
+		sta PPU_CTRL1					; Not use restorePPUSet()
 @SET_ADDR:
+		inx								; Not do inx when go to @EXIT
 		lda PPU_UPDATE_DATA, x
 		sta PPU_ADDR
 		inx
-
 		lda PPU_UPDATE_DATA, x
 		sta PPU_ADDR
 		inx
-
 @STORE_DATA:
 		lda PPU_UPDATE_DATA, x
 		tay
@@ -105,6 +69,9 @@ Shorter ver.
 		bne @STORE_DATA
 
 @EXIT:
+		lda #0
+		sta isend_main
+		jsr _setScroll
 		registerLoad
 		rti	; --------------------------
 .endproc
