@@ -8,12 +8,6 @@
 
 		jsr _getJoyData
 
-		; chr disp program
-		; TODO: cycle count
-		; addr AB       CD
-		;       or
-		; addr AB addr CD
-
 		ldx #0
 		stx ppu_update_data_pointer
 
@@ -29,8 +23,7 @@
 
 		; endcode
 
-		; end main
-		; TODO: check pointer overflow
+		; ----- End main -----
 		ldx ppu_update_data_pointer
 		lda #PPU_END_CODE
 		sta PPU_UPDATE_DATA, x

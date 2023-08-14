@@ -154,12 +154,12 @@ Current file: pacman.asm
 000049r 2               
 000049r 2               PPU_DATA_ARR:
 000049r 2  FC           		.byte %11111100					; horizontal
-00004Ar 2  20 40        		.dbyt $2040
+00004Ar 2  20 40        		.dbyt $2040						; dbyt = Define BYTe?: Define word sized data with the hi and lo bytes swapped. ($1234 = $12, $34)
 00004Cr 2  41 42 43     		.byte "ABC"
 00004Fr 2  FE           		.byte %11111110					; vertical
-000050r 2  22 80        		.byte >$2280, <$2280
+000050r 2  22 80        		.dbyt $2280
 000052r 2  31 32 33     		.byte "123"
-000055r 2  FF           		.byte $ff
+000055r 2  FF           		.byte $ff						; loop end code
 000056r 2               
 000056r 1               .include "./asm/init.asm"
 000056r 2               .macro init
@@ -363,6 +363,16 @@ Current file: pacman.asm
 0000A8r 2  8D 07 20     		sta PPU_DATA
 0000ABr 2  E8           		inx
 0000ACr 2  D0 EF        		bne @STORE_DATA
+0000AEr 2               
+0000AEr 2               		; @SET_MODE + @SET_ADDR = 56 cycle
+0000AEr 2               		; @STORE_DATA (return @STORE_DATA) = 22 cycle
+0000AEr 2               		; @STORE_DATA (return @SET_MODE) = 15 cycle
+0000AEr 2               
+0000AEr 2               		; str1 = "A  B"  => 56 + space_len * 22 cycle
+0000AEr 2               		; |  len  || 1  |  2  |  3  |  4  |  5  |
+0000AEr 2               		; | cycle || 78 | 100 | 122 | 144 | 166 |
+0000AEr 2               		; str2 = 'A', str3 = 'B' => (56 + 15) * 2 = 78 * 2 = 142 cycle
+0000AEr 2               		; str1 max space length = 4
 0000AEr 2               
 0000AEr 2               @EXIT:
 0000AEr 2  A9 00        		lda #0

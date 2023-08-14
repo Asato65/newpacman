@@ -68,6 +68,16 @@
 		inx
 		bne @STORE_DATA
 
+		; @SET_MODE + @SET_ADDR = 56 cycle
+		; @STORE_DATA (return @STORE_DATA) = 22 cycle
+		; @STORE_DATA (return @SET_MODE) = 15 cycle
+
+		; str1 = "A  B"  => 56 + space_len * 22 cycle
+		; |  len  || 1  |  2  |  3  |  4  |  5  |
+		; | cycle || 78 | 100 | 122 | 144 | 166 |
+		; str2 = 'A', str3 = 'B' => (56 + 15) * 2 = 78 * 2 = 142 cycle
+		; str1 max space length = 4
+
 @EXIT:
 		lda #0
 		sta isend_main
