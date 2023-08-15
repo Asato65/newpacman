@@ -84,3 +84,9 @@
 
 ; TODO: add/sub with X, Y register
 ; 足し引きする数によって分岐（+1 -> inx, +10 -> txa, add）
+
+.macro adx
+.endmacro
+
+.macro sbx
+.endmacro
