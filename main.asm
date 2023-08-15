@@ -9,7 +9,7 @@
 		jsr _getJoyData
 
 		ldx #0
-		ldy #12
+		ldy #PPU_DATA_ARR_END - PPU_DATA_ARR
 		stx ppu_update_data_pointer
 
 @STORE_PPU_DATA_LOOP:
@@ -21,6 +21,8 @@
 		bne @STORE_PPU_DATA_LOOP
 @END_STORE:
 		stx ppu_update_data_pointer
+
+
 
 		; endcode
 
@@ -39,8 +41,9 @@
 
 PPU_DATA_ARR:
 		.byte %11111110					; horizontal
-		.dbyt $2040						; dbyt = Define BYTe?: Define word sized data with the hi and lo bytes swapped. ($1234 = $12, $34)
+		.dbyt $2043						; dbyt=Define BYTe?: Define word data with the hi & lo bytes swapped.($1234=$12,$34)
 		.byte "ABC"
 		.byte %11111111					; vertical
 		.dbyt $2280
-		.byte "123"
+		.byte "123456789A"
+PPU_DATA_ARR_END:

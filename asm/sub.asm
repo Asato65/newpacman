@@ -1,8 +1,8 @@
 ;*------------------------------------------------------------------------------
 ; Restore PPU setting
-; @PARAM void
-; @BREAK A
-; @RETURN void
+; @PARAM	None
+; @BREAK	A
+; @RETURN	None
 ;*------------------------------------------------------------------------------
 
 _restorePPUSet:
@@ -15,9 +15,9 @@ _restorePPUSet:
 
 ;*------------------------------------------------------------------------------
 ; Get Joypad data (including prev and newly pushed btn)
-; @PARAM void
-; @BREAK A
-; @RETURN void
+; @PARAM	None
+; @BREAK	A
+; @RETURN	None
 ;*------------------------------------------------------------------------------
 
 _getJoyData:
@@ -57,9 +57,9 @@ _getJoyData:
 
 ;*------------------------------------------------------------------------------
 ; Read controller
-; @PARAM void
-; @BREAK A
-; @RETURN void
+; @PARAM	None
+; @BREAK	A
+; @RETURN	None
 ;*------------------------------------------------------------------------------
 
 _readJoy:
@@ -81,3 +81,19 @@ _readJoy:
 		rol joy2
 		bcc @READ_JOY_LOOP				; CarryON -> end
 		rts	; --------------------------
+
+
+;*------------------------------------------------------------------------------
+; Set scroll position
+; Use during NMI or executing raster scroll.
+; @PARAM	None
+; @BREAK	A
+; @RETURN	None
+;*------------------------------------------------------------------------------
+
+_setScroll:
+	lda scroll_x
+	sta PPU_SCROLL
+	lda scroll_y
+	sta PPU_SCROLL
+	rts	; ------------------------------

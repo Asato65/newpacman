@@ -1,9 +1,9 @@
 ;*------------------------------------------------------------------------------
 ; PPU_UPDATE_DATAを読み取り，指定アドレスに書き込んでカウンタをインクリメント
 ; Read PPU update data & store to PPU
-; @PARAM ADDR forwarding address
-; @BREAK A, X
-; @RETURN void
+; @PARAM	ADDR(Arg): Forwarding address
+; @BREAK	A X
+; @RETURN	None
 ;*------------------------------------------------------------------------------
 
 .macro tfrDataToPPU ADDR
@@ -23,10 +23,12 @@
 
 ;*------------------------------------------------------------------------------
 ; NMI (Interrupt)
+; @BREAK X Y (When end main process.)
 ;*------------------------------------------------------------------------------
 
 .proc NMI
-		registerSave
+		php
+		pha
 		inc nmi_cnt
 		lda isend_main
 		beq @EXIT
@@ -50,6 +52,7 @@
 		ora tmp1						; End using tmp1
 		sta ppu_ctrl1_cpy
 		sta PPU_CTRL1					; Not use restorePPUSet()
+		; 31
 @SET_ADDR:
 		inx								; Not do inx when go to @EXIT
 		lda PPU_UPDATE_DATA, x
@@ -58,6 +61,7 @@
 		lda PPU_UPDATE_DATA, x
 		sta PPU_ADDR
 		inx
+		; 20
 @STORE_DATA:
 		lda PPU_UPDATE_DATA, x
 		tay
@@ -70,20 +74,29 @@
 		cpx ppu_update_data_pointer
 		bne @STORE_DATA
 
-		; @SET_MODE + @SET_ADDR = 56 cycle
-		; @STORE_DATA (return @STORE_DATA) = 22 cycle
-		; @STORE_DATA (return @SET_MODE) = 15 cycle
+		; @SET_MODE + @SET_ADDR = 51 cycle
+		; @STORE_DATA (return @STORE_DATA) = 24 cycle
+		; @STORE_DATA (return @SET_MODE) = 13 cycle
 
-		; str1 = "A  B"  => 56 + space_len * 22 cycle
-		; |  len  || 1  |  2  |  3  |  4  |  5  |
-		; | cycle || 78 | 100 | 122 | 144 | 166 |
-		; str2 = 'A', str3 = 'B' => (56 + 15) * 2 = 78 * 2 = 142 cycle
-		; str1 max space length = 4
+		; str1 = "A  B"
+		; => 51 + space_len * 24 cycle
+		; => mode(1) + addr(2) + data(2 + space_len) = (5 + space_len) bytes
+		; |  len  || 1  | 2  |  3  |  4  |
+		; | cycle || 75 | 99 | 123 | 147 |
+		; str2 = 'A', str3 = 'B'
+		; => (51 + 13) * 2 = 64 * 2 = 128 cycle
+		; => (mode(1) + addr(2) + data(1)) * 2 = 8 bytes
+		; space length:
+		; 1: 75 cycle,	6 bytes (str1)
+		; 2: 99 cycle,	7 bytes
+		; 3: 123 cycle,	8 bytes
+		; 4~: 128 cycle,8 bytes (str2)
 
 @EXIT:
 		lda #0
 		sta isend_main
 		jsr _setScroll
-		registerLoad
+		pla
+		plp
 		rti	; --------------------------
 .endproc

@@ -13,10 +13,10 @@
 ```
 ;*------------------------------------------------------------------------------
 ; Function description
-; @PARAM data1
-; @PARAM void
-; @BREAK A, X, tmp1 (register, temporary memory)
-; @RETURN void
+; @PARAM	data1
+; @PARAM	None
+; @BREAK	A X tmp1 (register, temporary memory)
+; @RETURN	None
 ;*------------------------------------------------------------------------------
 
 someFunc:

@@ -9,9 +9,7 @@
 
 .include "main.asm"
 .include "./asm/init.asm"
-.include "./asm/ppu.asm"
 .include "./asm/macro.asm"
-
 .include "./asm/nmi.asm"
 .include "./asm/sub.asm"
 
