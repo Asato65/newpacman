@@ -109,24 +109,6 @@
 					tay
 					pla
 				.endif
-			.else
-				; add $00, ??
-				.if (\
-					.match(.left(1, {VAL}), #) &&\
-					.right(.tcount({VAL})-1, {VAL}) <= 2\
-				)
-					; add $00, #0~2
-					.repeat (.right(.tcount ({VAL})-1, {VAL}))
-						inc ARG1
-					.endrepeat
-				.else
-					pha
-					lda ARG1
-					clc
-					adc VAL
-					sta ARG1
-					pla
-				.endif
 			.endif
 		.else
 			.error "Too or few parameters for macro 'add'"
@@ -179,120 +161,55 @@
 				tay
 				pla
 			.endif
-		.elseif (.paramcount = 2)
-			.if (\
-				.match(.left(1, {VAL}), #) &&\
-				.right(.tcount({VAL})-1, {VAL}) <= 2\
-			)
-				.repeat (.right(.tcount ({VAL})-1, {VAL}))
-					dec ARG1
-				.endrepeat
-			.else
-				pha
-				lda ARG1
-				sec
-				sbc VAL
-				sta ARG1
-				pla
-			.endif
 		.endif
 .endmacro
 
 
 ;*------------------------------------------------------------------------------
 ; Arithmetic right shift
-; ARG1 >>= C
-; @PARAM	ARG1: register A or Address
+; A >>= C
+; @PARAM	A
 ; @PARAM	C: default=1
 ;*------------------------------------------------------------------------------
 
-.macro asr ARG1, C
-	.if (.paramcount = 1)
-		.ifblank(C)
-			; asr
-			cmp #%10000000					; Bit 7 into carry
-			ror								; Shift carry into bit 7
-		.elseif (.match(.left(1, {ARG1}), #))
-			; asr #4
-			.repeat (.right(.tcount ({ARG1})-1, {ARG1}))
-				cmp #%10000000					; Bit 7 into carry
-				ror								; Shift carry into bit 7
-			.endrepeat
-		.elseif (.addrsize(ARG1) <> 0)
-			; asr $80
-			stx tmp_rgstX
-			ldx ARG1
-			:
-			cmp #%10000000
-			ror
-			dex
-			bne :-
-			ldx tmp_rgstX
-		.endif
-	.elseif (.match({ARG1}, a))
-		.ifblank(C)
-			; asr a
-			cmp #%10000000					; Bit 7 into carry
-			ror								; Shift carry into bit 7
-		.elseif (.match(.left(1, {C}), #))
-			; asr a, #4
-			.repeat (.right(.tcount ({C})-1, {C}))
-				cmp #%10000000					; Bit 7 into carry
-				ror								; Shift carry into bit 7
-			.endrepeat
-		.elseif (.addrsize(C) <> 0)
-			; asr a, $40
-			stx tmp_rgstX
-			ldx C
-			:
-			cmp #%10000000
-			ror
-			dex
-			bne :-
-			ldx tmp_rgstX
-		.endif
+.macro asr C
+	.ifblank(C)
+		; asr
+		cmp #%10000000				; Bit 7 into carry
+		ror							; Shift carry into bit 7
 	.else
-		.ifblank(C)
-			; asr $80
-			pha
-			lda ARG1
-			cmp #%10000000
-			ror ARG1
-			pla
-		.elseif (.match(.left(1, {C}), #))
-			; asr $80, #??
-			pha
-			.if (.right(.tcount ({C})-1, {C}) = 1)
-				; asr $80, #1
-				lda ARG1
-				cmp #%1000_0000
-				ror ARG1
-			.else
-				lda ARG1
-				.repeat (.right(.tcount ({C})-1, {C}))
-					cmp #%10000000
-					ror
-				.endrepeat
-				sta ARG1
-			.endif
-			pla
-		.elseif (.addrsize(C) <> 0)
-			; asr $80, $40
-			stx tmp_rgstX
-			ldx C
-			:
+		; asr #4
+		.repeat (.right(.tcount ({C})-1, {C}))
 			cmp #%10000000
 			ror
-			dex
-			bne :-
-			ldx tmp_rgstX
-		.endif
-		pha
-		lda ARG1
-		cmp #%10000000
-		ror ARG1
-		pla
+		.endrepeat
 	.endif
 .endmacro
 
 
+;*------------------------------------------------------------------------------
+; Light shift
+; A <<= C
+; @PARAM	ARG1
+; @PARAM	C: default=1
+;*------------------------------------------------------------------------------
+
+.macro shl ARG1, C
+	.repeat	C
+		lsr	ARG1
+	.endrepeat
+.endmacro
+
+
+;*------------------------------------------------------------------------------
+; Right shift
+; A >>= C
+; @PARAM	ARG1
+; @PARAM	C: default=1
+;*------------------------------------------------------------------------------
+
+.macro shr C
+	.repeat	C
+		asl	ARG1
+	.endrepeat
+.endmacro
