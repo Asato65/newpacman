@@ -7,9 +7,9 @@
 .include "inc/var_addr.inc"
 .include "inc/palette.inc"
 
+.include "./asm/macro.asm"
 .include "main.asm"
 .include "./asm/init.asm"
-.include "./asm/macro.asm"
 .include "./asm/nmi.asm"
 .include "./asm/sub.asm"
 

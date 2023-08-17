@@ -11,12 +11,16 @@ ppu_ctrl2_cpy				: .byte 0	; $06 |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|
 joy1						: .byte 0	; $07
 joy2						: .byte 0	; $08
 joy1_prev					: .byte 0	; $09
-joy2_prev					: .byte 0	; $10
-joy1_pushstart				: .byte 0	; $11
-joy2_pushstart				: .byte 0	; $12
+joy2_prev					: .byte 0	; $0A
+joy1_pushstart				: .byte 0	; $0B
+joy2_pushstart				: .byte 0	; $0C
 
-ppu_update_data_pointer		: .byte 0	; $13
-addr_tmp1					: .addr 0	; $14, $15
+ppu_update_data_pointer		: .byte 0	; $0D
+addr_tmp1					: .addr 0	; $0E, $0F
+
+tmp_rgstA					: .byte 0	; $10
+tmp_rgstX					: .byte 0	; $11
+tmp_rgstY					: .byte 0	; $12
 
 nmi_cnt						= $fd
 frm_cnt						= $fe

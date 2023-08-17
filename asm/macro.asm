@@ -1,33 +1,7 @@
 ; ------------------------------------------------------------------------------
-; Addition without Carry
-; @PARAM	VAL(Arg): Number to add
-; @BREAK	A
-; @RETURN	A: Added number
-; ------------------------------------------------------------------------------
-
-.macro add VAL
-		clc
-		adc VAL
-.endmacro
-
-
-; ------------------------------------------------------------------------------
-; Subtraction without Carry
-; @PARAM	VAL(Arg): Number to subtract
-; @BREAK	A
-; @RETURN	A: Subtracted number
-; ------------------------------------------------------------------------------
-
-.macro sub VAL
-		sec
-		sbc VAL
-.endmacro
-
-
-; ------------------------------------------------------------------------------
 ; Load array
 ; A = Arr[X][Y]
-; @PARAM	ADDR(Arg): Array Address
+; @PARAM	ADDR: Array Address
 ; @PARAM	X Y: index (Access Arr[x][y])
 ; @BREAK	A tmp1
 ; @RETURN	A
@@ -81,12 +55,130 @@
 .endmacro
 
 
+; ------------------------------------------------------------------------------
+; Addition
+; This Macro is not support Indirect addressing.
+; (Usage: add a, {$00, x})
+; @PARAM	ARG1: register or Address
+; @PARAM	VAL
+; ------------------------------------------------------------------------------
 
-; TODO: add/sub with X, Y register
-; 足し引きする数によって分岐（+1 -> inx, +10 -> txa, add）
-
-.macro adx
+.macro add ARG1, VAL
+		.if (.paramcount = 1)
+			; add #3 / add $80
+			clc
+			adc ARG1
+		.elseif (.paramcount = 2)
+			.if (.match({ARG1}, a))
+				; add a, #3 / add a, $80
+				clc
+				adc VAL
+			.elseif (.match({ARG1}, x))
+				; add x, ??
+				.if (
+					.match(.left(1, {VAL}), #) &&
+					.right(.tcount({VAL})-1, {VAL}) <= 7
+				)
+					; add x, #0~7
+					.repeat (.right(.tcount({VAL})-1, {VAL}))
+						inx
+					.endrepeat
+				.else
+					pha
+					txa
+					clc
+					adc VAL
+					tax
+					pla
+				.endif
+			.elseif (.match({ARG1}, y))
+				; add y, ??
+				.if (
+					.match(.left(1, {VAL}), #) &&
+					.right(.tcount({VAL})-1, {VAL}) <= 7
+				)
+					; add y, #0~7
+					.repeat (.right (.tcount ({VAL})-1, {VAL}))
+						iny
+					.endrepeat
+				.else
+					pha
+					tya
+					clc
+					adc VAL
+					tay
+					pla
+				.endif
+			.else
+				; add $00, ??
+				.if (
+					.match(.left(1, {VAL}), #) &&
+					.right(.tcount({VAL})-1, {VAL}) <= 2
+				)
+					; add $00, #0~2
+					.repeat (.right (.tcount ({VAL})-1, {VAL}))
+						inc ARG1
+					.endrepeat
+				.else
+					pha
+					lda ARG1
+					clc
+					adc VAL
+					sta ARG1
+					pla
+				.endif
+			.endif
+		.else
+			.error "Too or few parameters for macro 'add'"
+		.endif
 .endmacro
 
-.macro sbx
+
+; ------------------------------------------------------------------------------
+; Subtraction
+; @PARAM	ARG1: register or Address
+; @PARAM	VAL
+; ------------------------------------------------------------------------------
+
+.macro sub ARG1, VAL
+		sec
+	.if (.blank(ARG1) || .match({ARG1}, a))
+		sbc VAL
+	.elseif (.match({ARG1}, x))
+		pha
+		txa
+		sbc VAL
+		tax
+		pla
+	.elseif (.match({ARG1}, y))
+		pha
+		tya
+		sbc VAL
+		tay
+		pla
+	.else
+		pha
+		lda ARG1
+		sbc VAL
+		pla
+.endmacro
+
+
+
+;*------------------------------------------------------------------------------
+; arithmetic right shift
+; @PARAM	ARG: register A or Address
+;*------------------------------------------------------------------------------
+
+.macro asr ARG
+	.if (.blank(ARG) || .match({ARG}, a))
+		cmp #%10000000					; Bit 7 into carry
+		ror								; Shift carry into bit 7
+	.else
+		pha
+		lda ARG
+		cmp #%10000000
+		ror ARG
+		pla
+	.endif
 .endmacro

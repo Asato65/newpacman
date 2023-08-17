@@ -1,7 +1,7 @@
 ;*------------------------------------------------------------------------------
 ; PPU_UPDATE_DATAを読み取り，指定アドレスに書き込んでカウンタをインクリメント
 ; Read PPU update data & store to PPU
-; @PARAM	ADDR(Arg): Forwarding address
+; @PARAM	ADDR: Forwarding address
 ; @BREAK	A X
 ; @RETURN	None
 ;*------------------------------------------------------------------------------
@@ -52,7 +52,6 @@
 		ora tmp1						; End using tmp1
 		sta ppu_ctrl1_cpy
 		sta PPU_CTRL1					; Not use restorePPUSet()
-		; 31
 @SET_ADDR:
 		inx								; Not do inx when go to @EXIT
 		lda PPU_UPDATE_DATA, x
@@ -61,7 +60,6 @@
 		lda PPU_UPDATE_DATA, x
 		sta PPU_ADDR
 		inx
-		; 20
 @STORE_DATA:
 		lda PPU_UPDATE_DATA, x
 		tay

@@ -8,6 +8,11 @@
 
 		jsr _getJoyData
 
+		ldx #5
+		add x, #5
+		stx $80
+
+
 		ldx #0
 		ldy #PPU_DATA_ARR_END - PPU_DATA_ARR
 		stx ppu_update_data_pointer
