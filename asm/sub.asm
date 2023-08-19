@@ -74,7 +74,7 @@ _readJoy:
 		lda JOYPAD1
 		and #%00000011
 		cmp #$01						; A - 1 = A + 0xff; if A > 0 then Carry=1
-		rol joy1						; Carry -> bit 0; bit 7 -> Carry
+		rol joy1						; Carry -> Bit0; Bit7 -> Carry
 		lda JOYPAD2
 		and #%00000011
 		cmp #$01

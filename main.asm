@@ -3,15 +3,10 @@
 ;*------------------------------------------------------------------------------
 
 .proc MAIN
-		lda isend_main
-		bne MAIN
+		lda is_processing_main
+		beq MAIN
 
 		jsr _getJoyData
-
-		ldx #5
-		add x, #5
-		stx $80
-
 
 		ldx #0
 		ldy #PPU_DATA_ARR_END - PPU_DATA_ARR
@@ -20,7 +15,7 @@
 @STORE_PPU_DATA_LOOP:
 		lda PPU_DATA_ARR, x
 		beq @END_STORE
-		sta PPU_UPDATE_DATA, x
+		sta PPU_BUFF, x
 		inx
 		dey
 		bne @STORE_PPU_DATA_LOOP
@@ -28,17 +23,12 @@
 		stx ppu_update_data_pointer
 
 
-
 		; endcode
 
 		; ----- End main -----
-		ldx ppu_update_data_pointer
-		lda #PPU_END_CODE
-		sta PPU_UPDATE_DATA, x
-		inx
 
-		lda #1
-		sta isend_main
+		lda #0
+		sta is_processing_main
 
 		jmp MAIN
 .endproc

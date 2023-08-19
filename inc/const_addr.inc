@@ -1,8 +1,10 @@
 ZP					= $00
-CHR_DATA			= $0300
-MAP1_DATA			= $0400
-MAP2_DATA			= $0500
-PPU_UPDATE_DATA		= $0600
+; Unused $0200
+SPR_BUFF			= $0300
+MAP1				= $0400
+MAP2				= $0500
+PPU_BUFF			= $0600
+USER_MEM			= $0700
 
 PLT_TABLE_ADDR		= $3f
 

@@ -3,20 +3,24 @@
 ; A = Arr[X][Y]
 ; @PARAM	ADDR: Array Address
 ; @PARAM	X Y: index (Access Arr[x][y])
-; @BREAK	A tmp1
+; @BREAK	tmp1
 ; ------------------------------------------------------------------------------
 
-.macro ldarr ADDR
-		sty tmp1						; save Y
-		txa
-		asl								; ×2（アドレスが16bitなのでARR[x][y]のxが+1 => 読み込むアドレスは+2する必要がある
-		tay								; アドレッシングに使うためYレジスタへ
-		lda ADDR, y						; Low
-		sta <addr_tmp1
-		lda ADDR+1, y					; High
-		sta >addr_tmp1
-		ldy tmp1						; restore Y
-		lda (addr_tmp1), y
+.macro ldarr addr
+		.if !(.blank(addr))
+			sty tmp1						; save Y
+			txa
+			asl								; ×2（アドレスが16bitなのでARR[x][y]のxが+1 => 読み込むアドレスは+2する必要がある
+			tay								; アドレッシングに使うためYレジスタへ
+			lda addr, y						; Low
+			sta <addr_tmp1
+			lda addr+1, y					; High
+			sta >addr_tmp1
+			ldy tmp1						; restore Y
+			lda (addr_tmp1), y
+		.else
+			.error "Arg addr in macro ldarr is wrong."
+		.endif
 .endmacro
 
 
@@ -31,185 +35,230 @@
 
 
 ; ------------------------------------------------------------------------------
-; Upper 4 bits -> lower bits
-; ------------------------------------------------------------------------------
-
-.macro rsft4
-		lsr
-		lsr
-		lsr
-		lsr
-.endmacro
-
-
-; ------------------------------------------------------------------------------
-; Lower 4 bits -> upper bits
-; ------------------------------------------------------------------------------
-
-.macro lsft4
-		asl
-		asl
-		asl
-		asl
-.endmacro
-
-
-; ------------------------------------------------------------------------------
 ; Addition
 ; This Macro only supports Immediate/Zeropage/Absolute addressing.
 ; Other addressing modes are not optimized for speed.
 ; Other addressing usage: add a, {$00, x} / add a, {($00), y}
-; @PARAM	ARG1: register or Address
-; @PARAM	VAL
+; @PARAM	arg1: register or Address
+; @PARAM	arg2
 ; ------------------------------------------------------------------------------
 
-.macro add ARG1, VAL
+.macro add arg1, arg2
 		.if (.paramcount = 1)
+			; arg1: val
 			; add #3 / add $80
 			clc
-			adc ARG1
+			adc arg1
 		.elseif (.paramcount = 2)
-			.if (.match({ARG1}, a))
+			; arg1: target
+			; arg2: val
+			.if (.match({arg1}, a))
 				; add a, #3 / add a, $80
 				clc
-				adc VAL
-			.elseif (.match({ARG1}, x))
+				adc arg2
+			.elseif (.match({arg1}, x))
 				; add x, ??
 				.if (\
-					.match(.left(1, {VAL}), #) &&\
-					.right(.tcount({VAL})-1, {VAL}) <= 7\
+					.match(.left(1, {arg2}), #) &&\
+					.right(.tcount({arg2})-1, {arg2}) <= 7\
 				)
 					; add x, #0~7
-					.repeat (.right(.tcount({VAL})-1, {VAL}))
+					.repeat (.right(.tcount({arg2})-1, {arg2}))
 						inx
 					.endrepeat
 				.else
 					pha
 					txa
 					clc
-					adc VAL
+					adc arg2
 					tax
 					pla
 				.endif
-			.elseif (.match({ARG1}, y))
+			.elseif (.match({arg1}, y))
 				; add y, ??
 				.if (\
-					.match(.left(1, {VAL}), #) &&\
-					.right(.tcount({VAL})-1, {VAL}) <= 7\
+					.match(.left(1, {arg2}), #) &&\
+					.right(.tcount({arg2})-1, {arg2}) <= 7\
 				)
 					; add y, #0~7
-					.repeat (.right(.tcount ({VAL})-1, {VAL}))
+					.repeat (.right(.tcount ({arg2})-1, {arg2}))
 						iny
 					.endrepeat
 				.else
 					pha
 					tya
 					clc
-					adc VAL
+					adc arg2
 					tay
 					pla
 				.endif
 			.endif
 		.else
-			.error "Too or few parameters for macro 'add'"
+			.error "Args in macro add are wrong."
 		.endif
 .endmacro
 
 
 ; ------------------------------------------------------------------------------
 ; Subtraction
-; @PARAM	ARG1: register or Address
-; @PARAM	VAL
+; See macro add for comments
+; @PARAM	arg1: register or Address
+; @PARAM	arg2
 ; ------------------------------------------------------------------------------
 
-.macro sub ARG1, VAL
+.macro sub arg1, arg2
 		.if (.paramcount = 1)
 			sec
-			sbc ARG1
-		.elseif (.paramcount = 2 && .match({ARG1}, a))
+			sbc arg1
+		.elseif (.paramcount = 2 && .match({arg1}, a))
 			sec
-			sbc VAL
-		.elseif (.paramcount = 2 && .match({ARG1}, x))
+			sbc arg2
+		.elseif (.paramcount = 2 && .match({arg1}, x))
 			.if (\
-				.match(.left(1, {VAL}), #) &&\
-				.right(.tcount({VAL})-1, {VAL}) <= 7\
+				.match(.left(1, {arg2}), #) &&\
+				.right(.tcount({arg2})-1, {arg2}) <= 7\
 			)
-				.repeat (.right(.tcount({VAL})-1, {VAL}))
+				.repeat (.right(.tcount({arg2})-1, {arg2}))
 					dex
 				.endrepeat
 			.else
 				pha
 				txa
 				sec
-				sbc VAL
+				sbc arg2
 				tax
 				pla
 			.endif
-		.elseif (.paramcount = 2 && .match({ARG1}, y))
+		.elseif (.paramcount = 2 && .match({arg1}, y))
 			.if (\
-				.match(.left(1, {VAL}), #) &&\
-				.right(.tcount({VAL})-1, {VAL}) <= 7\
+				.match(.left(1, {arg2}), #) &&\
+				.right(.tcount({arg2})-1, {arg2}) <= 7\
 			)
-				.repeat (.right(.tcount ({VAL})-1, {VAL}))
+				.repeat (.right(.tcount ({arg2})-1, {arg2}))
 					dey
 				.endrepeat
 			.else
 				pha
 				tya
 				sec
-				sbc VAL
+				sbc arg2
 				tay
 				pla
 			.endif
+		.else
+			.error "Args in macro sub are wrong."
 		.endif
 .endmacro
 
 
 ;*------------------------------------------------------------------------------
-; Arithmetic right shift
-; A >>= C
-; @PARAM	A
-; @PARAM	C: default=1
-;*------------------------------------------------------------------------------
-
-.macro asr C
-	.ifblank(C)
-		; asr
-		cmp #%10000000				; Bit 7 into carry
-		ror							; Shift carry into bit 7
-	.else
-		; asr #4
-		.repeat (.right(.tcount ({C})-1, {C}))
-			cmp #%10000000
-			ror
-		.endrepeat
-	.endif
-.endmacro
-
-
-;*------------------------------------------------------------------------------
 ; Light shift
-; A <<= C
-; @PARAM	ARG1
-; @PARAM	C: default=1
+; arg1 <<= c
+; @PARAM	c: default=#1
 ;*------------------------------------------------------------------------------
 
-.macro shl ARG1, C
-	.repeat	C
-		lsr	ARG1
-	.endrepeat
+.macro shl c
+		.if (.blank(c))
+			asl
+		.elseif (.match(.left(1, {c}), #))
+			.repeat	(.right(.tcount ({c})-1, {c}))
+				asl
+			.endrepeat
+		.else
+			.error "Arg \"c\" in macro shl is wrong."
+		.endif
 .endmacro
 
 
 ;*------------------------------------------------------------------------------
 ; Right shift
-; A >>= C
-; @PARAM	ARG1
-; @PARAM	C: default=1
+; arg1 >>= c
+; @PARAM	c: default=#1
 ;*------------------------------------------------------------------------------
 
-.macro shr C
-	.repeat	C
-		asl	ARG1
-	.endrepeat
+.macro shr c
+		.if (.blank(c))
+			lsr
+		.elseif (.match(.left(1, {c}), #))
+			.repeat	(.right(.tcount ({c})-1, {c}))
+				lsr
+			.endrepeat
+		.else
+			.error "Arg \"c\" in macro shr is wrong."
+		.endif
 .endmacro
+
+
+;*------------------------------------------------------------------------------
+; Arithmetic left shift
+;! Deprecated (Not shortened)
+; A >>= c
+; @PARAM	c: default=1
+;*------------------------------------------------------------------------------
+
+.macro ashl c
+		cmp #%1000_0000
+		php								; Save carry
+		.if (.blank(c))
+			; ashl
+			shl #2
+		.elseif (.match(.left(1, {c}), #))
+			; ashl #4
+			shl #((.right(.tcount ({c})-1, {c})) + 1)
+		.else
+			.error "Arg \"c\" in macro ashl is wrong."
+		.endif
+		plp
+		ror								; a /= 2, carry into bit7
+.endmacro
+
+
+;*------------------------------------------------------------------------------
+; Arithmetic right shift
+; A >>= c
+; @PARAM	c: default=1
+;
+; To ASR a memory location
+; (From http://wiki.nesdev.com/w/index.php/Synthetic_instructions#Arithmetic_shift_right)
+; 	lda addr		; Copy memory into A
+; 	asl				; Copy sign bit of A into carry (shorter than CMP)
+; 	ror addr
+;*------------------------------------------------------------------------------
+
+.macro ashr c
+		.if (.blank(c))
+			; ashr
+			cmp #%1000_0000				; Bit7 into carry
+			ror							; Shift carry into Bit7
+		.elseif (.match(.left(1, {c}), #))
+			; ashr #4
+			.repeat (.right(.tcount ({c})-1, {c}))
+				cmp #%1000_0000
+				ror
+			.endrepeat
+		.else
+			.error "Arg \"c\" in macro ashr is wrong."
+		.endif
+.endmacro
+
+;*------------------------------------------------------------------------------
+; Calcurate BG address
+; @PARAM ptx: X coordinate
+; @PARAM pty: Y coordinate
+; @PARAM scn: Screen number
+;*------------------------------------------------------------------------------
+
+.define ADDR_BG (ptx, pty, scn)		$2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
+
+
+;*------------------------------------------------------------------------------
+; Calcurate SPR address
+; @PARAM spr_num: Sprite number (0~63)
+; @PARAM member:
+; 	pty: PosiTion Y
+; 	num: Tile(8*8) number
+; 	att: Attribute (VertFlip|HorizonFlip|Prio|Unused(3)|PltNum(2))
+; 	ptx: PosiTion X
+;*------------------------------------------------------------------------------
+
+.define ADDR_SPR(spr_num, member)	SPR_BUFF + ((spr_num)*4) + SPR_STRUCT::member
