@@ -8,7 +8,7 @@
 
 		jsr _getJoyData
 
-		ldx #0
+		ldx #$00
 		ldy #PPU_DATA_ARR_END - PPU_DATA_ARR
 		stx ppu_update_data_pointer
 
@@ -21,6 +21,14 @@
 		bne @STORE_PPU_DATA_LOOP
 @END_STORE:
 		stx ppu_update_data_pointer
+
+
+		ldx ppu_update_data_pointer
+@STR_LP:
+		dex
+		lda PPU_BUFF, x
+		pha
+		bne @STR_LP
 
 
 		; endcode

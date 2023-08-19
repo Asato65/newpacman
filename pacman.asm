@@ -39,6 +39,9 @@
 .proc RESET
 		init
 
+		lda #1
+		sta is_processing_main
+
 		jmp MAIN
 .endproc
 

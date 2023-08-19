@@ -32,6 +32,7 @@
 ; 	lda ZP/ABSORUTE, x -> 4 clc
 ;*------------------------------------------------------------------------------
 
+/*
 .proc NMI
 		php
 		pha								; If main processing has not finished, tmp_rgstA may be in use
@@ -104,8 +105,9 @@
 		plp
 		rti	; --------------------------
 .endproc
+*/
 
-/*
+
 .proc NMI
 		php
 		pha
@@ -121,16 +123,20 @@
 		pla				; rgst P
 		pla				; return addr
 		pla
+		pla
+		pla
 
 		; tsx, inx * 4, txs: 6 bytes, 12clc
 
 		inc frm_cnt
 
 		tax								; A = 0
-		cpx buff_data_len				; Length of data stored in PPU_DATA
+		cpx ppu_update_data_pointer		; Length of data stored in PPU_DATA
 		beq @EXIT
 		pla
+		tay
 @SET_MODE:
+		tya
 		bpl @SET_ADDR					; 0x00~0x7f => @SET_ADDR
 		cmp #$fe
 		bmi @SET_ADDR					; 0xfe~0xff = plus, 0x7e~0xfd => @SET_ADDR
@@ -147,6 +153,9 @@
 		sta PPU_ADDR
 		pla
 		sta PPU_ADDR
+		inx
+		inx
+		inx
 @STORE_DATA:
 		pla
 		tay
@@ -163,10 +172,11 @@
 		lda #1
 		sta is_processing_main
 		jsr _setScroll
-
-		rti	; --------------------------
+		jmp MAIN
+		;rti	; --------------------------
 .endproc
 
+/*
 ;! --- store to buff ---
 		tsx
 		ldy #PPU_DATA_ARR_END - PPU_DATA_ARR
