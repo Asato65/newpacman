@@ -32,108 +32,31 @@
 ; 	lda ZP/ABSORUTE, x -> 4 clc
 ;*------------------------------------------------------------------------------
 
-/*
 .proc NMI
-		php
-		pha								; If main processing has not finished, tmp_rgstA may be in use
-		inc nmi_cnt
-		lda is_processing_main
-		bne @EXIT
-
-		inc frm_cnt
-
-		tax								; A = 0
-		cpx ppu_update_data_pointer
-		beq @EXIT
-@SET_MODE:
-		lda PPU_BUFF, x
-		bpl @SET_ADDR					; 0x00~0x7f => @SET_ADDR
-		cmp #$fe
-		bmi @SET_ADDR					; 0xfe~0xff = plus, 0x7e~0xfd => @SET_ADDR
-		and #%00000001					; Get flag
-		shl #2							; Move flag to Bit2
-		sta tmp1						; Start using tmp1
-		lda ppu_ctrl1_cpy
-		and #%11111011					; Mask direction flag
-		ora tmp1						; End using tmp1
-		sta ppu_ctrl1_cpy
-		sta PPU_CTRL1					; Not use restorePPUSet()
-@SET_ADDR:
-		inx								; Not do inx when go to @EXIT
-		lda PPU_BUFF, x
-		sta PPU_ADDR
-		inx
-		lda PPU_BUFF, x
-		sta PPU_ADDR
-		inx
-@STORE_DATA:
-		lda PPU_BUFF, x
-		tay
-		and #%11111110
-		cmp #%11111110
-		beq @SET_MODE					; no inx
-		tya
-		sta PPU_DATA
-		inx
-		cpx ppu_update_data_pointer
-		bne @STORE_DATA
-
-		; @SET_MODE + @SET_ADDR = 51 cycle
-		; @STORE_DATA (return @STORE_DATA) = 24 cycle
-		; @STORE_DATA (return @SET_MODE) = 13 cycle
-
-		; str1 = "A  B"
-		; 	=> 51 + space_len * 24 cycle
-		; 	=> mode(1) + addr(2) + data(2 + space_len) = (5 + space_len) bytes
-		; 	|  len  || 1  | 2  |  3  |  4  |
-		; 	| cycle || 75 | 99 | 123 | 147 |
-		;	| bytes || 6  | 7  |  8  |  9  |
-		; str2 = 'A', str3 = 'B'
-		; 	=> (51 + 13) * 2 = 64 * 2 = 128 cycle
-		; 	=> (mode(1) + addr(2) + data(1)) * 2 = 8 bytes
-		; space length:
-		; 	1: 75 cycle,	6 bytes (str1)
-		; 	2: 99 cycle,	7 bytes
-		; 	3: 123 cycle,	8 bytes
-		; 	4~: 128 cycle,	8 bytes (str2)
-
-@EXIT:
-		lda #1
-		sta is_processing_main
-		jsr _setScroll
-		pla
-		plp
-		rti	; --------------------------
-.endproc
-*/
-
-
-.proc NMI
-		php
+		; Automatically executed with NMI
+		; lda >PC
+		; pha
+		; lda <PC
+		; pha
+		; php
 		pha
 		inc nmi_cnt
 		lda is_processing_main
 		beq @NMI_MAIN
 		pla
-		plp
 		rts	; --------------------------
 
 @NMI_MAIN:
-		pla				; rgst A
-		pla				; rgst P
-		pla				; return addr
-		pla
-		pla
-		pla
-
-		; tsx, inx * 4, txs: 6 bytes, 12clc
+		tsx
+		add x, #4						; rgst A, P, return addr(2)
+		txs
 
 		inc frm_cnt
 
 		tax								; A = 0
 		cpx ppu_update_data_pointer		; Length of data stored in PPU_DATA
 		beq @EXIT
-		pla
+		pla								; data[0]
 		tay
 @SET_MODE:
 		tya
@@ -173,28 +96,4 @@
 		sta is_processing_main
 		jsr _setScroll
 		jmp MAIN
-		;rti	; --------------------------
 .endproc
-
-/*
-;! --- store to buff ---
-		tsx
-		ldy #PPU_DATA_ARR_END - PPU_DATA_ARR
-		stx ppu_buff_pointer
-
-@STORE_PPU_DATA_LOOP:
-		lda PPU_DATA_ARR, x
-		beq @END_STORE
-		sta $0100, x
-		dex
-		dey
-		bne @STORE_PPU_DATA_LOOP
-@END_STORE:
-		stx ppu_buff_pointer
-
-		...
-
-		ldx ppu_buff_pointer
-		txs
-
-*/

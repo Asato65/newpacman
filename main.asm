@@ -25,9 +25,9 @@
 
 		ldx ppu_update_data_pointer
 @STR_LP:
-		dex
-		lda PPU_BUFF, x
+		lda PPU_BUFF-1, x
 		pha
+		dex
 		bne @STR_LP
 
 
