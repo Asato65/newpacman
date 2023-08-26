@@ -17,10 +17,7 @@
 	*/
 	bit $2002
 
-	; Vblank待機1回目
-@VBLANK_WAIT1:
-	bit $2002
-	bpl @VBLANK_WAIT1
+	jsr _wait_vblank					; 1st time
 
 	; PPUが安定するまで約30,000サイクルの時間がある -> この間にRAMリセット
 
@@ -48,10 +45,7 @@
 	lda #%00011110						; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 	sta ppu_ctrl2_cpy
 
-	; Vblank待機2回目
-@VBLANK_WAIT2:
-	bit $2002
-	bpl @VBLANK_WAIT2
+	jsr _wait_vblank					; 2nd time
 
 	; パレットテーブル転送
 	lda #PLT_TABLE_ADDR				; HIGH
@@ -73,7 +67,9 @@
 
 	; スクリーンON
 	jsr _restorePPUSet
-
 	jsr _setScroll
+
+	jsr _wait_vblank
+	
 
 .endmacro

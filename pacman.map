@@ -1,7 +1,7 @@
 Modules list:
 -------------
 pacman.o:
-    CODE              Offs=000000  Size=000219  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=000215  Align=00001  Fill=0000
     RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
@@ -9,7 +9,7 @@ pacman.o:
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
     HEADER            Offs=000000  Size=000010  Align=00001  Fill=0000
     USER_MEM          Offs=000000  Size=000000  Align=00001  Fill=0000
-    STARTUP           Offs=000000  Size=000072  Align=00001  Fill=0000
+    STARTUP           Offs=000000  Size=000071  Align=00001  Fill=0000
     CHARS             Offs=000000  Size=002000  Align=00001  Fill=0000
     VECINFO           Offs=000000  Size=000006  Align=00001  Fill=0000
 
@@ -25,34 +25,34 @@ ZEROPAGE              000000  000015  000016  00001
 BSS                   000400  000400  000000  00001
 DATA                  000400  000400  000000  00001
 USER_MEM              000700  000700  000000  00001
-STARTUP               008000  008071  000072  00001
-CODE                  008072  00828A  000219  00001
-RODATA                008072  008072  000000  00001
+STARTUP               008000  008070  000071  00001
+CODE                  008071  008285  000215  00001
+RODATA                008071  008071  000000  00001
 VECINFO               00FFFA  00FFFF  000006  00001
 
 
 Exports list by name:
 ---------------------
 __BSS_LOAD__              000400  LA    __BSS_RUN__               000400  LA    
-__BSS_SIZE__              000000  EA    __CODE_LOAD__             008072  LA    
-__CODE_RUN__              008072  LA    __CODE_SIZE__             000219  EA    
-__DATA_LOAD__             008072  LA    __DATA_RUN__              000400  LA    
+__BSS_SIZE__              000000  EA    __CODE_LOAD__             008071  LA    
+__CODE_RUN__              008071  LA    __CODE_SIZE__             000215  EA    
+__DATA_LOAD__             008071  LA    __DATA_RUN__              000400  LA    
 __DATA_SIZE__             000000  EA    __RAM_FILEOFFS__          00A026  EA    
 __RAM_LAST__              000400  LA    __RAM_SIZE__              000400  EA    
-__RAM_START__             000400  LA    __RODATA_LOAD__           008072  LA    
-__RODATA_RUN__            008072  LA    __RODATA_SIZE__           000000  EA    
+__RAM_START__             000400  LA    __RODATA_LOAD__           008071  LA    
+__RODATA_RUN__            008071  LA    __RODATA_SIZE__           000000  EA    
 __ROMCHR_FILEOFFS__       008010  EA    __ROMCHR_LAST__           002000  LA    
 __ROMCHR_SIZE__           002000  EA    __ROMCHR_START__          000000  LA    
 __ROMINFO_FILEOFFS__      00800A  EA    __ROMINFO_LAST__          010000  LA    
 __ROMINFO_SIZE__          000006  EA    __ROMINFO_START__         00FFFA  LA    
-__ROMST_FILEOFFS__        000010  EA    __ROMST_LAST__            00828B  LA    
+__ROMST_FILEOFFS__        000010  EA    __ROMST_LAST__            008286  LA    
 __ROMST_SIZE__            007FFA  EA    __ROMST_START__           008000  LA    
 __SRAM_FILEOFFS__         00A026  EA    __SRAM_LAST__             006000  LA    
 __SRAM_SIZE__             002000  EA    __SRAM_START__            006000  LA    
 __STACK_FILEOFFS__        00A026  EA    __STACK_LAST__            000200  LA    
 __STACK_SIZE__            000200  EA    __STACK_START__           000200  LA    
 __STARTUP_LOAD__          008000  LA    __STARTUP_RUN__           008000  LA    
-__STARTUP_SIZE__          000072  EA    __USER_MEM_FILEOFFS__     00A026  EA    
+__STARTUP_SIZE__          000071  EA    __USER_MEM_FILEOFFS__     00A026  EA    
 __USER_MEM_LAST__         000700  LA    __USER_MEM_SIZE__         000100  EA    
 __USER_MEM_START__        000700  LA    __VECINFO_LOAD__          00FFFA  LA    
 __VECINFO_RUN__           00FFFA  LA    __VECINFO_SIZE__          000006  EA    
@@ -67,10 +67,10 @@ __ROMCHR_START__          000000  LA    __BSS_SIZE__              000000  EA
 __RODATA_SIZE__           000000  EA    __DATA_SIZE__             000000  EA    
 __ZP_START__              000000  LA    __ROMINFO_SIZE__          000006  EA    
 __VECINFO_SIZE__          000006  EA    __ROMST_FILEOFFS__        000010  EA    
-__ZP_LAST__               000016  LA    __STARTUP_SIZE__          000072  EA    
+__ZP_LAST__               000016  LA    __STARTUP_SIZE__          000071  EA    
 __ZP_SIZE__               000100  EA    __USER_MEM_SIZE__         000100  EA    
 __STACK_SIZE__            000200  EA    __STACK_LAST__            000200  LA    
-__STACK_START__           000200  LA    __CODE_SIZE__             000219  EA    
+__STACK_START__           000200  LA    __CODE_SIZE__             000215  EA    
 __RAM_LAST__              000400  LA    __BSS_LOAD__              000400  LA    
 __BSS_RUN__               000400  LA    __DATA_RUN__              000400  LA    
 __RAM_START__             000400  LA    __RAM_SIZE__              000400  EA    
@@ -80,10 +80,10 @@ __ROMCHR_LAST__           002000  LA    __SRAM_START__            006000  LA
 __SRAM_LAST__             006000  LA    __ROMST_SIZE__            007FFA  EA    
 __ROMST_START__           008000  LA    __STARTUP_LOAD__          008000  LA    
 __STARTUP_RUN__           008000  LA    __ROMINFO_FILEOFFS__      00800A  EA    
-__ROMCHR_FILEOFFS__       008010  EA    __CODE_LOAD__             008072  LA    
-__RODATA_RUN__            008072  LA    __DATA_LOAD__             008072  LA    
-__RODATA_LOAD__           008072  LA    __CODE_RUN__              008072  LA    
-__ROMST_LAST__            00828B  LA    __ZP_FILEOFFS__           00A010  EA    
+__ROMCHR_FILEOFFS__       008010  EA    __CODE_LOAD__             008071  LA    
+__RODATA_RUN__            008071  LA    __DATA_LOAD__             008071  LA    
+__RODATA_LOAD__           008071  LA    __CODE_RUN__              008071  LA    
+__ROMST_LAST__            008286  LA    __ZP_FILEOFFS__           00A010  EA    
 __SRAM_FILEOFFS__         00A026  EA    __USER_MEM_FILEOFFS__     00A026  EA    
 __RAM_FILEOFFS__          00A026  EA    __STACK_FILEOFFS__        00A026  EA    
 __VECINFO_LOAD__          00FFFA  LA    __ROMINFO_START__         00FFFA  LA    
