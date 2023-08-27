@@ -1,5 +1,5 @@
 ;*------------------------------------------------------------------------------
-; PPU_BUFFを読み取り，指定アドレスに書き込んでカウンタをインクリメント
+; BG_BUFFを読み取り，指定アドレスに書き込んでカウンタをインクリメント
 ; Read PPU update data & store to PPU
 ; @PARAM	ADDR: Forwarding address
 ; @BREAK	A X
@@ -7,7 +7,7 @@
 ;*------------------------------------------------------------------------------
 
 .macro tfrDataToPPU ADDR
-	lda PPU_BUFF, x
+	lda BG_BUFF, x
 	sta ADDR
 	inx
 .endmacro
@@ -41,11 +41,11 @@
 		rti	; --------------------------
 
 @NMI_MAIN:
-		tax								; A = 0
-		cpx ppu_update_data_pointer
-		beq @EXIT
+		cmp bg_buff_pointer				; A = 0
+		beq @STORE_CHR
+		tax
 @SET_MODE:
-		lda PPU_BUFF, x
+		lda BG_BUFF, x
 		bpl @SET_ADDR					; 0x00~0x7f => @SET_ADDR
 		cmp #$fe
 		bmi @SET_ADDR					; 0xfe~0xff = plus, 0x7e~0xfd => @SET_ADDR
@@ -59,14 +59,14 @@
 		sta PPU_CTRL1					; Not use restorePPUSet()
 @SET_ADDR:
 		inx								; Not do inx when go to @EXIT
-		lda PPU_BUFF, x
+		lda BG_BUFF, x
 		sta PPU_ADDR
 		inx
-		lda PPU_BUFF, x
+		lda BG_BUFF, x
 		sta PPU_ADDR
 		inx
 @STORE_DATA:
-		lda PPU_BUFF, x
+		lda BG_BUFF, x
 		tay
 		and #%11111110
 		cmp #%11111110
@@ -74,7 +74,7 @@
 		tya
 		sta PPU_DATA
 		inx
-		cpx ppu_update_data_pointer
+		cpx bg_buff_pointer
 		bne @STORE_DATA
 
 		; @SET_MODE + @SET_ADDR = 51 cycle
@@ -95,10 +95,17 @@
 		; 	2: 99 cycle,	7 bytes
 		; 	3: 123 cycle,	8 bytes
 		; 	4~: 128 cycle,	8 bytes (str2)
+@STORE_CHR:
+		lda #0
+		sta OAM_ADDR
+		lda #$03
+		sta OAM_DMA
 
 @EXIT:
 		lda #1
 		sta is_processing_main
+		shr								; A = 0
+		sta bg_buff_pointer
 		inc frm_cnt
 		jsr _setScroll
 		pla

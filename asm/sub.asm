@@ -92,21 +92,51 @@ _readJoy:
 ;*------------------------------------------------------------------------------
 
 _setScroll:
-	lda scroll_x
-	sta PPU_SCROLL
-	lda scroll_y
-	sta PPU_SCROLL
-	rts	; ------------------------------
+		lda scroll_x
+		sta PPU_SCROLL
+		lda scroll_y
+		sta PPU_SCROLL
+		rts	; --------------------------
 
 
 ;*------------------------------------------------------------------------------
 ; Wait starting vblank
 ; @PARAM	None
 ; @BREAK	None
-; @RETURN	None
+; @RETURN	Non
 ;*------------------------------------------------------------------------------
 
 _wait_vblank:
-	bit $2002
-	bpl _wait_vblank
-	rts	; ------------------------------
+		bit $2002
+		bpl _wait_vblank
+		rts	; --------------------------
+
+
+;*------------------------------------------------------------------------------
+; Disp status text
+; @PARAM	None
+; @BREAK	A X Y
+; @RETURN	None
+;*------------------------------------------------------------------------------
+
+_disp_status:
+		ldx bg_buff_pointer
+		ldy #(@TEXT_END - @TEXT)
+@STORE_PPU_DATA_LOOP:
+		lda @TEXT, x
+		beq @END_STORE
+		sta BG_BUFF, x
+		inx
+		dey
+		bne @STORE_PPU_DATA_LOOP
+@END_STORE:
+		stx bg_buff_pointer
+		stx $80
+		rts	; --------------------------
+
+.rodata									; ----- data -----
+@TEXT:
+		.byte PPU_VERTICAL_MODE
+		ADDR_BG_BE 2, 1, 0
+		.byte "SCORE XXXXXX  C:YY  TIME ZZZ"
+@TEXT_END:

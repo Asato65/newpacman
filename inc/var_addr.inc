@@ -11,7 +11,7 @@ joy2_prev					: .byte 0	; 06
 joy1_pushstart				: .byte 0	; 07
 joy2_pushstart				: .byte 0	; 08
 
-ppu_update_data_pointer		: .byte 0	; 09
+bg_buff_pointer		: .byte 0	; 09
 addr_tmp1					: .addr 0	; 0A, 0B
 
 tmp_rgstA					: .byte 0	; 0C
