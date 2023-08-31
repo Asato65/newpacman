@@ -44,11 +44,8 @@
 		cmp bg_buff_pointer				; A = 0
 		beq @STORE_CHR
 		tax
-@SET_MODE:
 		lda BG_BUFF, x
-		bpl @SET_ADDR					; 0x00~0x7f => @SET_ADDR
-		cmp #$fe
-		bmi @SET_ADDR					; 0xfe~0xff = plus, 0x7e~0xfd => @SET_ADDR
+@SET_MODE:
 		and #%00000001					; Get flag
 		shl #2							; Move flag to Bit2
 		sta tmp1						; Start using tmp1
@@ -68,9 +65,8 @@
 @STORE_DATA:
 		lda BG_BUFF, x
 		tay
-		and #%11111110
-		cmp #%11111110
-		beq @SET_MODE					; no inx
+		cmp #$fe
+		bcs @SET_MODE					; no inx
 		tya
 		sta PPU_DATA
 		inx
