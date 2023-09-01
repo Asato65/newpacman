@@ -29,6 +29,13 @@ nmi_cnt						: .byte 0	; 13
 frm_cnt						: .byte 0	; 14
 is_processing_main			: .byte 0	; 15
 
+addr1:		.word $0000
+addr2:		.word $0000
+addr3:		.word $0000
+stage:		.byte 0
+map_num:	.byte 0
+index:		.byte 0
+
 .segment "USER_MEM"
 
 

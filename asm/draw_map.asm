@@ -10,22 +10,30 @@ _draw_map:
 map_num
 row_counter
 index
+x = index_tmp
 */
 
+/*
 	ldx map_data_index
 @INDEX_LOOP:
+	; map_dataを配列に
 	lda MAP_DATA, x
 	cmp #MAP_DATA_END_CODE
-	bne @NO_END
-	rts	; ------------------------------
+	beq @EXIT
 	sta tmp_rgstA
-	and #%1111_0000
+	and #%0000_1111
+	sta chr_pos_y
+	lda tmp_rgstA						; end using
 	shr #4
 	cmp row_counter
-	sta pos_x
-	lda tmp_rgstA						; end using
-	and #%0000_1111
-	sta pos_y
+	beq @EXIT
+	sta chr_pos_x
+
+	inx
+	lda MAP_DATA, x
+
+@EXIT:
+	rts	; ------------------------------
 
 
 	; END...
@@ -40,3 +48,77 @@ index
 	stx row_counter
 	inc map_num
 
+rts
+*/
+
+
+/*
+TST:
+	lda #0
+	sta stage
+	sta map_num
+	sta index
+
+	lda stage
+	shl
+	tax
+
+	lda MAP_DATA, x
+	sta addr1
+	inx
+	lda MAP_DATA, x
+	sta addr1+1
+	inx
+
+	ldy map_num
+	lda (addr1), y
+	sta addr2
+	iny
+	lda (addr1), y
+	sta addr2+1
+
+	ldy index
+
+	; loop!!!
+	lda (addr2), y
+	sta $90
+	rts	;-------------------------------
+
+
+TST2:
+	lda #0
+	sta stage
+	sta map_num
+	sta index
+
+	lda stage
+	shl
+	tax
+
+	lda MAP_DATA, x
+	sta addr1
+	inx
+	lda MAP_DATA, x
+	sta addr1+1
+	inx
+
+	ldy map_num
+	lda (addr1), y
+	sta addr2
+	iny
+	lda (addr1), y
+	sta addr2+1
+	sty map_num
+
+	ldy index
+
+@LOOP:
+	lda (addr2), y
+	; 座標，キャラ番号取得など
+	cmp #$fe
+	bcc @EXIT
+	iny
+@EXIT:
+	rts	;-------------------------------
+
+*/

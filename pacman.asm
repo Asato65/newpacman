@@ -21,6 +21,7 @@
 .include "./inc/var_addr.inc"
 .include "./inc/palette.inc"
 .include "./inc/struct.inc"
+.include "./inc/map_data.inc"
 
 .code									; ----- code -----
 .include "./asm/macro.asm"
@@ -28,6 +29,7 @@
 .include "./asm/sub.asm"
 .include "main.asm"
 .include "./asm/init.asm"
+.include "./asm/draw_map.asm"
 
 ; Use .org
 .org SPR_BUFF
