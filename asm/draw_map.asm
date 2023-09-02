@@ -24,21 +24,23 @@ _draw_map:
 	; get chr
 	iny
 	lda (map_addr), y
-
+	sta chr
 @LOOP_EXIT:
 
 
 @END_MAP_DATA:
-	; 次のマップ
+	; 次のマップ読み込み
 	ldy map_num
 	iny
 	jsr setMapAddr
 
 	cmp #$ff							; A = Addr Hi
-	bne @EXIT
+	bne @EXIT							; マップのアドレスだけ読みこんで終了
 	lda #1
-	sta isend_draw_stage				; ステージのブロック
+	sta isend_draw_stage				; ステージの描画全部終わったか
 @EXIT:
+	lda #0
+	sta index
 
 	rts	;-------------------------------
 
