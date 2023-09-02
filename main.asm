@@ -20,8 +20,6 @@
 		jsr _disp_status
 @SKIP2:
 
-jsr TST
-
 		; ----- End main -----
 
 		lda #0

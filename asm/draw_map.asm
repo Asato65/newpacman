@@ -6,6 +6,42 @@
 ;*------------------------------------------------------------------------------
 
 _draw_map:
+	ldy index
+@LOOP1:
+	; get pos
+	lda (map_addr), y
+	pha
+	cmp #$ff
+	beq @END_MAP_DATA
+	and #%0000_1111
+	sta posy
+	pla
+	shr #4
+	cmp row_counter
+	bne @EXIT
+	sta posx
+
+	; get chr
+	iny
+	lda (map_addr), y
+
+@LOOP_EXIT:
+
+
+@END_MAP_DATA:
+	; 次のマップ
+	ldy map_num
+	iny
+	jsr setMapAddr
+
+	cmp #$ff							; A = Addr Hi
+	bne @EXIT
+	lda #1
+	sta isend_draw_stage				; ステージのブロック
+@EXIT:
+
+	rts	;-------------------------------
+
 /*
 map_num
 row_counter
@@ -59,16 +95,8 @@ TST:
 	sta map_num
 	sta index
 
-	lda stage
-	shl
-	tax
-
-	lda MAP_DATA, x
-	sta addr1
-	inx
-	lda MAP_DATA, x
-	sta addr1+1
-	inx
+	ldy stage
+	jsr setStageAddr
 
 	ldy map_num
 	lda (addr1), y
@@ -122,3 +150,31 @@ TST2:
 	rts	;-------------------------------
 
 */
+
+;*------------------------------------------------------------------------------
+; Set addr of stage data
+; @PARAM	Y: stage number
+; @BREAK	A Y
+; @RETURN	None
+;*------------------------------------------------------------------------------
+
+setStageAddr:
+	tya
+	shl
+	tay
+	lda MAP_DATA, y
+	sta stage_addr
+	lda MAP_DATA+1, y
+	sta stage_addr+1
+	rts	; ------------------------------
+
+setMapAddr:
+	tya
+	shl
+	tay
+	lda (stage_addr), y
+	sta map_addr
+	iny
+	lda (stage_addr), y
+	sta map_addr+1
+	rts	; ------------------------------
