@@ -11,14 +11,12 @@
 		lda joy1_pushstart
 		and #BTN_A
 		beq @SKIP1
-		lda $80
-		sta bg_buff_pointer
+		ldy #0
+		jsr _setStageAddr
+		ldy #0
+		jsr _setMapAddr
+		jsr _drawMap
 @SKIP1:
-		lda joy1_pushstart
-		and #BTN_B
-		beq @SKIP2
-		jsr _disp_status
-@SKIP2:
 
 		; ----- End main -----
 

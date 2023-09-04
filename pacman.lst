@@ -1,4 +1,4 @@
-ca65 V2.19 - Git de30a57
+ca65 V2.19 - Git 6924d44
 Main file   : pacman.asm
 Current file: pacman.asm
 
@@ -85,43 +85,53 @@ Current file: pacman.asm
 000000r 1               .include "./inc/var_addr.inc"
 000000r 2               ; ZeroPage
 000000r 2               .segment "ZEROPAGE"
-000000r 2  00           tmp1						: .byte 0	; 00
-000001r 2  00           tmp2						: .byte 0	; 01
-000002r 2  00           tmp3						: .byte 0	; 02
+000000r 2  00           tmp1					: .byte 0		; 00
+000001r 2  00           tmp2					: .byte 0		; 01
+000002r 2  00           tmp3					: .byte 0		; 02
 000003r 2               
-000003r 2  00           joy1						: .byte 0	; 03
-000004r 2  00           joy2						: .byte 0	; 04
-000005r 2  00           joy1_prev					: .byte 0	; 05
-000006r 2  00           joy2_prev					: .byte 0	; 06
-000007r 2  00           joy1_pushstart				: .byte 0	; 07
-000008r 2  00           joy2_pushstart				: .byte 0	; 08
+000003r 2  00           joy1					: .byte 0		; 03
+000004r 2  00           joy2					: .byte 0		; 04
+000005r 2  00           joy1_prev				: .byte 0		; 05
+000006r 2  00           joy2_prev				: .byte 0		; 06
+000007r 2  00           joy1_pushstart			: .byte 0		; 07
+000008r 2  00           joy2_pushstart			: .byte 0		; 08
 000009r 2               
-000009r 2  00           bg_buff_pointer		: .byte 0	; 09
-00000Ar 2  00 00        addr_tmp1					: .addr 0	; 0A, 0B
+000009r 2  00           bg_buff_pointer			: .byte 0		; 09
+00000Ar 2  00 00        addr_tmp1				: .addr 0		; 0A, 0B
 00000Cr 2               
-00000Cr 2  00           tmp_rgstA					: .byte 0	; 0C
-00000Dr 2  00           tmp_rgstX					: .byte 0	; 0D
-00000Er 2  00           tmp_rgstY					: .byte 0	; 0E
+00000Cr 2  00           tmp_rgstA				: .byte 0		; 0C
+00000Dr 2  00           tmp_rgstX				: .byte 0		; 0D
+00000Er 2  00           tmp_rgstY				: .byte 0		; 0E
 00000Fr 2               
 00000Fr 2               ; These are not used often, but are used in NMI
-00000Fr 2  00           ppu_ctrl1_cpy				: .byte 0	; 0F |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000(2)|
-000010r 2  00           ppu_ctrl2_cpy				: .byte 0	; 10 |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+00000Fr 2  00           ppu_ctrl1_cpy			: .byte 0		; 0F |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000(2)|
+000010r 2  00           ppu_ctrl2_cpy			: .byte 0		; 10 |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 000011r 2               
-000011r 2  00           scroll_x					: .byte 0	; 11
-000012r 2  00           scroll_y					: .byte 0	; 12
+000011r 2  00           scroll_x				: .byte 0		; 11
+000012r 2  00           scroll_y				: .byte 0		; 12
 000013r 2               
-000013r 2  00           nmi_cnt						: .byte 0	; 13
-000014r 2  00           frm_cnt						: .byte 0	; 14
-000015r 2  00           is_processing_main			: .byte 0	; 15
+000013r 2  00           nmi_cnt					: .byte 0		; 13
+000014r 2  00           frm_cnt					: .byte 0		; 14
+000015r 2  00           is_processing_main		: .byte 0		; 15
 000016r 2               
-000016r 2  00 00        addr1:		.word $0000
-000018r 2  00 00        addr2:		.word $0000
-00001Ar 2  00 00        addr3:		.word $0000
-00001Cr 2  00           stage:		.byte 0
-00001Dr 2  00           map_num:	.byte 0
-00001Er 2  00           index:		.byte 0
+000016r 2  00 00        addr1					: .addr 0		; 16
+000018r 2  00 00        addr2					: .addr 0		; 17
+00001Ar 2  00 00        addr3					: .addr 0		; 18
+00001Cr 2  00           stage					: .byte 0		; 19
+00001Dr 2  00           map_num					: .byte 0		; 1a
+00001Er 2  00           index_tmp				: .byte 0		; 1b
 00001Fr 2               
-00001Fr 2               .segment "USER_MEM"
+00001Fr 2  00 00        map_arr_addr			: .addr 0		; 1c
+000021r 2  00 00        map_addr				: .addr 0		; 1e
+000023r 2               
+000023r 2  00           obj_posx				: .byte 0		; 20
+000024r 2  00           obj_posy				: .byte 0		; 21
+000025r 2  00           obj_id					: .byte 0		; 22
+000026r 2  00           isend_draw_stage		: .byte 0		; 23
+000027r 2  00           row_counter				: .byte 0		; 24
+000028r 2  00           index					: .byte 0		; 25
+000029r 2               
+000029r 2               .segment "USER_MEM"
 000000r 2               
 000000r 2               
 000000r 2               .code
@@ -153,18 +163,18 @@ Current file: pacman.asm
 000020r 2               .endstruct
 000020r 2               
 000020r 1               .include "./inc/map_data.inc"
-000020r 2               ; 1-1 map1
-000020r 2               MAP_1_1_1:
-000020r 2  80 47        	.byte $80, 'G'
-000022r 2  90 47        	.byte $90, 'G'
-000024r 2  A0 47        	.byte $a0, 'G'
-000026r 2  FF           	.byte $ff
-000027r 2               
-000027r 2               MAP_1_1:
-000027r 2  rr rr        	.addr MAP_1_1_1
-000029r 2               
-000029r 2               MAP_DATA:
-000029r 2  rr rr        	.addr MAP_1_1
+000020r 2               STAGE_ARR:
+000020r 2  rr rr        	.addr MAP_ARR_11
+000022r 2               
+000022r 2               MAP_ARR_11:
+000022r 2  rr rr        	.addr MAP_11_1
+000024r 2               
+000024r 2               MAP_11_1:
+000024r 2  85 47        	.byte $85, 'G'
+000026r 2  94 47        	.byte $94, 'G'
+000028r 2  A3 47        	.byte $a3, 'G'
+00002Ar 2  FF           	.byte $ff
+00002Br 2               
 00002Br 2               
 00002Br 2               /*
 00002Br 2               MAP_DATA[stage][map_num][index]
@@ -745,194 +755,233 @@ Current file: pacman.asm
 000026r 2               
 000026r 2  A5 rr        		lda joy1_pushstart
 000028r 2  29 80        		and #BTN_A
-00002Ar 2  F0 04        		beq @SKIP1
-00002Cr 2  A5 80        		lda $80
-00002Er 2  85 rr        		sta bg_buff_pointer
-000030r 2               @SKIP1:
-000030r 2  A5 rr        		lda joy1_pushstart
-000032r 2  29 40        		and #BTN_B
-000034r 2  F0 03        		beq @SKIP2
-000036r 2  20 rr rr     		jsr _disp_status
-000039r 2               @SKIP2:
+00002Ar 2  F0 0D        		beq @SKIP1
+00002Cr 2  A0 00        		ldy #0
+00002Er 2  20 rr rr     		jsr _setStageAddr
+000031r 2  A0 00        		ldy #0
+000033r 2  20 rr rr     		jsr _setMapAddr
+000036r 2  20 rr rr     		jsr _drawMap
+000039r 2               @SKIP1:
 000039r 2               
-000039r 2  20 rr rr     jsr TST
-00003Cr 2               
-00003Cr 2               		; ----- End main -----
-00003Cr 2               
-00003Cr 2  A9 00        		lda #0
-00003Er 2  85 rr        		sta is_processing_main
-000040r 2  4C rr rr     		jmp MAIN
-000043r 2               .endproc
-000043r 2               
-000043r 1               .include "./asm/init.asm"
-000043r 2               .macro init
-000043r 2               		sei								; Ban IRQ
-000043r 2               		cld								; Ban BCD
-000043r 2               		ldx #$ff
-000043r 2               		txs
-000043r 2               		inx
-000043r 2               		stx PPU_CTRL1
-000043r 2               		stx PPU_CTRL2
-000043r 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
-000043r 2               
-000043r 2               		/*
-000043r 2               		A & $2002 -> set Z(zero flag)
-000043r 2               		$2002 bit7(vblank) -> N(negative), bit6(sprite 0 hit) -> V(overflow)
-000043r 2               		Reset vblank & sprite 0 hit flag
-000043r 2               		(The state of this flag after reset is undefined.)
-000043r 2               		*/
-000043r 2               		bit $2002
-000043r 2               
-000043r 2               		jsr _wait_vblank				; 1st time
-000043r 2               
-000043r 2               		; It takes about 30,000 cycles for the PPU to stabilize.
-000043r 2               
-000043r 2               		txa								; X = A = 0
-000043r 2               @CLR_MEM:
-000043r 2               		sta $00, x
-000043r 2               		sta $0100, x
-000043r 2               		sta $0200, x
-000043r 2               		sta $0400, x
-000043r 2               		sta $0500, x
-000043r 2               		sta $0600, x
-000043r 2               		sta $0700, x
-000043r 2               		inx
-000043r 2               		bne @CLR_MEM
-000043r 2               
-000043r 2               		lda #$ff
-000043r 2               @CLR_CHR_MEM:
-000043r 2               		sta $0300, x
-000043r 2               		inx
-000043r 2               		bne @CLR_CHR_MEM
-000043r 2               
-000043r 2               		; ここで必要なメモリの初期化
-000043r 2               		lda #%10010000					; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
-000043r 2               		sta ppu_ctrl1_cpy
-000043r 2               		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
-000043r 2               		sta ppu_ctrl2_cpy
-000043r 2               
-000043r 2               		jsr _wait_vblank				; 2nd time
-000043r 2               
-000043r 2               		; Transfar pallete
-000043r 2               		lda #>PLT_TABLE_ADDR
-000043r 2               		sta PPU_ADDR
-000043r 2               		lda #<PLT_TABLE_ADDR			; Addr lo = 00
-000043r 2               		sta PPU_ADDR
-000043r 2               		tax
-000043r 2               @TFR_PAL:
-000043r 2               		lda DEFAULT_PLT, x
-000043r 2               		sta PPU_DATA
-000043r 2               		inx
-000043r 2               		cpx #$20
-000043r 2               		bne @TFR_PAL
-000043r 2               
-000043r 2               		lda #0
-000043r 2               		sta OAM_ADDR
-000043r 2               		lda #$03
-000043r 2               		sta OAM_DMA
-000043r 2               
-000043r 2               		; スクリーンON
-000043r 2               		jsr _restorePPUSet
-000043r 2               		jsr _setScroll
-000043r 2               
-000043r 2               		jsr _wait_vblank
-000043r 2               		jsr _disp_status
-000043r 2               .endmacro
-000043r 2               
-000043r 1               .include "./asm/draw_map.asm"
-000043r 2               ;*------------------------------------------------------------------------------
-000043r 2               ; Update a row
-000043r 2               ; @PARAM	None
-000043r 2               ; @BREAK	A X Y tmp_rgstA
-000043r 2               ; @RETURN	None
-000043r 2               ;*------------------------------------------------------------------------------
-000043r 2               
-000043r 2               _draw_map:
-000043r 2               /*
-000043r 2               map_num
-000043r 2               row_counter
-000043r 2               index
-000043r 2               x = index_tmp
-000043r 2               */
-000043r 2               
-000043r 2               /*
-000043r 2               	ldx map_data_index
-000043r 2               @INDEX_LOOP:
-000043r 2               	; map_dataを配列に
-000043r 2               	lda MAP_DATA, x
-000043r 2               	cmp #MAP_DATA_END_CODE
-000043r 2               	beq @EXIT
-000043r 2               	sta tmp_rgstA
-000043r 2               	and #%0000_1111
-000043r 2               	sta chr_pos_y
-000043r 2               	lda tmp_rgstA						; end using
-000043r 2               	shr #4
-000043r 2               	cmp row_counter
-000043r 2               	beq @EXIT
-000043r 2               	sta chr_pos_x
-000043r 2               
-000043r 2               	inx
-000043r 2               	lda MAP_DATA, x
-000043r 2               
-000043r 2               @EXIT:
-000043r 2               	rts	; ------------------------------
-000043r 2               
-000043r 2               
-000043r 2               	; END...
-000043r 2               	stx map_data_index
-000043r 2               
-000043r 2               	; inc counter
-000043r 2               	ldx row_counter
-000043r 2               	inx
-000043r 2               	cpx #$20
-000043r 2               	bne @NO_INC_MAP_COUNTER
-000043r 2               	ldx #0
-000043r 2               	stx row_counter
-000043r 2               	inc map_num
-000043r 2               
-000043r 2               rts
-000043r 2               */
-000043r 2               
-000043r 2               
-000043r 2               .code									; ----- code -----
-000105r 2               TST:
-000105r 2               
-000105r 2  A9 00        lda #0
-000107r 2  85 rr        sta stage
-000109r 2  85 rr        sta map_num
-00010Br 2  85 rr        sta index
-00010Dr 2               
-00010Dr 2  A5 rr        lda stage
-00010Fr 2  0A           shl
-000110r 2  AA           tax
-000111r 2               
-000111r 2  BD rr rr     lda MAP_DATA, x
-000114r 2  85 rr        sta addr1
-000116r 2  E8           inx
-000117r 2  BD rr rr     lda MAP_DATA, x
-00011Ar 2  85 rr        sta addr1+1
-00011Cr 2  E8           inx
-00011Dr 2               
-00011Dr 2  A4 rr        ldy map_num
-00011Fr 2  B1 rr        lda (addr1), y
-000121r 2  85 rr        sta addr2
-000123r 2  C8           iny
-000124r 2  B1 rr        lda (addr1), y
-000126r 2  85 rr        sta addr2+1
-000128r 2               
-000128r 2  A4 rr        ldy index
-00012Ar 2  B1 rr        lda (addr2), y
-00012Cr 2  85 rr        sta addr3
-00012Er 2  C8           iny
-00012Fr 2  B1 rr        lda (addr2), y
-000131r 2  85 rr        sta addr3+1
-000133r 2               
-000133r 2  85 90        sta $90
-000135r 2  60           rts
-000136r 2               
-000136r 1               
-000136r 1               ; Use .org
-000136r 1               .org SPR_BUFF
+000039r 2               		; ----- End main -----
+000039r 2               
+000039r 2  A9 00        		lda #0
+00003Br 2  85 rr        		sta is_processing_main
+00003Dr 2  4C rr rr     		jmp MAIN
+000040r 2               .endproc
+000040r 2               
+000040r 1               .include "./asm/init.asm"
+000040r 2               .macro init
+000040r 2               		sei								; Ban IRQ
+000040r 2               		cld								; Ban BCD
+000040r 2               		ldx #$ff
+000040r 2               		txs
+000040r 2               		inx
+000040r 2               		stx PPU_CTRL1
+000040r 2               		stx PPU_CTRL2
+000040r 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
+000040r 2               
+000040r 2               		/*
+000040r 2               		A & $2002 -> set Z(zero flag)
+000040r 2               		$2002 bit7(vblank) -> N(negative), bit6(sprite 0 hit) -> V(overflow)
+000040r 2               		Reset vblank & sprite 0 hit flag
+000040r 2               		(The state of this flag after reset is undefined.)
+000040r 2               		*/
+000040r 2               		bit $2002
+000040r 2               
+000040r 2               		jsr _wait_vblank				; 1st time
+000040r 2               
+000040r 2               		; It takes about 30,000 cycles for the PPU to stabilize.
+000040r 2               
+000040r 2               		lda #$20
+000040r 2               		sta PPU_ADDR
+000040r 2               		txa								; X = A = 0
+000040r 2               		sta PPU_ADDR
+000040r 2               @CLR_MEM:
+000040r 2               		sta $00, x
+000040r 2               		sta $0100, x
+000040r 2               		sta $0200, x
+000040r 2               		sta $0400, x
+000040r 2               		sta $0500, x
+000040r 2               		sta $0600, x
+000040r 2               		sta $0700, x
+000040r 2               		inx
+000040r 2               		bne @CLR_MEM
+000040r 2               
+000040r 2               		; CLEAR $2000~27ff
+000040r 2               		ldy #8
+000040r 2               @CLR_VRAM:
+000040r 2               		sta PPU_DATA
+000040r 2               		inx
+000040r 2               		bne @CLR_VRAM
+000040r 2               		dey
+000040r 2               		bne @CLR_VRAM
+000040r 2               
+000040r 2               		lda #$ff
+000040r 2               @CLR_CHR_MEM:
+000040r 2               		sta $0300, x
+000040r 2               		inx
+000040r 2               		bne @CLR_CHR_MEM
+000040r 2               
+000040r 2               		; ここで必要なメモリの初期化
+000040r 2               		lda #%10010000					; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
+000040r 2               		sta ppu_ctrl1_cpy
+000040r 2               		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+000040r 2               		sta ppu_ctrl2_cpy
+000040r 2               
+000040r 2               		jsr _wait_vblank				; 2nd time
+000040r 2               
+000040r 2               		; Transfar pallete
+000040r 2               		lda #>PLT_TABLE_ADDR
+000040r 2               		sta PPU_ADDR
+000040r 2               		lda #<PLT_TABLE_ADDR			; Addr lo = 00
+000040r 2               		sta PPU_ADDR
+000040r 2               		tax
+000040r 2               @TFR_PAL:
+000040r 2               		lda DEFAULT_PLT, x
+000040r 2               		sta PPU_DATA
+000040r 2               		inx
+000040r 2               		cpx #$20
+000040r 2               		bne @TFR_PAL
+000040r 2               
+000040r 2               		lda #0
+000040r 2               		sta OAM_ADDR
+000040r 2               		lda #$03
+000040r 2               		sta OAM_DMA
+000040r 2               
+000040r 2               		; スクリーンON
+000040r 2               		jsr _restorePPUSet
+000040r 2               		jsr _setScroll
+000040r 2               
+000040r 2               		jsr _wait_vblank
+000040r 2               		jsr _disp_status
+000040r 2               .endmacro
+000040r 2               
+000040r 1               .include "./asm/draw_map.asm"
+000040r 2               ;*------------------------------------------------------------------------------
+000040r 2               ; Update a row
+000040r 2               ; @PARAM	None
+000040r 2               ; @BREAK	A X Y tmp_rgstA
+000040r 2               ; @RETURN	None
+000040r 2               ;*------------------------------------------------------------------------------
+000040r 2               
+000040r 2               _drawMap:
+000040r 2  A4 rr        	ldy index
+000042r 2               @LOOP1:
+000042r 2               	; get pos
+000042r 2  B1 rr        	lda (map_addr), y
+000044r 2  48           	pha
+000045r 2  C9 FF        	cmp #$ff
+000047r 2  F0 14        	beq @END_MAP_DATA
+000049r 2  29 0F        	and #%0000_1111
+00004Br 2  85 rr        	sta obj_posy
+00004Dr 2  68           	pla
+00004Er 2  4A 4A 4A 4A  	shr #4
+000052r 2  C5 rr        	cmp row_counter
+000054r 2  D0 15        	bne @EXIT
+000056r 2  85 rr        	sta obj_posx
+000058r 2               
+000058r 2               	; get chr
+000058r 2  C8           	iny
+000059r 2  B1 rr        	lda (map_addr), y
+00005Br 2  85 rr        	sta obj_id
+00005Dr 2               @LOOP_EXIT:
+00005Dr 2               
+00005Dr 2               
+00005Dr 2               @END_MAP_DATA:
+00005Dr 2               	; 次のマップ読み込み
+00005Dr 2  A4 rr        	ldy map_num
+00005Fr 2  C8           	iny
+000060r 2  20 rr rr     	jsr _setMapAddr
+000063r 2  C9 FF        	cmp #$ff							; A = Addr Hi
+000065r 2  D0 04        	bne @EXIT							; マップのアドレスだけ読みこんで終了
+000067r 2  A9 01        	lda #1
+000069r 2  85 rr        	sta isend_draw_stage				; ステージの描画全部終わったか
+00006Br 2               @EXIT:
+00006Br 2  A9 00        	lda #0
+00006Dr 2  85 rr        	sta index
+00006Fr 2               
+00006Fr 2  60           	rts	;-------------------------------
+000070r 2               
+000070r 2               
+000070r 2               
+000070r 2               /*
+000070r 2               map_num
+000070r 2               row_counter
+000070r 2               index
+000070r 2               x = index_tmp
+000070r 2               */
+000070r 2               
+000070r 2               /*
+000070r 2               	ldx map_data_index
+000070r 2               @INDEX_LOOP:
+000070r 2               	; map_dataを配列に
+000070r 2               	lda MAP_DATA, x
+000070r 2               	cmp #MAP_DATA_END_CODE
+000070r 2               	beq @EXIT
+000070r 2               	sta tmp_rgstA
+000070r 2               	and #%0000_1111
+000070r 2               	sta chr_pos_y
+000070r 2               	lda tmp_rgstA						; end using
+000070r 2               	shr #4
+000070r 2               	cmp row_counter
+000070r 2               	beq @EXIT
+000070r 2               	sta chr_pos_x
+000070r 2               
+000070r 2               	inx
+000070r 2               	lda MAP_DATA, x
+000070r 2               
+000070r 2               @EXIT:
+000070r 2               	rts	; ------------------------------
+000070r 2               
+000070r 2               
+000070r 2               	; END...
+000070r 2               	stx map_data_index
+000070r 2               
+000070r 2               	; inc counter
+000070r 2               	ldx row_counter
+000070r 2               	inx
+000070r 2               	cpx #$20
+000070r 2               	bne @NO_INC_MAP_COUNTER
+000070r 2               	ldx #0
+000070r 2               	stx row_counter
+000070r 2               	inc map_num
+000070r 2               
+000070r 2               rts
+000070r 2               */
+000070r 2               
+000070r 2               
+000070r 2               ;*------------------------------------------------------------------------------
+000070r 2               ; Set addr of stage data
+000070r 2               ; @PARAM	Y: stage number
+000070r 2               ; @BREAK	A Y
+000070r 2               ; @RETURN	None
+000070r 2               ;*------------------------------------------------------------------------------
+000070r 2               
+000070r 2               _setStageAddr:
+000070r 2  98           	tya
+000071r 2  0A           	shl
+000072r 2  A8           	tay
+000073r 2  B9 rr rr     	lda STAGE_ARR, y
+000076r 2  85 rr        	sta map_arr_addr
+000078r 2  B9 rr rr     	lda STAGE_ARR+1, y
+00007Br 2  85 rr        	sta map_arr_addr+1
+00007Dr 2  60           	rts	; ------------------------------
+00007Er 2               
+00007Er 2               _setMapAddr:
+00007Er 2  98           	tya
+00007Fr 2  0A           	shl
+000080r 2  A8           	tay
+000081r 2  B1 rr        	lda (map_arr_addr), y
+000083r 2  85 rr        	sta map_addr
+000085r 2  C8           	iny
+000086r 2  B1 rr        	lda (map_arr_addr), y
+000088r 2  85 rr        	sta map_addr+1
+00008Ar 2  60           	rts	; ------------------------------
+00008Br 2               
+00008Br 1               
+00008Br 1               ; Use .org
+00008Br 1               .org SPR_BUFF
 000300  1  xx xx xx xx  		.tag SPR_TBL
 000304  1  xx xx xx xx  
 000308  1  xx xx xx xx  
@@ -944,24 +993,24 @@ Current file: pacman.asm
 008000  1  78 D8 A2 FF  		init
 008004  1  9A E8 8E 00  
 008008  1  20 8E 01 20  
-00806C  1               
-00806C  1  A9 01        		lda #1
-00806E  1  85 rr        		sta is_processing_main
-008070  1               
-008070  1  4C rr rr     		jmp MAIN
-008073  1               .endproc
-008073  1               
-008073  1               .proc IRQ
-008073  1  40           		rti
-008074  1               .endproc
-008074  1               
-008074  1               .segment "CHARS"
-008074  1  00 E0 E0 C0  		.incbin "spr_bg.chr"
-008078  1  80 00 00 00  
-00807C  1  00 00 00 00  
-00A074  1               
-00A074  1               .segment "VECINFO"
-00A074  1  rr rr        		.word NMI
-00A076  1  00 80        		.word RESET
-00A078  1  73 80        		.word IRQ
-00A078  1               
+00807F  1               
+00807F  1  A9 01        		lda #1
+008081  1  85 rr        		sta is_processing_main
+008083  1               
+008083  1  4C rr rr     		jmp MAIN
+008086  1               .endproc
+008086  1               
+008086  1               .proc IRQ
+008086  1  40           		rti
+008087  1               .endproc
+008087  1               
+008087  1               .segment "CHARS"
+008087  1  00 E0 E0 C0  		.incbin "spr_bg.chr"
+00808B  1  80 00 00 00  
+00808F  1  00 00 00 00  
+00A087  1               
+00A087  1               .segment "VECINFO"
+00A087  1  rr rr        		.word NMI
+00A089  1  00 80        		.word RESET
+00A08B  1  86 80        		.word IRQ
+00A08B  1               

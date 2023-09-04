@@ -1,15 +1,15 @@
-; 1-1 map1
-MAP_1_1_1:
-	.byte $80, 'G'
-	.byte $90, 'G'
-	.byte $a0, 'G'
+STAGE_ARR:
+	.addr MAP_ARR_11
+
+MAP_ARR_11:
+	.addr MAP_11_1
+
+MAP_11_1:
+	.byte $85, 'G'
+	.byte $94, 'G'
+	.byte $a3, 'G'
 	.byte $ff
 
-MAP_1_1:
-	.addr MAP_1_1_1
-
-MAP_DATA:
-	.addr MAP_1_1
 
 /*
 MAP_DATA[stage][map_num][index]

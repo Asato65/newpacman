@@ -20,7 +20,10 @@
 
 		; It takes about 30,000 cycles for the PPU to stabilize.
 
+		lda #$20
+		sta PPU_ADDR
 		txa								; X = A = 0
+		sta PPU_ADDR
 @CLR_MEM:
 		sta $00, x
 		sta $0100, x
@@ -31,6 +34,15 @@
 		sta $0700, x
 		inx
 		bne @CLR_MEM
+
+		; CLEAR $2000~27ff
+		ldy #8
+@CLR_VRAM:
+		sta PPU_DATA
+		inx
+		bne @CLR_VRAM
+		dey
+		bne @CLR_VRAM
 
 		lda #$ff
 @CLR_CHR_MEM:

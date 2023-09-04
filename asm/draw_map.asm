@@ -5,44 +5,59 @@
 ; @RETURN	None
 ;*------------------------------------------------------------------------------
 
-_draw_map:
+_drawMap:
 	ldy index
 @LOOP1:
 	; get pos
 	lda (map_addr), y
-	pha
-	cmp #$ff
+	cmp #OBJMAP_END
 	beq @END_MAP_DATA
-	and #%0000_1111
-	sta posy
-	pla
+	cmp #OBJMAP_NEXT
+	beq @MAP_INC
+	sta tmp_rgstA
 	shr #4
 	cmp row_counter
-	bne @EXIT
-	sta posx
+	bne @LOOP_EXIT
+	sta obj_posx
+
+	lda tmp_rgstA
+	and #%0000_1111
+	sta obj_posy
 
 	; get chr
 	iny
 	lda (map_addr), y
-	sta chr
-@LOOP_EXIT:
+	sta obj_id
 
+@LOOP_EXIT:
+	sty index
+	rts	; ------------------------------
+
+@MAP_INC:
+	lda #0
+	sta row_counter
+	inc map_num
+	iny
+	jmp @LOOP1
 
 @END_MAP_DATA:
 	; 次のマップ読み込み
 	ldy map_num
 	iny
-	jsr setMapAddr
-
+	jsr _setMapAddr
 	cmp #$ff							; A = Addr Hi
 	bne @EXIT							; マップのアドレスだけ読みこんで終了
+
 	lda #1
 	sta isend_draw_stage				; ステージの描画全部終わったか
+
 @EXIT:
 	lda #0
 	sta index
 
 	rts	;-------------------------------
+
+
 
 /*
 map_num
@@ -90,69 +105,6 @@ rts
 */
 
 
-/*
-TST:
-	lda #0
-	sta stage
-	sta map_num
-	sta index
-
-	ldy stage
-	jsr setStageAddr
-
-	ldy map_num
-	lda (addr1), y
-	sta addr2
-	iny
-	lda (addr1), y
-	sta addr2+1
-
-	ldy index
-
-	; loop!!!
-	lda (addr2), y
-	sta $90
-	rts	;-------------------------------
-
-
-TST2:
-	lda #0
-	sta stage
-	sta map_num
-	sta index
-
-	lda stage
-	shl
-	tax
-
-	lda MAP_DATA, x
-	sta addr1
-	inx
-	lda MAP_DATA, x
-	sta addr1+1
-	inx
-
-	ldy map_num
-	lda (addr1), y
-	sta addr2
-	iny
-	lda (addr1), y
-	sta addr2+1
-	sty map_num
-
-	ldy index
-
-@LOOP:
-	lda (addr2), y
-	; 座標，キャラ番号取得など
-	cmp #$fe
-	bcc @EXIT
-	iny
-@EXIT:
-	rts	;-------------------------------
-
-*/
-
 ;*------------------------------------------------------------------------------
 ; Set addr of stage data
 ; @PARAM	Y: stage number
@@ -160,23 +112,23 @@ TST2:
 ; @RETURN	None
 ;*------------------------------------------------------------------------------
 
-setStageAddr:
+_setStageAddr:
 	tya
 	shl
 	tay
-	lda MAP_DATA, y
-	sta stage_addr
-	lda MAP_DATA+1, y
-	sta stage_addr+1
+	lda STAGE_ARR, y
+	sta map_arr_addr
+	lda STAGE_ARR+1, y
+	sta map_arr_addr+1
 	rts	; ------------------------------
 
-setMapAddr:
+_setMapAddr:
 	tya
 	shl
 	tay
-	lda (stage_addr), y
+	lda (map_arr_addr), y
 	sta map_addr
 	iny
-	lda (stage_addr), y
+	lda (map_arr_addr), y
 	sta map_addr+1
 	rts	; ------------------------------
