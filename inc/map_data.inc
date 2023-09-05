@@ -10,6 +10,7 @@ MAP_11_1:
 	.byte $a3, 'G'
 	.byte $ff
 
+/*
 BROCK_ID:
 	.addr BR_SKY
 	; 30

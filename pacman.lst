@@ -1,4 +1,4 @@
-ca65 V2.19 - Git 6924d44
+ca65 V2.19 - Git de30a57
 Main file   : pacman.asm
 Current file: pacman.asm
 
@@ -32,6 +32,9 @@ Current file: pacman.asm
 000000r 2               
 000000r 2               PPU_VERTICAL_MODE						= %11111110
 000000r 2               PPU_HORIZONTAL_MODE						= %11111111
+000000r 2               
+000000r 2               OBJMAP_NEXT								= $fe
+000000r 2               OBJMAP_END								= $ff
 000000r 2               
 000000r 2               PPU_CTRL1_STD							= %10010000			; |NMION|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCRN$2000(2)|
 000000r 2               PPU_CTRL2_STD							= %00011110			; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8SPR|SHOW-L8BG|MODE=COLOR|
@@ -174,6 +177,85 @@ Current file: pacman.asm
 000026r 2  94 47        	.byte $94, 'G'
 000028r 2  A3 47        	.byte $a3, 'G'
 00002Ar 2  FF           	.byte $ff
+00002Br 2               
+00002Br 2               /*
+00002Br 2               BROCK_ID:
+00002Br 2               	.addr BR_SKY
+00002Br 2               	; 30
+00002Br 2               	.addr $0000							; 0
+00002Br 2               	.addr $0000							; 1
+00002Br 2               	.addr $0000							; 2
+00002Br 2               	.addr $0000							; 3
+00002Br 2               	.addr $0000							; 4
+00002Br 2               	.addr $0000							; 5
+00002Br 2               	.addr $0000							; 6
+00002Br 2               	.addr $0000							; 7
+00002Br 2               	.addr $0000							; 8
+00002Br 2               	.addr $0000							; 9
+00002Br 2               	.addr $0000							; :
+00002Br 2               	.addr $0000							; ;
+00002Br 2               	.addr $0000							; <
+00002Br 2               	.addr $0000							; =
+00002Br 2               	.addr $0000							; >
+00002Br 2               	.addr OBJ_QBLOCK					; ?
+00002Br 2               	; 40
+00002Br 2               	.addr $0000							; @
+00002Br 2               	.addr $0000							; A
+00002Br 2               	.addr OBJ_BROCK						; B
+00002Br 2               	.addr OBJ_COIN						; C
+00002Br 2               	.addr $0000							; D
+00002Br 2               	.addr $0000							; E
+00002Br 2               	.addr $0000							; F
+00002Br 2               	.addr OBJ_GROUND					; G
+00002Br 2               	.addr $0000							; H
+00002Br 2               	.addr $0000							; I
+00002Br 2               	.addr $0000							; J
+00002Br 2               	.addr $0000							; K
+00002Br 2               	.addr $0000							; L
+00002Br 2               	.addr $0000							; M
+00002Br 2               	.addr $0000							; N
+00002Br 2               	.addr $0000							; O
+00002Br 2               	; 50
+00002Br 2               	.addr $0000							; P
+00002Br 2               	.addr $0000							; Q
+00002Br 2               	.addr $0000							; R
+00002Br 2               	.addr $0000							; S
+00002Br 2               	.addr $0000							; T
+00002Br 2               	.addr $0000							; U
+00002Br 2               	.addr $0000							; V
+00002Br 2               	.addr $0000							; W
+00002Br 2               	.addr $0000							; X
+00002Br 2               	.addr $0000							; Y
+00002Br 2               	.addr $0000							; Z
+00002Br 2               	.addr $0000							; [
+00002Br 2               	.addr $0000							; \
+00002Br 2               	.addr $0000							; ]
+00002Br 2               	.addr $0000							; ^
+00002Br 2               	.addr $0000							; _
+00002Br 2               	; 60
+00002Br 2               	.addr $0000							; `
+00002Br 2               	.addr $0000							; a
+00002Br 2               	.addr $0000							; b
+00002Br 2               	.addr $0000							; c
+00002Br 2               	.addr $0000							; d
+00002Br 2               	.addr $0000							; e
+00002Br 2               	.addr $0000							; f
+00002Br 2               	.addr $0000							; g
+00002Br 2               	.addr $0000							; h
+00002Br 2               	.addr $0000							; i
+00002Br 2               	.addr $0000							; j
+00002Br 2               	.addr $0000							; k
+00002Br 2               	.addr $0000							; l
+00002Br 2               	.addr $0000							; m
+00002Br 2               	.addr $0000							; n
+00002Br 2               	.addr $0000							; o
+00002Br 2               
+00002Br 2               OBJ_QBLOCK:
+00002Br 2               OBJ_BROCK:
+00002Br 2               OBJ_COIN:
+00002Br 2               OBJ_GROUND:
+00002Br 2               	.byte $00, $00
+00002Br 2               	.byte $00, $00
 00002Br 2               
 00002Br 2               
 00002Br 2               /*
@@ -866,122 +948,160 @@ Current file: pacman.asm
 000040r 2               ;*------------------------------------------------------------------------------
 000040r 2               
 000040r 2               _drawMap:
-000040r 2  A4 rr        	ldy index
-000042r 2               @LOOP1:
-000042r 2               	; get pos
-000042r 2  B1 rr        	lda (map_addr), y
-000044r 2  48           	pha
-000045r 2  C9 FF        	cmp #$ff
-000047r 2  F0 14        	beq @END_MAP_DATA
-000049r 2  29 0F        	and #%0000_1111
-00004Br 2  85 rr        	sta obj_posy
-00004Dr 2  68           	pla
-00004Er 2  4A 4A 4A 4A  	shr #4
-000052r 2  C5 rr        	cmp row_counter
-000054r 2  D0 15        	bne @EXIT
-000056r 2  85 rr        	sta obj_posx
-000058r 2               
-000058r 2               	; get chr
-000058r 2  C8           	iny
-000059r 2  B1 rr        	lda (map_addr), y
-00005Br 2  85 rr        	sta obj_id
-00005Dr 2               @LOOP_EXIT:
-00005Dr 2               
-00005Dr 2               
-00005Dr 2               @END_MAP_DATA:
-00005Dr 2               	; 次のマップ読み込み
-00005Dr 2  A4 rr        	ldy map_num
-00005Fr 2  C8           	iny
-000060r 2  20 rr rr     	jsr _setMapAddr
-000063r 2  C9 FF        	cmp #$ff							; A = Addr Hi
-000065r 2  D0 04        	bne @EXIT							; マップのアドレスだけ読みこんで終了
-000067r 2  A9 01        	lda #1
-000069r 2  85 rr        	sta isend_draw_stage				; ステージの描画全部終わったか
-00006Br 2               @EXIT:
-00006Br 2  A9 00        	lda #0
-00006Dr 2  85 rr        	sta index
-00006Fr 2               
-00006Fr 2  60           	rts	;-------------------------------
-000070r 2               
-000070r 2               
-000070r 2               
-000070r 2               /*
-000070r 2               map_num
-000070r 2               row_counter
-000070r 2               index
-000070r 2               x = index_tmp
-000070r 2               */
-000070r 2               
-000070r 2               /*
-000070r 2               	ldx map_data_index
-000070r 2               @INDEX_LOOP:
-000070r 2               	; map_dataを配列に
-000070r 2               	lda MAP_DATA, x
-000070r 2               	cmp #MAP_DATA_END_CODE
-000070r 2               	beq @EXIT
-000070r 2               	sta tmp_rgstA
-000070r 2               	and #%0000_1111
-000070r 2               	sta chr_pos_y
-000070r 2               	lda tmp_rgstA						; end using
-000070r 2               	shr #4
-000070r 2               	cmp row_counter
-000070r 2               	beq @EXIT
-000070r 2               	sta chr_pos_x
-000070r 2               
-000070r 2               	inx
-000070r 2               	lda MAP_DATA, x
-000070r 2               
-000070r 2               @EXIT:
-000070r 2               	rts	; ------------------------------
-000070r 2               
-000070r 2               
-000070r 2               	; END...
-000070r 2               	stx map_data_index
-000070r 2               
-000070r 2               	; inc counter
-000070r 2               	ldx row_counter
-000070r 2               	inx
-000070r 2               	cpx #$20
-000070r 2               	bne @NO_INC_MAP_COUNTER
-000070r 2               	ldx #0
-000070r 2               	stx row_counter
-000070r 2               	inc map_num
-000070r 2               
-000070r 2               rts
-000070r 2               */
-000070r 2               
-000070r 2               
-000070r 2               ;*------------------------------------------------------------------------------
-000070r 2               ; Set addr of stage data
-000070r 2               ; @PARAM	Y: stage number
-000070r 2               ; @BREAK	A Y
-000070r 2               ; @RETURN	None
-000070r 2               ;*------------------------------------------------------------------------------
-000070r 2               
-000070r 2               _setStageAddr:
-000070r 2  98           	tya
-000071r 2  0A           	shl
-000072r 2  A8           	tay
-000073r 2  B9 rr rr     	lda STAGE_ARR, y
-000076r 2  85 rr        	sta map_arr_addr
-000078r 2  B9 rr rr     	lda STAGE_ARR+1, y
-00007Br 2  85 rr        	sta map_arr_addr+1
-00007Dr 2  60           	rts	; ------------------------------
-00007Er 2               
-00007Er 2               _setMapAddr:
-00007Er 2  98           	tya
-00007Fr 2  0A           	shl
-000080r 2  A8           	tay
-000081r 2  B1 rr        	lda (map_arr_addr), y
-000083r 2  85 rr        	sta map_addr
-000085r 2  C8           	iny
-000086r 2  B1 rr        	lda (map_arr_addr), y
-000088r 2  85 rr        	sta map_addr+1
-00008Ar 2  60           	rts	; ------------------------------
-00008Br 2               
-00008Br 1               
-00008Br 1               ; Use .org
-00008Br 1               .org SPR_BUFF
+000040r 2  60           rts
+000041r 2               /*
+000041r 2               	ldy index
+000041r 2               @LOOP1:
+000041r 2               	; get pos
+000041r 2               	lda (map_addr), y
+000041r 2               	cmp #OBJMAP_END
+000041r 2               	beq @END_MAP_DATA
+000041r 2               	cmp #OBJMAP_NEXT
+000041r 2               	beq @MAP_INC
+000041r 2               	sta tmp_rgstA
+000041r 2               
+000041r 2               	lda map_num
+000041r 2               	cmp cnt_map_next					; #OBJMAP_NEXTの回数（ステージが変わるまで連番）
+000041r 2               	beq @LOOP_EXIT
+000041r 2               
+000041r 2               	lda tmp_rgstA
+000041r 2               	shr #4
+000041r 2               	cmp row_counter
+000041r 2               	bne @LOOP_EXIT
+000041r 2               	sta obj_posx
+000041r 2               
+000041r 2               	lda tmp_rgstA
+000041r 2               	and #%0000_1111
+000041r 2               	sta obj_posy
+000041r 2               
+000041r 2               	; get chr
+000041r 2               	iny
+000041r 2               	lda (map_addr), y
+000041r 2               	sta obj_id
+000041r 2               
+000041r 2               	; set ppu addr
+000041r 2               	lda obj_posx
+000041r 2               	shl #1								; no carry
+000041r 2               	add #2
+000041r 2               	sta ppu_addr
+000041r 2               
+000041r 2               	lda map_num
+000041r 2               	and #1
+000041r 2               	shl #2								; no carry
+000041r 2               	adc obj_posy
+000041r 2               	adc #$20
+000041r 2               	sta ppu_addr+1
+000041r 2               
+000041r 2               
+000041r 2               
+000041r 2               
+000041r 2               @LOOP_EXIT:
+000041r 2               	sty index
+000041r 2               	rts	; ------------------------------
+000041r 2               
+000041r 2               @MAP_INC:
+000041r 2               	lda #0
+000041r 2               	sta row_counter
+000041r 2               	inc map_num
+000041r 2               	iny
+000041r 2               	jmp @LOOP1
+000041r 2               
+000041r 2               @END_MAP_DATA:
+000041r 2               	; 次のマップ読み込み
+000041r 2               	ldy map_num
+000041r 2               	iny
+000041r 2               	jsr _setMapAddr
+000041r 2               	cmp #$ff							; A = Addr Hi
+000041r 2               	bne @EXIT							; マップのアドレスだけ読みこんで終了
+000041r 2               
+000041r 2               	lda #1
+000041r 2               	sta isend_draw_stage				; ステージの描画全部終わったか
+000041r 2               
+000041r 2               @EXIT:
+000041r 2               	lda #0
+000041r 2               	sta index
+000041r 2               
+000041r 2               	rts	;-------------------------------
+000041r 2               
+000041r 2               
+000041r 2               
+000041r 2               /*
+000041r 2               map_num
+000041r 2               row_counter
+000041r 2               index
+000041r 2               x = index_tmp
+000041r 2               */
+000041r 2               
+000041r 2               /*
+000041r 2               	ldx map_data_index
+000041r 2               @INDEX_LOOP:
+000041r 2               	; map_dataを配列に
+000041r 2               	lda MAP_DATA, x
+000041r 2               	cmp #MAP_DATA_END_CODE
+000041r 2               	beq @EXIT
+000041r 2               	sta tmp_rgstA
+000041r 2               	and #%0000_1111
+000041r 2               	sta chr_pos_y
+000041r 2               	lda tmp_rgstA						; end using
+000041r 2               	shr #4
+000041r 2               	cmp row_counter
+000041r 2               	beq @EXIT
+000041r 2               	sta chr_pos_x
+000041r 2               
+000041r 2               	inx
+000041r 2               	lda MAP_DATA, x
+000041r 2               
+000041r 2               @EXIT:
+000041r 2               	rts	; ------------------------------
+000041r 2               
+000041r 2               
+000041r 2               	; END...
+000041r 2               	stx map_data_index
+000041r 2               
+000041r 2               	; inc counter
+000041r 2               	ldx row_counter
+000041r 2               	inx
+000041r 2               	cpx #$20
+000041r 2               	bne @NO_INC_MAP_COUNTER
+000041r 2               	ldx #0
+000041r 2               	stx row_counter
+000041r 2               	inc map_num
+000041r 2               
+000041r 2               rts
+000041r 2               */
+000041r 2               
+000041r 2               
+000041r 2               ;*------------------------------------------------------------------------------
+000041r 2               ; Set addr of stage data
+000041r 2               ; @PARAM	Y: stage number
+000041r 2               ; @BREAK	A Y
+000041r 2               ; @RETURN	None
+000041r 2               ;*------------------------------------------------------------------------------
+000041r 2               
+000041r 2               _setStageAddr:
+000041r 2  98           	tya
+000042r 2  0A           	shl
+000043r 2  A8           	tay
+000044r 2  B9 rr rr     	lda STAGE_ARR, y
+000047r 2  85 rr        	sta map_arr_addr
+000049r 2  B9 rr rr     	lda STAGE_ARR+1, y
+00004Cr 2  85 rr        	sta map_arr_addr+1
+00004Er 2  60           	rts	; ------------------------------
+00004Fr 2               
+00004Fr 2               _setMapAddr:
+00004Fr 2  98           	tya
+000050r 2  0A           	shl
+000051r 2  A8           	tay
+000052r 2  B1 rr        	lda (map_arr_addr), y
+000054r 2  85 rr        	sta map_addr
+000056r 2  C8           	iny
+000057r 2  B1 rr        	lda (map_arr_addr), y
+000059r 2  85 rr        	sta map_addr+1
+00005Br 2  60           	rts	; ------------------------------
+00005Cr 2               
+00005Cr 1               
+00005Cr 1               ; Use .org
+00005Cr 1               .org SPR_BUFF
 000300  1  xx xx xx xx  		.tag SPR_TBL
 000304  1  xx xx xx xx  
 000308  1  xx xx xx xx  
@@ -1005,8 +1125,8 @@ Current file: pacman.asm
 008087  1               .endproc
 008087  1               
 008087  1               .segment "CHARS"
-008087  1  00 E0 E0 C0  		.incbin "spr_bg.chr"
-00808B  1  80 00 00 00  
+008087  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
+00808B  1  1C 24 26 66  
 00808F  1  00 00 00 00  
 00A087  1               
 00A087  1               .segment "VECINFO"
