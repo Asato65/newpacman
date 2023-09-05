@@ -15,6 +15,12 @@ _drawMap:
 	cmp #OBJMAP_NEXT
 	beq @MAP_INC
 	sta tmp_rgstA
+
+	lda map_num
+	cmp cnt_map_next					; #OBJMAP_NEXTの回数（ステージが変わるまで連番）
+	beq @LOOP_EXIT
+
+	lda tmp_rgstA
 	shr #4
 	cmp row_counter
 	bne @LOOP_EXIT
@@ -28,6 +34,22 @@ _drawMap:
 	iny
 	lda (map_addr), y
 	sta obj_id
+
+	; set ppu addr
+	lda obj_posx
+	shl #1								; no carry
+	add #2
+	sta ppu_addr
+
+	lda map_num
+	and #1
+	shl #2								; no carry
+	adc obj_posy
+	adc #$20
+	sta ppu_addr+1
+
+	
+
 
 @LOOP_EXIT:
 	sty index
