@@ -10,9 +10,9 @@ MAP_11_1:
 	.byte $a3, 'G'
 	.byte $ff
 
-/*
+
 BROCK_ID:
-	.addr BR_SKY
+	.addr OBJ_SKY
 	; 30
 	.addr $0000							; 0
 	.addr $0000							; 1
@@ -82,12 +82,26 @@ BROCK_ID:
 	.addr $0000							; n
 	.addr $0000							; o
 
+
+OBJ_SKY:
+	.byte $00, $00
+	.byte $00, $00
+
 OBJ_QBLOCK:
+	.byte $90, $91
+	.byte $92, $93
+
 OBJ_BROCK:
+	.byte $94, $94
+	.byte $95, $95
+
 OBJ_COIN:
+	.byte $84, $85
+	.byte $86, $87
+
 OBJ_GROUND:
-	.byte $00, $00
-	.byte $00, $00
+	.byte $80, $81
+	.byte $82, $83
 
 
 /*
