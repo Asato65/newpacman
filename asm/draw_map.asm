@@ -1,14 +1,13 @@
 ;*------------------------------------------------------------------------------
-; Update a row
+; Update one row
 ; @PARAM	None
-; @BREAK	A X Y tmp_rgstA
+; @BREAK	A X Y tmp1 tmp2
 ; @RETURN	None
 ;*------------------------------------------------------------------------------
 
 _drawMap:
-rts
-/*
 	ldy index
+
 @LOOP1:
 	; get pos
 	lda (map_addr), y
@@ -16,45 +15,28 @@ rts
 	beq @END_MAP_DATA
 	cmp #OBJMAP_NEXT
 	beq @MAP_INC
-	sta tmp_rgstA
+	sta addr_lo
 
 	lda map_num
 	cmp cnt_map_next					; #OBJMAP_NEXTの回数（ステージが変わるまで連番）
 	beq @LOOP_EXIT
 
-	lda tmp_rgstA
-	shr #4
-	cmp row_counter
-	bne @LOOP_EXIT
-	sta obj_posx
-
-	lda tmp_rgstA
-	and #%0000_1111
-	sta obj_posy
+	and #%0000_0001
+	add #4
+	sta addr_hi
 
 	; get chr
 	iny
 	lda (map_addr), y
-	sta obj_id
 
-	; set ppu addr
-	lda obj_posx
-	shl #1								; no carry
-	add #2
-	sta ppu_addr
-
-	lda map_num
-	and #1
-	shl #2								; no carry
-	adc obj_posy
-	adc #$20
-	sta ppu_addr+1
-
-	
-
+	ldx #0
+	sta (addr_hi, x)
+	iny
+	bne @LOOP1							; jmp
 
 @LOOP_EXIT:
 	sty index
+
 	rts	; ------------------------------
 
 @MAP_INC:
@@ -80,53 +62,6 @@ rts
 	sta index
 
 	rts	;-------------------------------
-
-
-
-/*
-map_num
-row_counter
-index
-x = index_tmp
-*/
-
-/*
-	ldx map_data_index
-@INDEX_LOOP:
-	; map_dataを配列に
-	lda MAP_DATA, x
-	cmp #MAP_DATA_END_CODE
-	beq @EXIT
-	sta tmp_rgstA
-	and #%0000_1111
-	sta chr_pos_y
-	lda tmp_rgstA						; end using
-	shr #4
-	cmp row_counter
-	beq @EXIT
-	sta chr_pos_x
-
-	inx
-	lda MAP_DATA, x
-
-@EXIT:
-	rts	; ------------------------------
-
-
-	; END...
-	stx map_data_index
-
-	; inc counter
-	ldx row_counter
-	inx
-	cpx #$20
-	bne @NO_INC_MAP_COUNTER
-	ldx #0
-	stx row_counter
-	inc map_num
-
-rts
-*/
 
 
 ;*------------------------------------------------------------------------------
