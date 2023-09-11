@@ -39,15 +39,15 @@ index_tmp				: .byte 0		; 1e
 map_arr_addr			: .addr 0		; 1f, 20
 map_addr				: .addr 0		; 21, 22
 
-obj_posx				: .byte 0		; 23
-obj_posy				: .byte 0		; 24
-obj_id					: .byte 0		; 25
-isend_draw_stage		: .byte 0		; 26
-row_counter				: .byte 0		; 27
-index					: .byte 0		; 28
+isend_draw_stage		: .byte 0		; 23
+row_counter				: .byte 0		; 24
+index					: .byte 0		; 25
 
-ppu_addr				: .addr 0		; 29, 2a
-cnt_map_next			: .byte 0		; 2b
+ppu_addr				: .addr 0		; 26, 27
+cnt_map_next			: .byte 0		; 28
+
+
+
 
 .segment "USER_MEM"
 

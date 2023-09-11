@@ -6,6 +6,10 @@
 ;*------------------------------------------------------------------------------
 
 _drawMap:
+	lda row_counter
+	add #$10
+	sta row_counter
+
 	ldy index
 
 @LOOP1:
@@ -13,24 +17,29 @@ _drawMap:
 	lda (map_addr), y
 	cmp #OBJMAP_END
 	beq @END_MAP_DATA
+
 	cmp #OBJMAP_NEXT
 	beq @MAP_INC
-	sta addr_lo
+
+	sta addr1+0
+	and #%1111_0000
+	cmp row_counter
+	bne @LOOP_EXIT
 
 	lda map_num
 	cmp cnt_map_next					; #OBJMAP_NEXTの回数（ステージが変わるまで連番）
-	beq @LOOP_EXIT
+	bne @LOOP_EXIT
 
 	and #%0000_0001
 	add #4
-	sta addr_hi
+	sta addr1+1
 
 	; get chr
 	iny
 	lda (map_addr), y
 
 	ldx #0
-	sta (addr_hi, x)
+	sta (addr1, x)						; end using addr1
 	iny
 	bne @LOOP1							; jmp
 
@@ -44,13 +53,14 @@ _drawMap:
 	sta row_counter
 	inc map_num
 	iny
-	jmp @LOOP1
+	bne @LOOP1							; jmp
 
 @END_MAP_DATA:
 	; 次のマップ読み込み
 	ldy map_num
 	iny
-	jsr _setMapAddr
+	sty map_num
+	jsr _setMapAddr						; Use registerY as arg
 	cmp #$ff							; A = Addr Hi
 	bne @EXIT							; マップのアドレスだけ読みこんで終了
 
