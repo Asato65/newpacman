@@ -6,9 +6,14 @@
 ;*------------------------------------------------------------------------------
 
 _drawMap:
-	lda row_counter
-	add #$10
-	sta row_counter
+	ldy row_counter
+	iny
+	cpy #$10
+	bne @SKIP
+	ldy #0
+	inc map_num
+@SKIP:
+	sty row_counter
 
 	ldy index
 
@@ -22,7 +27,7 @@ _drawMap:
 	beq @MAP_INC
 
 	sta addr1+0
-	and #%1111_0000
+	and #%0000_1111
 	cmp row_counter
 	bne @LOOP_EXIT
 
@@ -49,9 +54,10 @@ _drawMap:
 	rts	; ------------------------------
 
 @MAP_INC:
-	lda #0
-	sta row_counter
-	inc map_num
+	; lda #0
+	; sta row_counter
+	; inc map_num
+	inc cnt_map_next
 	iny
 	bne @LOOP1							; jmp
 

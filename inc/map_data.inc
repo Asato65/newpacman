@@ -1,3 +1,5 @@
+
+
 STAGE_ARR:
 	.addr MAP_ARR_11
 
@@ -5,10 +7,16 @@ MAP_ARR_11:
 	.addr MAP_11_1
 
 MAP_11_1:
-	.byte $85, 'G'
-	.byte $94, 'G'
-	.byte $a3, 'G'
-	.byte $ff
+	.byte (GET_OBJ_POS $8, $5), 'G'
+	.byte (GET_OBJ_POS $8, $6), 'G'
+	.byte (GET_OBJ_POS $8, $7), 'G'
+	.byte (GET_OBJ_POS $9, $6), 'G'
+	.byte (GET_OBJ_POS $9, $7), 'G'
+	.byte (GET_OBJ_POS $a, $7), 'G'
+	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $0, $c), 'B'
+	.byte (GET_OBJ_POS $0, $d), 'B'
+	.byte OBJMAP_END
 
 
 BROCK_ID:
