@@ -11,10 +11,7 @@
 		lda joy1_pushstart
 		and #BTN_A
 		beq @SKIP1
-		ldy #0
-		jsr _setStageAddr
-		ldy #0
-		jsr _setMapAddr
+
 		jsr _drawMap
 @SKIP1:
 

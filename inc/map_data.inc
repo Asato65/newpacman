@@ -5,17 +5,64 @@ STAGE_ARR:
 
 MAP_ARR_11:
 	.addr MAP_11_1
+	.addr MAP_11_2
+	.addr $ffff
 
 MAP_11_1:
-	.byte (GET_OBJ_POS $8, $5), 'G'
-	.byte (GET_OBJ_POS $8, $6), 'G'
-	.byte (GET_OBJ_POS $8, $7), 'G'
-	.byte (GET_OBJ_POS $9, $6), 'G'
-	.byte (GET_OBJ_POS $9, $7), 'G'
-	.byte (GET_OBJ_POS $a, $7), 'G'
+	.byte (GET_OBJ_POS $0, $0), 'G'
+	.byte (GET_OBJ_POS $1, $1), 'G'
+	.byte (GET_OBJ_POS $2, $2), 'G'
+	.byte (GET_OBJ_POS $3, $3), 'G'
+	.byte (GET_OBJ_POS $4, $4), 'G'
+	.byte (GET_OBJ_POS $5, $5), 'G'
+	.byte (GET_OBJ_POS $6, $6), 'G'
+	.byte (GET_OBJ_POS $7, $7), 'G'
+	.byte (GET_OBJ_POS $8, $8), 'G'
+	.byte (GET_OBJ_POS $9, $9), 'G'
+	.byte (GET_OBJ_POS $a, $a), 'G'
+	.byte (GET_OBJ_POS $b, $b), 'G'
+	.byte (GET_OBJ_POS $c, $c), 'G'
+	.byte (GET_OBJ_POS $d, $d), 'G'
+	.byte (GET_OBJ_POS $e, $c), 'G'
+	.byte (GET_OBJ_POS $f, $b), 'G'
 	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $c), 'B'
-	.byte (GET_OBJ_POS $0, $d), 'B'
+	.byte (GET_OBJ_POS $0, $0), 'B'
+	.byte (GET_OBJ_POS $1, $1), 'B'
+	.byte (GET_OBJ_POS $2, $2), 'B'
+	.byte (GET_OBJ_POS $3, $3), 'B'
+	.byte (GET_OBJ_POS $4, $4), 'B'
+	.byte (GET_OBJ_POS $5, $5), 'B'
+	.byte (GET_OBJ_POS $6, $6), 'B'
+	.byte (GET_OBJ_POS $7, $7), 'B'
+	.byte (GET_OBJ_POS $8, $8), 'B'
+	.byte (GET_OBJ_POS $9, $9), 'B'
+	.byte (GET_OBJ_POS $a, $a), 'B'
+	.byte (GET_OBJ_POS $b, $b), 'B'
+	.byte (GET_OBJ_POS $c, $c), 'B'
+	.byte (GET_OBJ_POS $d, $d), 'B'
+	.byte (GET_OBJ_POS $e, $c), 'B'
+	.byte (GET_OBJ_POS $f, $b), 'B'
+	.byte OBJMAP_NEXT
+	.byte OBJMAP_END
+
+MAP_11_2:
+	.byte (GET_OBJ_POS $0, $0), '?'
+	.byte (GET_OBJ_POS $1, $1), '?'
+	.byte (GET_OBJ_POS $2, $2), '?'
+	.byte (GET_OBJ_POS $3, $3), '?'
+	.byte (GET_OBJ_POS $4, $4), '?'
+	.byte (GET_OBJ_POS $5, $5), '?'
+	.byte (GET_OBJ_POS $6, $6), '?'
+	.byte (GET_OBJ_POS $7, $7), '?'
+	.byte (GET_OBJ_POS $8, $8), '?'
+	.byte (GET_OBJ_POS $9, $9), '?'
+	.byte (GET_OBJ_POS $a, $a), '?'
+	.byte (GET_OBJ_POS $b, $b), '?'
+	.byte (GET_OBJ_POS $c, $c), '?'
+	.byte (GET_OBJ_POS $d, $d), '?'
+	.byte (GET_OBJ_POS $e, $c), '?'
+	.byte (GET_OBJ_POS $f, $b), '?'
+	.byte OBJMAP_NEXT
 	.byte OBJMAP_END
 
 

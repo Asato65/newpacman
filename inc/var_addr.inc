@@ -33,18 +33,16 @@ addr1					: .addr 0		; 16, 17
 addr2					: .addr 0		; 18, 19
 addr3					: .addr 0		; 1a, 1b
 stage					: .byte 0		; 1c
-map_num					: .byte 0		; 1d
+map_buff_num			: .byte 0		; 1d
 index_tmp				: .byte 0		; 1e
-
 map_arr_addr			: .addr 0		; 1f, 20
 map_addr				: .addr 0		; 21, 22
-
 isend_draw_stage		: .byte 0		; 23
 row_counter				: .byte 0		; 24
 index					: .byte 0		; 25
-
 ppu_addr				: .addr 0		; 26, 27
 cnt_map_next			: .byte 0		; 28
+map_arr_num				: .byte 0
 
 
 

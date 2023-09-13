@@ -76,6 +76,13 @@
 		lda #$03
 		sta OAM_DMA
 
+		lda #$ff
+		sta row_counter
+		ldy #0
+		jsr _setStageAddr
+		ldy #0
+		jsr _setMapAddr
+
 		; スクリーンON
 		jsr _restorePPUSet
 		jsr _setScroll
