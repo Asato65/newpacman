@@ -1,7 +1,7 @@
 ;*------------------------------------------------------------------------------
 ; Update one row
 ; @PARAM	None
-; @BREAK	A X Y tmp1 tmp2
+; @BREAK	A X Y
 ; @RETURN	None
 ;*------------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ _drawMap:
 	bne @LOOP_EXIT
 
 	lda map_buff_num
-	cmp cnt_map_next					; #OBJMAP_NEXTの回数（ステージが変わるまで連番）
+	cmp cnt_map_next					; Count OBJMAP_NEXT (is not reset until the stage changes)
 	bne @LOOP_EXIT
 
 	and #%0000_0001
@@ -46,9 +46,9 @@ _drawMap:
 	lda (map_addr), y
 
 	ldx #0
-	sta (addr1, x)						; end using addr1
+	sta (addr1, x)						; End using addr1
 	iny
-	bne @LOOP1							; jmp
+	bne @LOOP1							; Jmp
 
 @LOOP_EXIT:
 	sty index
@@ -58,19 +58,19 @@ _drawMap:
 @LOAD_NEXT_MAP:
 	inc cnt_map_next
 	iny
-	bne @LOOP1							; jmp
+	bne @LOOP1							; Jmp
 
 @END_MAP_DATA:
-	; 次のマップ読み込み
+	; Load the next map
 	ldy map_arr_num
 	iny
 	sty map_arr_num
 	jsr _setMapAddr						; Use Y as arg
 	cmp #$ff							; A = Addr Hi
-	bne @EXIT							; マップのアドレスだけ読みこんで終了
+	bne @EXIT
 
 	lda #1
-	sta isend_draw_stage				; ステージの描画全部終わったか
+	sta isend_draw_stage
 
 @EXIT:
 	lda #0
@@ -80,7 +80,7 @@ _drawMap:
 
 
 ;*------------------------------------------------------------------------------
-; Set addr of stage data
+; Set addr of stages
 ; @PARAM	Y: stage number
 ; @BREAK	A Y
 ; @RETURN	None (A = addr Hi)
@@ -96,7 +96,16 @@ _setStageAddr:
 
 	lda STAGE_ARR+1, y
 	sta map_arr_addr+1
+
 	rts	; ------------------------------
+
+
+;*------------------------------------------------------------------------------
+; Set addr of maps
+; @PARAM	Y: map number
+; @BREAK	A Y
+; @RETURN	None (A = addr Hi)
+;*------------------------------------------------------------------------------
 
 _setMapAddr:
 	tya

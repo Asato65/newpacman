@@ -13,7 +13,7 @@ file	id=9,name="./asm/nmi.asm",size=2803,mtime=0x64F07F18,mod=0
 file	id=10,name="./asm/sub.asm",size=3243,mtime=0x64F07FA8,mod=0
 file	id=11,name="main.asm",size=420,mtime=0x6501BE28,mod=0
 file	id=12,name="./asm/init.asm",size=1660,mtime=0x6501BE23,mod=0
-file	id=13,name="./asm/draw_map.asm",size=1998,mtime=0x6501BE7A,mod=0
+file	id=13,name="./asm/draw_map.asm",size=1883,mtime=0x6501C014,mod=0
 file	id=14,name="spr_bg.chr",size=8192,mtime=0x64FC7601,mod=0
 line	id=0,file=8,line=166,type=2,count=1,span=195
 line	id=1,file=7,line=108,span=142

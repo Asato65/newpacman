@@ -1060,7 +1060,7 @@ Current file: pacman.asm
 000059r 2  D0 17        	bne @LOOP_EXIT
 00005Br 2               
 00005Br 2  A5 rr        	lda map_buff_num
-00005Dr 2  C5 rr        	cmp cnt_map_next					; #OBJMAP_NEXTの回数（ステージが変わるまで連番）
+00005Dr 2  C5 rr        	cmp cnt_map_next					; Count OBJMAP_NEXT (is not reset until the stage changes)
 00005Fr 2  D0 11        	bne @LOOP_EXIT
 000061r 2               
 000061r 2  29 01        	and #%0000_0001
@@ -1072,9 +1072,9 @@ Current file: pacman.asm
 000069r 2  B1 rr        	lda (map_addr), y
 00006Br 2               
 00006Br 2  A2 00        	ldx #0
-00006Dr 2  81 rr        	sta (addr1, x)						; end using addr1
+00006Dr 2  81 rr        	sta (addr1, x)						; End using addr1
 00006Fr 2  C8           	iny
-000070r 2  D0 D7        	bne @LOOP1							; jmp
+000070r 2  D0 D7        	bne @LOOP1							; Jmp
 000072r 2               
 000072r 2               @LOOP_EXIT:
 000072r 2  84 rr        	sty index
@@ -1084,7 +1084,7 @@ Current file: pacman.asm
 000075r 2               @LOAD_NEXT_MAP:
 000075r 2  E6 rr        	inc cnt_map_next
 000077r 2  C8           	iny
-000078r 2  D0 CF        	bne @LOOP1							; jmp
+000078r 2  D0 CF        	bne @LOOP1							; Jmp
 00007Ar 2               
 00007Ar 2               @END_MAP_DATA:
 00007Ar 2               	; 次のマップ読み込み
@@ -1093,10 +1093,10 @@ Current file: pacman.asm
 00007Dr 2  84 rr        	sty map_arr_num
 00007Fr 2  20 rr rr     	jsr _setMapAddr						; Use Y as arg
 000082r 2  C9 FF        	cmp #$ff							; A = Addr Hi
-000084r 2  D0 04        	bne @EXIT							; マップのアドレスだけ読みこんで終了
+000084r 2  D0 04        	bne @EXIT
 000086r 2               
 000086r 2  A9 01        	lda #1
-000088r 2  85 rr        	sta isend_draw_stage				; ステージの描画全部終わったか
+000088r 2  85 rr        	sta isend_draw_stage
 00008Ar 2               
 00008Ar 2               @EXIT:
 00008Ar 2  A9 00        	lda #0
