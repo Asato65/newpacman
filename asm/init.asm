@@ -1,3 +1,5 @@
+.code									; ----- code -----
+
 .macro init
 		sei								; Ban IRQ
 		cld								; Ban BCD
@@ -16,7 +18,7 @@
 		*/
 		bit $2002
 
-		jsr _wait_vblank				; 1st time
+		jsr subfunc::_waitVblank					; 1st time
 
 		; It takes about 30,000 cycles for the PPU to stabilize.
 
@@ -50,13 +52,13 @@
 		inx
 		bne @CLR_CHR_MEM
 
-		; ここで必要なメモリの初期化
+		; Store initial value
 		lda #%10010000					; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
 		sta ppu_ctrl1_cpy
 		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 		sta ppu_ctrl2_cpy
 
-		jsr _wait_vblank				; 2nd time
+		jsr subfunc::_waitVblank					; 2nd time
 
 		; Transfar pallete
 		lda #>PLT_TABLE_ADDR
@@ -79,14 +81,14 @@
 		lda #$ff
 		sta row_counter
 		ldy #0
-		jsr _setStageAddr
+		jsr DrawMap::_setStageAddr
 		ldy #0
-		jsr _setMapAddr
+		jsr DrawMap::_setMapAddr
 
-		; スクリーンON
-		jsr _restorePPUSet
-		jsr _setScroll
+		; Screen On
+		jsr subfunc::_restorePPUSet
+		jsr subfunc::_setScroll
 
-		jsr _wait_vblank
-		jsr _disp_status
+		jsr subfunc::_waitVblank
+		jsr subfunc::_dispStatus
 .endmacro

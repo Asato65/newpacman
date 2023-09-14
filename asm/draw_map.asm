@@ -1,3 +1,5 @@
+.scope DrawMap
+
 ;*------------------------------------------------------------------------------
 ; Update one row
 ; @PARAM	None
@@ -5,9 +7,11 @@
 ; @RETURN	None
 ;*------------------------------------------------------------------------------
 
-_drawMap:
+.code									; ----- code -----
+
+.proc _updateOneLine
 	lda isend_draw_stage
-	bne @EXIT
+	bne @NO_DRAW
 
 	tax									; X = 0
 	ldy row_counter
@@ -62,16 +66,15 @@ _drawMap:
 @LOAD_NEXT_MAP:
 	inc cnt_map_next
 	iny
-	bne @LOOP1							; Jmp
+	bne @GET_POS_AND_OBJ				; Jmp
 
 
 @END_MAP_DATA:
 	; Load the next map
+	inc map_arr_num
 	ldy map_arr_num
-	iny
-	sty map_arr_num
 	jsr _setMapAddr						; Use Y as arg
-	cmp #$ff							; A = Addr Hi
+	cmp #ENDCODE						; A = Addr Hi
 	bne @NO_DRAW
 
 	inx
@@ -81,7 +84,7 @@ _drawMap:
 	stx index							; X = 0
 
 	rts	;-------------------------------
-
+.endproc
 
 ;*------------------------------------------------------------------------------
 ; Set addr of stages
@@ -90,7 +93,9 @@ _drawMap:
 ; @RETURN	None (A = addr Hi)
 ;*------------------------------------------------------------------------------
 
-_setStageAddr:
+.code									; ----- code -----
+
+.proc _setStageAddr
 	tya
 	shl
 	tay
@@ -102,6 +107,7 @@ _setStageAddr:
 	sta map_arr_addr+1
 
 	rts	; ------------------------------
+.endproc
 
 
 ;*------------------------------------------------------------------------------
@@ -111,7 +117,9 @@ _setStageAddr:
 ; @RETURN	None (A = addr Hi)
 ;*------------------------------------------------------------------------------
 
-_setMapAddr:
+.code									; ----- code -----
+
+.proc _setMapAddr
 	tya
 	shl
 	tay
@@ -124,3 +132,7 @@ _setMapAddr:
 	sta map_addr+1
 
 	rts	; ------------------------------
+.endproc
+
+
+.endscope

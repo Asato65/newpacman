@@ -6,6 +6,8 @@
 ; @RETURN	None
 ;*------------------------------------------------------------------------------
 
+.code									; ----- code -----
+
 .macro tfrDataToPPU ADDR
 	lda BG_BUFF, x
 	sta ADDR
@@ -32,7 +34,9 @@
 ; 	lda ZP/ABSORUTE, x -> 4 clc
 ;*------------------------------------------------------------------------------
 
-.proc NMI
+.code									; ----- code -----
+
+.proc _nmi
 		pha								; If main processing has not finished, tmp_rgstA may be in use
 		inc nmi_cnt
 		lda is_processing_main
@@ -103,8 +107,7 @@
 		shr								; A = 0
 		sta bg_buff_pointer
 		inc frm_cnt
-		jsr _setScroll
+		jsr subfunc::_setScroll
 		pla
 		rti	; --------------------------
 .endproc
-

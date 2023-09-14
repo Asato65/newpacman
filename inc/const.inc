@@ -10,6 +10,8 @@ BTN_R									= %00000001
 PPU_VERTICAL_MODE						= %11111110
 PPU_HORIZONTAL_MODE						= %11111111
 
+ENDCODE									= $ff
+
 OBJMAP_NEXT								= $fe
 OBJMAP_END								= $ff
 

@@ -6,16 +6,17 @@
 
 
 .segment "HEADER"
-		.byte $4e, $45, $53, $1a
-		.byte $02						; program bank
-		.byte $01						; charactor bank
-		.byte $01						; vartical mirror
+		.byte "NES", $1a
+		.byte $02						; Program bank
+		.byte $01						; Charactor bank
+		.byte $01						; Vartical mirror
 		.byte $00
 		.byte $00, $00, $00, $00
 		.byte $00, $00, $00, $00
 
 
 .rodata									; ----- data -----
+
 .include "./inc/defmacro.inc"
 .include "./inc/const.inc"
 .include "./inc/const_addr.inc"
@@ -25,37 +26,44 @@
 .include "./inc/map_data.inc"
 
 .code									; ----- code -----
+
+.include "./asm/joypad.asm"
 .include "./asm/macro.asm"
-.include "./asm/nmi.asm"
 .include "./asm/sub.asm"
-.include "main.asm"
+.include "./asm/nmi.asm"
 .include "./asm/init.asm"
 .include "./asm/draw_map.asm"
+.include "main.asm"
 
 ; Use .org
 .org SPR_BUFF
 		.tag SPR_TBL
 
-.code
+
+.code									; ----- code -----
 .org $8000
 .segment "STARTUP"
-.proc RESET
+
+.proc _reset
 		init
 
 		lda #1
 		sta is_processing_main
 
-		jmp MAIN
+		jmp _main
 .endproc
 
-.proc IRQ
+
+.proc _irq
 		rti
 .endproc
+
 
 .segment "CHARS"
 		.incbin "spr_bg.chr"
 
+
 .segment "VECINFO"
-		.word NMI
-		.word RESET
-		.word IRQ
+		.addr _nmi
+		.addr _reset
+		.addr _irq

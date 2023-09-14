@@ -1,4 +1,4 @@
-
+; MAP_DATA[stage][map_num][index]
 
 STAGE_ARR:
 	.addr MAP_ARR_11
@@ -157,34 +157,4 @@ OBJ_COIN:
 OBJ_GROUND:
 	.byte $80, $81
 	.byte $82, $83
-
-
-/*
-MAP_DATA[stage][map_num][index]
-
-setAddr ----
-lda stage
-shl
-tax
-
-lda MAP_DATA, x
-sta <addr1
-inx
-lda MAP_DATA, x
-sta >addr1
-inx
-
-ldy map_num
-lda (addr1), y
-sta <addr2
-lda (addr1), y
-sta >addr2
-
-ldy index
-lda (addr2), y
-sta <addr3
-lda (addr2), y
-sta >addr3
-
-*/
 
