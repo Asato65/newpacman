@@ -8,20 +8,24 @@
 _drawMap:
 	lda isend_draw_stage
 	bne @EXIT
+
+	tax									; X = 0
 	ldy row_counter
 	iny
 	cpy #$10
-	bne @SKIP
-	ldy #0
+	bne @NO_OVF_ROW_CNT
+
+	tay									; Y = 0
 	inc map_buff_num
-@SKIP:
+
+@NO_OVF_ROW_CNT:
 	sty row_counter
 
 	ldy index
-
-@LOOP1:
+@GET_POS_AND_OBJ:
 	; get pos
 	lda (map_addr), y
+
 	cmp #OBJMAP_NEXT
 	beq @LOAD_NEXT_MAP
 
@@ -45,20 +49,21 @@ _drawMap:
 	iny
 	lda (map_addr), y
 
-	ldx #0
 	sta (addr1, x)						; End using addr1
 	iny
-	bne @LOOP1							; Jmp
+	bne @GET_POS_AND_OBJ							; Jmp
 
 @LOOP_EXIT:
 	sty index
 
 	rts	; ------------------------------
 
+
 @LOAD_NEXT_MAP:
 	inc cnt_map_next
 	iny
 	bne @LOOP1							; Jmp
+
 
 @END_MAP_DATA:
 	; Load the next map
@@ -67,14 +72,13 @@ _drawMap:
 	sty map_arr_num
 	jsr _setMapAddr						; Use Y as arg
 	cmp #$ff							; A = Addr Hi
-	bne @EXIT
+	bne @NO_DRAW
 
-	lda #1
-	sta isend_draw_stage
+	inx
+	stx isend_draw_stage				; X = 1
 
-@EXIT:
-	lda #0
-	sta index
+@NO_DRAW:
+	stx index							; X = 0
 
 	rts	;-------------------------------
 
@@ -102,7 +106,7 @@ _setStageAddr:
 
 ;*------------------------------------------------------------------------------
 ; Set addr of maps
-; @PARAM	Y: map number
+; @PARAM	Y: map index
 ; @BREAK	A Y
 ; @RETURN	None (A = addr Hi)
 ;*------------------------------------------------------------------------------
