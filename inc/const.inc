@@ -1,12 +1,3 @@
-BTN_A									= %10000000
-BTN_B									= %01000000
-BTN_S									= %00100000
-BTN_T									= %00010000
-BTN_U									= %00001000
-BTN_D									= %00000100
-BTN_L									= %00000010
-BTN_R									= %00000001
-
 PPU_VERTICAL_MODE						= %11111110
 PPU_HORIZONTAL_MODE						= %11111111
 

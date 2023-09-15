@@ -1,5 +1,16 @@
 .scope DrawMap
 
+.ZeroPage
+map_buff_num			: .byte 0
+map_arr_addr			: .addr 0
+map_addr				: .addr 0
+isend_draw_stage		: .byte 0
+row_counter				: .byte 0
+index					: .byte 0
+cnt_map_next			: .byte 0
+map_arr_num				: .byte 0
+
+
 ;*------------------------------------------------------------------------------
 ; Update one row
 ; @PARAM	None
@@ -10,78 +21,78 @@
 .code									; ----- code -----
 
 .proc _updateOneLine
-	lda isend_draw_stage
+	lda DrawMap::isend_draw_stage
 	bne @NO_DRAW
 
 	tax									; X = 0
-	ldy row_counter
+	ldy DrawMap::row_counter
 	iny
 	cpy #$10
 	bne @NO_OVF_ROW_CNT
 
 	tay									; Y = 0
-	inc map_buff_num
+	inc DrawMap::map_buff_num
 
 @NO_OVF_ROW_CNT:
-	sty row_counter
+	sty DrawMap::row_counter
 
-	ldy index
+	ldy DrawMap::index
 @GET_POS_AND_OBJ:
 	; get pos
-	lda (map_addr), y
+	lda (DrawMap::map_addr), y
 
-	cmp #OBJMAP_NEXT
+	cmp #DrawMap::OBJMAP_NEXT
 	beq @LOAD_NEXT_MAP
 
-	cmp #OBJMAP_END
+	cmp #DrawMap::OBJMAP_END
 	beq @END_MAP_DATA
 
-	sta addr1+0
+	sta addr_tmp1+0
 	and #%0000_1111
-	cmp row_counter
+	cmp DrawMap::row_counter
 	bne @LOOP_EXIT
 
-	lda map_buff_num
-	cmp cnt_map_next					; Count OBJMAP_NEXT (is not reset until the stage changes)
+	lda DrawMap::map_buff_num
+	cmp DrawMap::cnt_map_next					; Count OBJMAP_NEXT (is not reset until the stage changes)
 	bne @LOOP_EXIT
 
 	and #%0000_0001
 	add #4
-	sta addr1+1
+	sta addr_tmp1+1
 
 	; get chr
 	iny
-	lda (map_addr), y
+	lda (DrawMap::map_addr), y
 
-	sta (addr1, x)						; End using addr1
+	sta (addr_tmp1, x)						; End using addr_tmp1
 	iny
 	bne @GET_POS_AND_OBJ							; Jmp
 
 @LOOP_EXIT:
-	sty index
+	sty DrawMap::index
 
 	rts	; ------------------------------
 
 
 @LOAD_NEXT_MAP:
-	inc cnt_map_next
+	inc DrawMap::cnt_map_next
 	iny
 	bne @GET_POS_AND_OBJ				; Jmp
 
 
 @END_MAP_DATA:
 	; Load the next map
-	inc map_arr_num
-	ldy map_arr_num
+	inc DrawMap::map_arr_num
+	ldy DrawMap::map_arr_num
 	jsr _setMapAddr						; Use Y as arg
 	cmp #ENDCODE						; A = Addr Hi
 	bne @NO_DRAW
 
 	inx
-	stx isend_draw_stage				; X = 1
+	stx DrawMap::isend_draw_stage				; X = 1
 
 @NO_DRAW:
-	stx index							; X = 0
+	stx DrawMap::index							; X = 0
 
 	rts	;-------------------------------
 .endproc
@@ -101,10 +112,10 @@
 	tay
 
 	lda STAGE_ARR, y
-	sta map_arr_addr
+	sta DrawMap::map_arr_addr
 
 	lda STAGE_ARR+1, y
-	sta map_arr_addr+1
+	sta DrawMap::map_arr_addr+1
 
 	rts	; ------------------------------
 .endproc
@@ -124,12 +135,12 @@
 	shl
 	tay
 
-	lda (map_arr_addr), y
-	sta map_addr
+	lda (DrawMap::map_arr_addr), y
+	sta DrawMap::map_addr
 
 	iny
-	lda (map_arr_addr), y
-	sta map_addr+1
+	lda (DrawMap::map_arr_addr), y
+	sta DrawMap::map_addr+1
 
 	rts	; ------------------------------
 .endproc

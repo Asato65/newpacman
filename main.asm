@@ -10,8 +10,8 @@
 
 		jsr Joypad::_getJoyData
 
-		lda joy1_pushstart
-		and #BTN_A
+		lda Joypad::joy1_pushstart
+		and #Joypad::BTN_A
 		beq @NO_PUSHED_BTN_A
 
 		jsr DrawMap::_updateOneLine

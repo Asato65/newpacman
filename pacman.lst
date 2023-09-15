@@ -63,15 +63,6 @@ Current file: pacman.asm
 000000r 2               .define GET_OBJ_POS (posX, posY)		(posY) * $10 + (posX)
 000000r 2               
 000000r 1               .include "./inc/const.inc"
-000000r 2               BTN_A									= %10000000
-000000r 2               BTN_B									= %01000000
-000000r 2               BTN_S									= %00100000
-000000r 2               BTN_T									= %00010000
-000000r 2               BTN_U									= %00001000
-000000r 2               BTN_D									= %00000100
-000000r 2               BTN_L									= %00000010
-000000r 2               BTN_R									= %00000001
-000000r 2               
 000000r 2               PPU_VERTICAL_MODE						= %11111110
 000000r 2               PPU_HORIZONTAL_MODE						= %11111111
 000000r 2               
@@ -132,54 +123,30 @@ Current file: pacman.asm
 000000r 1               .include "./inc/var_addr.inc"
 000000r 2               ; ZeroPage
 000000r 2               .segment "ZEROPAGE"
-000000r 2  00           tmp1					: .byte 0		; 00
-000001r 2  00           tmp2					: .byte 0		; 01
-000002r 2  00           tmp3					: .byte 0		; 02
+000000r 2  00           tmp1					: .byte 0
+000001r 2  00           tmp2					: .byte 0
+000002r 2  00           tmp3					: .byte 0
 000003r 2               
-000003r 2  00           joy1					: .byte 0		; 03
-000004r 2  00           joy2					: .byte 0		; 04
-000005r 2  00           joy1_prev				: .byte 0		; 05
-000006r 2  00           joy2_prev				: .byte 0		; 06
-000007r 2  00           joy1_pushstart			: .byte 0		; 07
-000008r 2  00           joy2_pushstart			: .byte 0		; 08
+000003r 2  00           bg_buff_pointer			: .byte 0
+000004r 2  00 00        addr_tmp1				: .addr 0
+000006r 2               
+000006r 2  00           tmp_rgstA				: .byte 0
+000007r 2  00           tmp_rgstX				: .byte 0
+000008r 2  00           tmp_rgstY				: .byte 0
 000009r 2               
-000009r 2  00           bg_buff_pointer			: .byte 0		; 09
-00000Ar 2  00 00        addr_tmp1				: .addr 0		; 0A, 0B
-00000Cr 2               
-00000Cr 2  00           tmp_rgstA				: .byte 0		; 0C
-00000Dr 2  00           tmp_rgstX				: .byte 0		; 0D
-00000Er 2  00           tmp_rgstY				: .byte 0		; 0E
-00000Fr 2               
-00000Fr 2               ; These are not used often, but are used in NMI
-00000Fr 2  00           ppu_ctrl1_cpy			: .byte 0		; 0F |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000(2)|
-000010r 2  00           ppu_ctrl2_cpy			: .byte 0		; 10 |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
-000011r 2               
-000011r 2  00           scroll_x				: .byte 0		; 11
-000012r 2  00           scroll_y				: .byte 0		; 12
-000013r 2               
-000013r 2  00           nmi_cnt					: .byte 0		; 13
-000014r 2  00           frm_cnt					: .byte 0		; 14
-000015r 2  00           is_processing_main		: .byte 0		; 15
-000016r 2               
-000016r 2  00 00        addr1					: .addr 0		; 16, 17
-000018r 2  00 00        addr2					: .addr 0		; 18, 19
-00001Ar 2  00 00        addr3					: .addr 0		; 1a, 1b
-00001Cr 2  00           stage					: .byte 0		; 1c
-00001Dr 2  00           map_buff_num			: .byte 0		; 1d
-00001Er 2  00           index_tmp				: .byte 0		; 1e
-00001Fr 2  00 00        map_arr_addr			: .addr 0		; 1f, 20
-000021r 2  00 00        map_addr				: .addr 0		; 21, 22
-000023r 2  00           isend_draw_stage		: .byte 0		; 23
-000024r 2  00           row_counter				: .byte 0		; 24
-000025r 2  00           index					: .byte 0		; 25
-000026r 2  00 00        ppu_addr				: .addr 0		; 26, 27
-000028r 2  00           cnt_map_next			: .byte 0		; 28
-000029r 2  00           map_arr_num				: .byte 0
-00002Ar 2               
-00002Ar 2               
-00002Ar 2               
-00002Ar 2               
-00002Ar 2               .segment "USER_MEM"
+000009r 2               ; These are not used often, but are used in NMI
+000009r 2  00           ppu_ctrl1_cpy			: .byte 0		; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000(2)|
+00000Ar 2  00           ppu_ctrl2_cpy			: .byte 0		; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+00000Br 2               
+00000Br 2  00           scroll_x				: .byte 0
+00000Cr 2  00           scroll_y				: .byte 0
+00000Dr 2               
+00000Dr 2  00           nmi_cnt					: .byte 0
+00000Er 2  00           frm_cnt					: .byte 0
+00000Fr 2  00           is_processing_main		: .byte 0
+000010r 2               
+000010r 2               
+000010r 2               .segment "USER_MEM"
 000000r 2               
 000000r 2               
 000000r 2               .code
@@ -378,46 +345,64 @@ Current file: pacman.asm
 000123r 1               .include "./asm/joypad.asm"
 000123r 2               .scope Joypad
 000123r 2               
-000123r 2               ;*------------------------------------------------------------------------------
-000123r 2               ; Get Joypad data (including prev and newly pushed btn)
-000123r 2               ; @PARAM	None
-000123r 2               ; @BREAK	A
-000123r 2               ; @RETURN	None
-000123r 2               ;*------------------------------------------------------------------------------
+000123r 2               BTN_A									= %10000000
+000123r 2               BTN_B									= %01000000
+000123r 2               BTN_S									= %00100000
+000123r 2               BTN_T									= %00010000
+000123r 2               BTN_U									= %00001000
+000123r 2               BTN_D									= %00000100
+000123r 2               BTN_L									= %00000010
+000123r 2               BTN_R									= %00000001
 000123r 2               
-000123r 2               .code									; ----- code -----
+000123r 2               .ZeroPage
+000010r 2  00           joy1					: .byte 0
+000011r 2  00           joy2					: .byte 0
+000012r 2  00           joy1_prev				: .byte 0
+000013r 2  00           joy2_prev				: .byte 0
+000014r 2  00           joy1_pushstart			: .byte 0
+000015r 2  00           joy2_pushstart			: .byte 0
+000016r 2               
+000016r 2               
+000016r 2               ;*------------------------------------------------------------------------------
+000016r 2               ; Get Joypad data (including prev and newly pushed btn)
+000016r 2               ; @PARAM	None
+000016r 2               ; @BREAK	A
+000016r 2               ; @RETURN	None
+000016r 2               ;*------------------------------------------------------------------------------
+000016r 2               
+000016r 2               .code									; ----- code -----
 000123r 2               
 000123r 2               .proc _getJoyData
 000123r 2               		; set prev
-000123r 2  A5 rr        		lda joy1
-000125r 2  85 rr        		sta joy1_prev
-000127r 2  A5 rr        		lda joy2
-000129r 2  85 rr        		sta joy2_prev
+000123r 2  A5 rr        		lda Joypad::joy1
+000125r 2  85 rr        		sta Joypad::joy1_prev
+000127r 2  A5 rr        		lda Joypad::joy2
+000129r 2  85 rr        		sta Joypad::joy2_prev
 00012Br 2               
 00012Br 2  20 rr rr     		jsr Joypad::_readJoy
 00012Er 2               
-00012Er 2  A5 rr        		lda joy1
-000130r 2  29 0A        		and #BTN_U|BTN_L				; Compare Up and Left...
+00012Er 2  A5 rr        		lda Joypad::joy1
+000130r 2  29 0A        		and #Joypad::BTN_U|Joypad::BTN_L				; Compare Up and Left...
 000132r 2  4A           		lsr
-000133r 2  25 rr        		and joy1						; to Down and Right
+000133r 2  25 rr        		and Joypad::joy1						; to Down and Right
 000135r 2  F0 0A        		beq @GET_PUSHSTART_BTN
 000137r 2               		; Use previous frame's directions
-000137r 2  A5 rr        		lda joy1
-000139r 2  45 rr        		eor joy1_prev
+000137r 2  A5 rr        		lda Joypad::joy1
+000139r 2  45 rr        		eor Joypad::joy1_prev
 00013Br 2  29 F0        		and #%11110000
-00013Dr 2  45 rr        		eor joy1_prev
-00013Fr 2  85 rr        		sta joy1
+00013Dr 2  45 rr        		eor Joypad::joy1_prev
+00013Fr 2  85 rr        		sta Joypad::joy1
 000141r 2               
 000141r 2               @GET_PUSHSTART_BTN:
 000141r 2               		; set pushstart
-000141r 2  A5 rr        		lda joy1_prev
+000141r 2  A5 rr        		lda Joypad::joy1_prev
 000143r 2  49 FF        		eor #%11111111
-000145r 2  25 rr        		and joy1
-000147r 2  85 rr        		sta joy1_pushstart
-000149r 2  A5 rr        		lda joy2_prev
+000145r 2  25 rr        		and Joypad::joy1
+000147r 2  85 rr        		sta Joypad::joy1_pushstart
+000149r 2  A5 rr        		lda Joypad::joy2_prev
 00014Br 2  49 FF        		eor #%11111111
-00014Dr 2  25 rr        		and joy2
-00014Fr 2  85 rr        		sta joy2_pushstart
+00014Dr 2  25 rr        		and Joypad::joy2
+00014Fr 2  85 rr        		sta Joypad::joy2_pushstart
 000151r 2               
 000151r 2  60           		rts	; --------------------------
 000152r 2               .endproc
@@ -436,7 +421,7 @@ Current file: pacman.asm
 000152r 2               		; Init controller & Set a ring counter
 000152r 2  A9 01        		lda #1
 000154r 2  8D 16 40     		sta JOYPAD1
-000157r 2  85 rr        		sta joy2						; ring counter
+000157r 2  85 rr        		sta Joypad::joy2						; ring counter
 000159r 2  4A           		lsr								; A = 0
 00015Ar 2  8D 16 40     		sta JOYPAD1
 00015Dr 2               
@@ -444,11 +429,11 @@ Current file: pacman.asm
 00015Dr 2  AD 16 40     		lda JOYPAD1
 000160r 2  29 03        		and #%00000011
 000162r 2  C9 01        		cmp #$01						; A - 1 = A + 0xff; if A > 0 then Carry=1
-000164r 2  26 rr        		rol joy1						; Carry -> Bit0; Bit7 -> Carry
+000164r 2  26 rr        		rol Joypad::joy1						; Carry -> Bit0; Bit7 -> Carry
 000166r 2  AD 17 40     		lda JOYPAD2
 000169r 2  29 03        		and #%00000011
 00016Br 2  C9 01        		cmp #$01
-00016Dr 2  26 rr        		rol joy2
+00016Dr 2  26 rr        		rol Joypad::joy2
 00016Fr 2  90 EC        		bcc @READ_JOY_LOOP				; CarryON -> end
 000171r 2  60           		rts	; --------------------------
 000172r 2               .endproc
@@ -1010,12 +995,13 @@ Current file: pacman.asm
 0001FDr 2               		lda #$03
 0001FDr 2               		sta OAM_DMA
 0001FDr 2               
-0001FDr 2               		lda #$ff
-0001FDr 2               		sta row_counter
-0001FDr 2               		ldy #0
-0001FDr 2               		jsr DrawMap::_setStageAddr
-0001FDr 2               		ldy #0
-0001FDr 2               		jsr DrawMap::_setMapAddr
+0001FDr 2               	lda #$ff
+0001FDr 2               	sta DrawMap::row_counter
+0001FDr 2               
+0001FDr 2               	; test(load map 1 of world 1-1)
+0001FDr 2               	ldy #0
+0001FDr 2               	jsr DrawMap::_setStageAddr
+0001FDr 2               	jsr DrawMap::_setMapAddr
 0001FDr 2               
 0001FDr 2               		; Screen On
 0001FDr 2               		jsr subfunc::_restorePPUSet
@@ -1028,35 +1014,46 @@ Current file: pacman.asm
 0001FDr 1               .include "./asm/draw_map.asm"
 0001FDr 2               .scope DrawMap
 0001FDr 2               
-0001FDr 2               ;*------------------------------------------------------------------------------
-0001FDr 2               ; Update one row
-0001FDr 2               ; @PARAM	None
-0001FDr 2               ; @BREAK	A X Y
-0001FDr 2               ; @RETURN	None
-0001FDr 2               ;*------------------------------------------------------------------------------
-0001FDr 2               
-0001FDr 2               .code									; ----- code -----
+0001FDr 2               .ZeroPage
+000016r 2  00           map_buff_num			: .byte 0
+000017r 2  00 00        map_arr_addr			: .addr 0
+000019r 2  00 00        map_addr				: .addr 0
+00001Br 2  00           isend_draw_stage		: .byte 0
+00001Cr 2  00           row_counter				: .byte 0
+00001Dr 2  00           index					: .byte 0
+00001Er 2  00           cnt_map_next			: .byte 0
+00001Fr 2  00           map_arr_num				: .byte 0
+000020r 2               
+000020r 2               
+000020r 2               ;*------------------------------------------------------------------------------
+000020r 2               ; Update one row
+000020r 2               ; @PARAM	None
+000020r 2               ; @BREAK	A X Y
+000020r 2               ; @RETURN	None
+000020r 2               ;*------------------------------------------------------------------------------
+000020r 2               
+000020r 2               .code									; ----- code -----
 0001FDr 2               
 0001FDr 2               .proc _updateOneLine
-0001FDr 2  A5 rr        	lda isend_draw_stage
+0001FDr 2  A5 rr        	lda DrawMap::isend_draw_stage
 0001FFr 2  D0 4C        	bne @NO_DRAW
 000201r 2               
 000201r 2  AA           	tax									; X = 0
-000202r 2  A4 rr        	ldy row_counter
+000202r 2  A4 rr        	ldy DrawMap::row_counter
 000204r 2  C8           	iny
 000205r 2  C0 10        	cpy #$10
 000207r 2  D0 03        	bne @NO_OVF_ROW_CNT
 000209r 2               
 000209r 2  A8           	tay									; Y = 0
-00020Ar 2  E6 rr        	inc map_buff_num
+00020Ar 2  E6 rr        	inc DrawMap::map_buff_num
 00020Cr 2               
 00020Cr 2               @NO_OVF_ROW_CNT:
-00020Cr 2  84 rr        	sty row_counter
+00020Cr 2  84 rr        	sty DrawMap::row_counter
 00020Er 2               
-00020Er 2  A4 rr        	ldy index
+00020Er 2  A4 rr        	ldy DrawMap::index
 000210r 2               @GET_POS_AND_OBJ:
 000210r 2               	; get pos
-000210r 2  B1 rr        	lda (map_addr), y
+000210r 2  B1 rr        	lda (DrawMap::map_addr), y
 000212r 2               
 000212r 2  C9 FE        	cmp #OBJMAP_NEXT
 000214r 2  F0 24        	beq @LOAD_NEXT_MAP
@@ -1064,52 +1061,52 @@ Current file: pacman.asm
 000216r 2  C9 FF        	cmp #OBJMAP_END
 000218r 2  F0 25        	beq @END_MAP_DATA
 00021Ar 2               
-00021Ar 2  85 rr        	sta addr1+0
+00021Ar 2  85 rr        	sta addr_tmp1+0
 00021Cr 2  29 0F        	and #%0000_1111
-00021Er 2  C5 rr        	cmp row_counter
+00021Er 2  C5 rr        	cmp DrawMap::row_counter
 000220r 2  D0 15        	bne @LOOP_EXIT
 000222r 2               
-000222r 2  A5 rr        	lda map_buff_num
-000224r 2  C5 rr        	cmp cnt_map_next					; Count OBJMAP_NEXT (is not reset until the stage changes)
+000222r 2  A5 rr        	lda DrawMap::map_buff_num
+000224r 2  C5 rr        	cmp DrawMap::cnt_map_next					; Count OBJMAP_NEXT (is not reset until the stage changes)
 000226r 2  D0 0F        	bne @LOOP_EXIT
 000228r 2               
 000228r 2  29 01        	and #%0000_0001
 00022Ar 2  18 69 04     	add #4
-00022Dr 2  85 rr        	sta addr1+1
+00022Dr 2  85 rr        	sta addr_tmp1+1
 00022Fr 2               
 00022Fr 2               	; get chr
 00022Fr 2  C8           	iny
-000230r 2  B1 rr        	lda (map_addr), y
+000230r 2  B1 rr        	lda (DrawMap::map_addr), y
 000232r 2               
-000232r 2  81 rr        	sta (addr1, x)						; End using addr1
+000232r 2  81 rr        	sta (addr_tmp1, x)						; End using addr_tmp1
 000234r 2  C8           	iny
 000235r 2  D0 D9        	bne @GET_POS_AND_OBJ							; Jmp
 000237r 2               
 000237r 2               @LOOP_EXIT:
-000237r 2  84 rr        	sty index
+000237r 2  84 rr        	sty DrawMap::index
 000239r 2               
 000239r 2  60           	rts	; ------------------------------
 00023Ar 2               
 00023Ar 2               
 00023Ar 2               @LOAD_NEXT_MAP:
-00023Ar 2  E6 rr        	inc cnt_map_next
+00023Ar 2  E6 rr        	inc DrawMap::cnt_map_next
 00023Cr 2  C8           	iny
 00023Dr 2  D0 D1        	bne @GET_POS_AND_OBJ				; Jmp
 00023Fr 2               
 00023Fr 2               
 00023Fr 2               @END_MAP_DATA:
 00023Fr 2               	; Load the next map
-00023Fr 2  E6 rr        	inc map_arr_num
-000241r 2  A4 rr        	ldy map_arr_num
+00023Fr 2  E6 rr        	inc DrawMap::map_arr_num
+000241r 2  A4 rr        	ldy DrawMap::map_arr_num
 000243r 2  20 rr rr     	jsr _setMapAddr						; Use Y as arg
 000246r 2  C9 FF        	cmp #ENDCODE						; A = Addr Hi
 000248r 2  D0 03        	bne @NO_DRAW
 00024Ar 2               
 00024Ar 2  E8           	inx
-00024Br 2  86 rr        	stx isend_draw_stage				; X = 1
+00024Br 2  86 rr        	stx DrawMap::isend_draw_stage				; X = 1
 00024Dr 2               
 00024Dr 2               @NO_DRAW:
-00024Dr 2  86 rr        	stx index							; X = 0
+00024Dr 2  86 rr        	stx DrawMap::index							; X = 0
 00024Fr 2               
 00024Fr 2  60           	rts	;-------------------------------
 000250r 2               .endproc
@@ -1129,10 +1126,10 @@ Current file: pacman.asm
 000252r 2  A8           	tay
 000253r 2               
 000253r 2  B9 rr rr     	lda STAGE_ARR, y
-000256r 2  85 rr        	sta map_arr_addr
+000256r 2  85 rr        	sta DrawMap::map_arr_addr
 000258r 2               
 000258r 2  B9 rr rr     	lda STAGE_ARR+1, y
-00025Br 2  85 rr        	sta map_arr_addr+1
+00025Br 2  85 rr        	sta DrawMap::map_arr_addr+1
 00025Dr 2               
 00025Dr 2  60           	rts	; ------------------------------
 00025Er 2               .endproc
@@ -1152,12 +1149,12 @@ Current file: pacman.asm
 00025Fr 2  0A           	shl
 000260r 2  A8           	tay
 000261r 2               
-000261r 2  B1 rr        	lda (map_arr_addr), y
-000263r 2  85 rr        	sta map_addr
+000261r 2  B1 rr        	lda (DrawMap::map_arr_addr), y
+000263r 2  85 rr        	sta DrawMap::map_addr
 000265r 2               
 000265r 2  C8           	iny
-000266r 2  B1 rr        	lda (map_arr_addr), y
-000268r 2  85 rr        	sta map_addr+1
+000266r 2  B1 rr        	lda (DrawMap::map_arr_addr), y
+000268r 2  85 rr        	sta DrawMap::map_addr+1
 00026Ar 2               
 00026Ar 2  60           	rts	; ------------------------------
 00026Br 2               .endproc
@@ -1178,8 +1175,8 @@ Current file: pacman.asm
 00026Fr 2               
 00026Fr 2  20 rr rr     		jsr Joypad::_getJoyData
 000272r 2               
-000272r 2  A5 rr        		lda joy1_pushstart
-000274r 2  29 80        		and #BTN_A
+000272r 2  A5 rr        		lda Joypad::joy1_pushstart
+000274r 2  29 80        		and #Joypad::BTN_A
 000276r 2  F0 03        		beq @NO_PUSHED_BTN_A
 000278r 2               
 000278r 2  20 rr rr     		jsr DrawMap::_updateOneLine
@@ -1207,27 +1204,27 @@ Current file: pacman.asm
 008000  1  78 D8 A2 FF  		init
 008004  1  9A E8 8E 00  
 008008  1  20 8E 01 20  
-00808D  1               
-00808D  1  A9 01        		lda #1
-00808F  1  85 rr        		sta is_processing_main
-008091  1               
-008091  1  4C rr rr     		jmp _main
-008094  1               .endproc
-008094  1               
-008094  1               
-008094  1               .proc _irq
-008094  1  40           		rti
-008095  1               .endproc
-008095  1               
-008095  1               
-008095  1               .segment "CHARS"
-008095  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
-008099  1  1C 24 26 66  
-00809D  1  00 00 00 00  
-00A095  1               
-00A095  1               
-00A095  1               .segment "VECINFO"
-00A095  1  rr rr        		.addr _nmi
-00A097  1  00 80        		.addr _reset
-00A099  1  94 80        		.addr _irq
-00A099  1               
+00808B  1               
+00808B  1  A9 01        		lda #1
+00808D  1  85 rr        		sta is_processing_main
+00808F  1               
+00808F  1  4C rr rr     		jmp _main
+008092  1               .endproc
+008092  1               
+008092  1               
+008092  1               .proc _irq
+008092  1  40           		rti
+008093  1               .endproc
+008093  1               
+008093  1               
+008093  1               .segment "CHARS"
+008093  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
+008097  1  1C 24 26 66  
+00809B  1  00 00 00 00  
+00A093  1               
+00A093  1               
+00A093  1               .segment "VECINFO"
+00A093  1  rr rr        		.addr _nmi
+00A095  1  00 80        		.addr _reset
+00A097  1  92 80        		.addr _irq
+00A097  1               

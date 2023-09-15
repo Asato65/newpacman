@@ -78,12 +78,13 @@
 		lda #$03
 		sta OAM_DMA
 
-		lda #$ff
-		sta row_counter
-		ldy #0
-		jsr DrawMap::_setStageAddr
-		ldy #0
-		jsr DrawMap::_setMapAddr
+	lda #$ff
+	sta DrawMap::row_counter
+
+	; test(load map 1 of world 1-1)
+	ldy #0
+	jsr DrawMap::_setStageAddr
+	jsr DrawMap::_setMapAddr
 
 		; Screen On
 		jsr subfunc::_restorePPUSet
