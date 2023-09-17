@@ -11,6 +11,8 @@ MAP_ARR_11:
 MAP_11_1:
 	.byte (GET_OBJ_POS $0, $0), 'G'
 	.byte (GET_OBJ_POS $1, $1), 'G'
+	.byte (GET_OBJ_POS $1, $2), 'G'
+	.byte (GET_OBJ_POS $1, $3), 'G'
 	.byte (GET_OBJ_POS $2, $2), 'G'
 	.byte (GET_OBJ_POS $3, $3), 'G'
 	.byte (GET_OBJ_POS $4, $4), 'G'
@@ -20,7 +22,6 @@ MAP_11_1:
 	.byte (GET_OBJ_POS $8, $8), 'G'
 	.byte (GET_OBJ_POS $9, $9), 'G'
 	.byte (GET_OBJ_POS $a, $a), 'G'
-	.byte (GET_OBJ_POS $b, $b), 'G'
 	.byte (GET_OBJ_POS $c, $c), 'G'
 	.byte (GET_OBJ_POS $d, $d), 'G'
 	.byte (GET_OBJ_POS $e, $c), 'G'
@@ -42,51 +43,32 @@ MAP_11_1:
 	.byte (GET_OBJ_POS $d, $d), 'B'
 	.byte (GET_OBJ_POS $e, $c), 'B'
 	.byte (GET_OBJ_POS $f, $b), 'B'
-	.byte OBJMAP_NEXT
 	.byte OBJMAP_END
 
 MAP_11_2:
-	.byte (GET_OBJ_POS $0, $0), '?'
-	.byte (GET_OBJ_POS $1, $1), '?'
-	.byte (GET_OBJ_POS $2, $2), '?'
-	.byte (GET_OBJ_POS $3, $3), '?'
-	.byte (GET_OBJ_POS $4, $4), '?'
-	.byte (GET_OBJ_POS $5, $5), '?'
-	.byte (GET_OBJ_POS $6, $6), '?'
-	.byte (GET_OBJ_POS $7, $7), '?'
-	.byte (GET_OBJ_POS $8, $8), '?'
-	.byte (GET_OBJ_POS $9, $9), '?'
-	.byte (GET_OBJ_POS $a, $a), '?'
-	.byte (GET_OBJ_POS $b, $b), '?'
-	.byte (GET_OBJ_POS $c, $c), '?'
-	.byte (GET_OBJ_POS $d, $d), '?'
-	.byte (GET_OBJ_POS $e, $c), '?'
-	.byte (GET_OBJ_POS $f, $b), '?'
-	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $0, $0), 'Q'
+	.byte (GET_OBJ_POS $1, $1), 'Q'
+	.byte (GET_OBJ_POS $2, $2), 'Q'
+	.byte (GET_OBJ_POS $3, $3), 'Q'
+	.byte (GET_OBJ_POS $4, $4), 'Q'
+	.byte (GET_OBJ_POS $5, $5), 'Q'
+	.byte (GET_OBJ_POS $6, $6), 'Q'
+	.byte (GET_OBJ_POS $7, $7), 'Q'
+	.byte (GET_OBJ_POS $8, $8), 'Q'
+	.byte (GET_OBJ_POS $9, $9), 'Q'
+	.byte (GET_OBJ_POS $a, $a), 'Q'
+	.byte (GET_OBJ_POS $b, $b), 'Q'
+	.byte (GET_OBJ_POS $c, $c), 'Q'
+	.byte (GET_OBJ_POS $d, $d), 'Q'
+	.byte (GET_OBJ_POS $e, $c), 'Q'
+	.byte (GET_OBJ_POS $f, $b), 'Q'
 	.byte OBJMAP_END
+	.byte (GET_OBJ_POS $f, $b), 'A'
 
 
 BROCK_ID:
-	.addr OBJ_SKY
-	; 30
-	.addr $0000							; 0
-	.addr $0000							; 1
-	.addr $0000							; 2
-	.addr $0000							; 3
-	.addr $0000							; 4
-	.addr $0000							; 5
-	.addr $0000							; 6
-	.addr $0000							; 7
-	.addr $0000							; 8
-	.addr $0000							; 9
-	.addr $0000							; :
-	.addr $0000							; ;
-	.addr $0000							; <
-	.addr $0000							; =
-	.addr $0000							; >
-	.addr OBJ_QBLOCK					; ?
-	; 40
-	.addr $0000							; @
+	; 40 = %0100
+	.addr OBJ_SKY						; @ (or 0)
 	.addr $0000							; A
 	.addr OBJ_BROCK						; B
 	.addr OBJ_COIN						; C
@@ -102,9 +84,9 @@ BROCK_ID:
 	.addr $0000							; M
 	.addr $0000							; N
 	.addr $0000							; O
-	; 50
+	; 50 = %0101
 	.addr $0000							; P
-	.addr $0000							; Q
+	.addr OBJ_QBLOCK					; Q
 	.addr $0000							; R
 	.addr $0000							; S
 	.addr $0000							; T
@@ -119,7 +101,7 @@ BROCK_ID:
 	.addr $0000							; ]
 	.addr $0000							; ^
 	.addr $0000							; _
-	; 60
+	; 60 = %0110
 	.addr $0000							; `
 	.addr $0000							; a
 	.addr $0000							; b
@@ -136,6 +118,22 @@ BROCK_ID:
 	.addr $0000							; m
 	.addr $0000							; n
 	.addr $0000							; o
+	; 70 = %0111
+	.addr $0000							; p
+	.addr $0000							; q
+	.addr $0000							; r
+	.addr $0000							; s
+	.addr $0000							; t
+	.addr $0000							; u
+	.addr $0000							; v
+	.addr $0000							; w
+	.addr $0000							; x
+	.addr $0000							; y
+	.addr $0000							; z
+	.addr $0000							; {
+	.addr $0000							; |
+	.addr $0000							; }
+	.addr $0000							; ~
 
 
 OBJ_SKY:
