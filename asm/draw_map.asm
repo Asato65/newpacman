@@ -46,7 +46,7 @@ map_arr_num				: .byte 0
 		cmp #DrawMap::OBJMAP_END
 		beq @END_MAP_DATA
 
-		sta addr_tmp1+0
+		tax								; Start using x (tmp)
 		and #%0000_1111
 		cmp DrawMap::row_counter
 		bne @LOOP_EXIT
@@ -55,8 +55,11 @@ map_arr_num				: .byte 0
 		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
 		bne @LOOP_EXIT
 
-		and #%0000_0001
-		add #4
+		stx addr_tmp1+0					; End using x
+		ldx #0							; init
+
+		and #%0000_0001					; A = map_buff_num
+		ora #4
 		sta addr_tmp1+1
 
 		; get chr
@@ -97,22 +100,71 @@ map_arr_num				: .byte 0
 
 
 @EXIT:
+		; X = 0
 		; prepare data
 		lda addr_tmp1+0
-		and #%1110_0000
+		and #%0000_1111
 		sta addr_tmp1+0
 
+		lda addr_tmp1+1					; 4 or 5
+		and #1
+		shl #2							; 0 or 4
+		ora #$20						; $20 or $24
+		sta bg_map_addr+1
+
+		stx tmp1						; init
+
+		lda addr_tmp1+0
+		shl #1
+		rol tmp1
+
+		sta bg_map_addr+0
+		ora bg_map_addr+1
+		sta bg_map_addr+1
+
 		ldy #0
+		sty bg_map_buff_index
 		clc
-		; X = 0
 @LOOP:
 		lda (addr_tmp1), y
 		and #%0011_1111
-		sta BG_BUFF, x
+		shl #1
+
+		sty tmp1						; Start using tmp1
+
+		tax
+		lda BROCK_ID+0, x
+		sta addr_tmp2+0
+		lda BROCK_ID+1, x
+		sta addr_tmp2+1
+
+		ldx bg_map_buff_index
+
+		ldy #0
+		lda (addr_tmp2), y
+		sta BG_MAP_BUFF+0, x
+
+		iny
+		lda (addr_tmp2), y
+		sta BG_MAP_BUFF+$1c, x
+
 		inx
-		tay
-		adc #$10
+		iny
+		lda (addr_tmp2), y
+		sta BG_MAP_BUFF+0, x
+
+		iny
+		lda (addr_tmp2), y
+		sta BG_MAP_BUFF+$1c, x
+
+		inx
+		stx bg_map_buff_index
+
+		ldy tmp1						; End using tmp1
+
 		tya
+		adc #$10
+		tay
 		cmp #$e0
 		bcc @LOOP
 

@@ -45,7 +45,42 @@
 		rti	; --------------------------
 
 @NMI_MAIN:
-		cmp bg_buff_pointer				; A = 0
+		lda ppu_ctrl1_cpy
+		ora #%0000_0100					; Vertical mode
+		sta ppu_ctrl1_cpy
+		sta PPU_CTRL1					; Not use restorePPUSet()
+
+		; line 1
+		lda bg_map_addr+1				; hi
+		sta PPU_ADDR
+		lda bg_map_addr+0				; lo
+		sta PPU_ADDR
+
+		ldx #0
+@STORE_MAP_LOOP:
+		lda BG_MAP_BUFF, x
+		sta PPU_DATA
+		inx
+		cpx #$1c
+		bne @STORE_MAP_LOOP
+
+		; line 2
+		lda bg_map_addr+1				; hi
+		sta PPU_ADDR
+		ldx bg_map_addr+0				; lo (increment)
+		inx
+		stx PPU_ADDR
+
+		ldx #0
+@STORE_MAP_LOOP2:
+		lda BG_MAP_BUFF+$1c, x
+		sta PPU_DATA
+		inx
+		cpx #$1c
+		bne @STORE_MAP_LOOP2
+
+		lda #0
+		cmp bg_buff_pointer
 		beq @STORE_CHR
 		tax
 		lda BG_BUFF, x
@@ -104,8 +139,8 @@
 @EXIT:
 		lda #1
 		sta is_processing_main
-		shr								; A = 0
-		sta bg_buff_pointer
+		shr
+		sta bg_buff_pointer				; A = 0
 		inc frm_cnt
 		jsr subfunc::_setScroll
 		pla

@@ -19,8 +19,6 @@
 
 
 
-
-
 ;*------------------------------------------------------------------------------
 ; Set scroll position
 ; Use during NMI or executing raster scroll.
@@ -36,6 +34,12 @@
 		sta PPU_SCROLL
 		lda scroll_y
 		sta PPU_SCROLL
+
+	; TODO: きちんとスクロール実装したらメインスクリーンの切り替え実装
+	lda ppu_ctrl1_cpy
+	and #%1111_1100
+	sta ppu_ctrl1_cpy
+	sta PPU_CTRL1
 		rts	; --------------------------
 .endproc
 
