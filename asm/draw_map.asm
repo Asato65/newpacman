@@ -112,14 +112,17 @@ map_arr_num				: .byte 0
 		ora #$20						; $20 or $24
 		sta bg_map_addr+1
 
-		stx tmp1						; init
+		stx tmp1						; Init, start using tmp1
 
 		lda addr_tmp1+0
+		shl #1
+		rol tmp1
 		shl #1
 		rol tmp1
 
 		sta bg_map_addr+0
 		ora bg_map_addr+1
+		ora tmp1						; End using tmp1
 		sta bg_map_addr+1
 
 		ldy #0
