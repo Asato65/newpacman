@@ -1,7 +1,7 @@
 ZP					= $00
 ; Unused $0200
-BG_MAP_BUFF			= $0100				; size = $d ($10 - $2) * $4 = $40 - $8
-BG_BUFF				= $0138
+BG_MAP_BUFF			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c
+BG_BUFF				= $0134
 SPR_BUFF			= $0300
 MAP1				= $0400
 MAP2				= $0500

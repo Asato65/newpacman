@@ -21,4 +21,5 @@
 		lda #0
 		sta is_processing_main
 		jmp _main
+		; ------------------------------
 .endproc

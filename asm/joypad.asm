@@ -59,7 +59,8 @@ joy2_pushstart			: .byte 0
 		and Joypad::joy2
 		sta Joypad::joy2_pushstart
 
-		rts	; --------------------------
+		rts
+		; ------------------------------
 .endproc
 
 
@@ -90,7 +91,8 @@ joy2_pushstart			: .byte 0
 		cmp #$01
 		rol Joypad::joy2
 		bcc @READ_JOY_LOOP				; CarryON -> end
-		rts	; --------------------------
+		rts
+		; ------------------------------
 .endproc
 
 

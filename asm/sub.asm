@@ -14,7 +14,8 @@
 		sta PPU_CTRL1
 		lda ppu_ctrl2_cpy
 		sta PPU_CTRL2
-		rts	; --------------------------
+		rts
+		; ------------------------------
 .endproc
 
 
@@ -40,7 +41,9 @@
 	and #%1111_1100
 	sta ppu_ctrl1_cpy
 	sta PPU_CTRL1
-		rts	; --------------------------
+
+		rts
+		; ------------------------------
 .endproc
 
 
@@ -56,7 +59,8 @@
 .proc _waitVblank
 		bit $2002
 		bpl _waitVblank
-		rts	; --------------------------
+		rts
+		; ------------------------------
 .endproc
 
 
@@ -82,7 +86,8 @@
 @END_STORE:
 		stx bg_buff_pointer
 		stx $80
-		rts	; --------------------------
+		rts
+		; ------------------------------
 
 .rodata									; ----- data -----
 @TEXT:

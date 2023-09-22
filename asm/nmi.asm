@@ -61,7 +61,7 @@
 		lda BG_MAP_BUFF, x
 		sta PPU_DATA
 		inx
-		cpx #$1c
+		cpx #$1a
 		bne @STORE_MAP_LOOP
 
 		; line 2
@@ -73,10 +73,10 @@
 
 		ldx #0
 @STORE_MAP_LOOP2:
-		lda BG_MAP_BUFF+$1c, x
+		lda BG_MAP_BUFF+$1a, x
 		sta PPU_DATA
 		inx
-		cpx #$1c
+		cpx #$1a
 		bne @STORE_MAP_LOOP2
 
 		lda #0

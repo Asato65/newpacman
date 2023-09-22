@@ -12,9 +12,27 @@ map_arr_num				: .byte 0
 
 
 ;*------------------------------------------------------------------------------
+; Transfar obj data (8*8) to BG map buff($04XX/$05XX)
+; @PARAM	mode(char): 'L' or 'R'
+; @RETURN	None
+; if mode == 'L': $2000, $2002, $2016, $240a...
+; elif mode == 'R': $2001, $2003, $2017, $240b...
+;*------------------------------------------------------------------------------
+
+.macro trfToBgMapBuf mode
+		lda (addr_tmp2), y
+		.if mode = 'L'
+			sta BG_MAP_BUFF+0, x
+		.else
+			sta BG_MAP_BUFF+($0d*2), x
+		.endif
+.endmacro
+
+
+;*------------------------------------------------------------------------------
 ; Update one row
 ; @PARAM	None
-; @BREAK	A X Y
+; @BREAK	A X Y tmp1 addr_tmp1 addr_tmp2
 ; @RETURN	None
 ;*------------------------------------------------------------------------------
 
@@ -22,8 +40,12 @@ map_arr_num				: .byte 0
 
 .proc _updateOneLine
 		lda DrawMap::isend_draw_stage
-		bne @NO_DRAW
+		beq @START
+		rts
+		; ------------------------------
 
+@START:
+		; A = 0
 		tax								; X = 0
 		ldy DrawMap::row_counter
 		iny
@@ -37,16 +59,18 @@ map_arr_num				: .byte 0
 
 		ldy DrawMap::index
 @GET_POS_AND_OBJ:
-		; get pos
+		; ----------- get pos ----------
 		lda (DrawMap::map_addr), y
 
+		; Check Special Code
 		cmp #DrawMap::OBJMAP_NEXT
 		beq @LOAD_NEXT_MAP
 
 		cmp #DrawMap::OBJMAP_END
 		beq @END_MAP_DATA
 
-		tax								; Start using x (tmp)
+		; Check if it can be updated
+		sta tmp1						; Start using tmp1
 		and #%0000_1111
 		cmp DrawMap::row_counter
 		bne @LOOP_EXIT
@@ -55,44 +79,48 @@ map_arr_num				: .byte 0
 		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
 		bne @LOOP_EXIT
 
-		stx addr_tmp1+0					; End using x
-		ldx #0							; init
-
+		; Set addr of bg map buff
 		and #%0000_0001					; A = map_buff_num
 		ora #4
 		sta addr_tmp1+1
 
-		; get chr
+		lda tmp1						; End using tmp1
+		sta addr_tmp1+0
+
+		; ----------- get chr ----------
 		iny
 		lda (DrawMap::map_addr), y
-		sta (addr_tmp1, x)				; End using addr_tmp1
+		ldx #0
+		sta (addr_tmp1, x)
 
 		iny
 		bne @GET_POS_AND_OBJ			; Jmp
+		; ------------------------------
 
 @LOOP_EXIT:
 		sty DrawMap::index
 		jmp @EXIT
-
+		; ------------------------------
 
 @LOAD_NEXT_MAP:
 		inc DrawMap::cnt_map_next
 		iny
 		jmp @GET_POS_AND_OBJ
-
+		; ------------------------------
 
 @END_MAP_DATA:
-		; Load the next map
+		; ------ Load the next map -----
 		inc DrawMap::map_arr_num
 		ldy DrawMap::map_arr_num
 		jsr _setMapAddr					; Use Y as arg
 		cmp #ENDCODE					; A = Addr Hi
-		beq @NO_DRAW
+		beq @END_STAGE_DRAW
 		ldy #$ff
 		sty DrawMap::index
-		bne @LOAD_NEXT_MAP				; jmp
+		bne @LOAD_NEXT_MAP				; Jmp
+		; ------------------------------
 
-@NO_DRAW:
+@END_STAGE_DRAW:
 		ldy #0
 		sty DrawMap::index				; X = 0
 		iny
@@ -101,10 +129,9 @@ map_arr_num				: .byte 0
 
 @EXIT:
 		; X = 0
-		; prepare data
 		lda addr_tmp1+0
 		and #%0000_1111
-		sta addr_tmp1+0
+		sta addr_tmp1+0					; PosY = 0
 
 		lda addr_tmp1+1					; 4 or 5
 		and #1
@@ -115,13 +142,11 @@ map_arr_num				: .byte 0
 		stx tmp1						; Init, start using tmp1
 
 		lda addr_tmp1+0
+		add #$40
 		shl #1
 		rol tmp1
-		shl #1
-		rol tmp1
-
 		sta bg_map_addr+0
-		ora bg_map_addr+1
+		lda bg_map_addr+1
 		ora tmp1						; End using tmp1
 		sta bg_map_addr+1
 
@@ -136,29 +161,24 @@ map_arr_num				: .byte 0
 		sty tmp1						; Start using tmp1
 
 		tax
-		lda BROCK_ID+0, x
+		lda BROCK_ID_ARR+0, x
 		sta addr_tmp2+0
-		lda BROCK_ID+1, x
+		lda BROCK_ID_ARR+1, x
 		sta addr_tmp2+1
 
 		ldx bg_map_buff_index
 
-		ldy #0
-		lda (addr_tmp2), y
-		sta BG_MAP_BUFF+0, x
 
+		ldy #0
+		trfToBgMapBuf 'L'
 		iny
-		lda (addr_tmp2), y
-		sta BG_MAP_BUFF+$1c, x
+		trfToBgMapBuf 'R'
 
 		inx
 		iny
-		lda (addr_tmp2), y
-		sta BG_MAP_BUFF+0, x
-
+		trfToBgMapBuf 'L'
 		iny
-		lda (addr_tmp2), y
-		sta BG_MAP_BUFF+$1c, x
+		trfToBgMapBuf 'R'
 
 		inx
 		stx bg_map_buff_index
@@ -168,10 +188,11 @@ map_arr_num				: .byte 0
 		tya
 		adc #$10
 		tay
-		cmp #$e0
+		cmp #$d0
 		bcc @LOOP
 
-		rts	;---------------------------
+		rts
+		;-------------------------------
 .endproc
 
 ;*------------------------------------------------------------------------------
@@ -194,7 +215,8 @@ map_arr_num				: .byte 0
 		lda STAGE_ARR+1, y
 		sta DrawMap::map_arr_addr+1
 
-		rts	; --------------------------
+		rts
+		; ------------------------------
 .endproc
 
 
@@ -219,7 +241,8 @@ map_arr_num				: .byte 0
 		lda (DrawMap::map_arr_addr), y
 		sta DrawMap::map_addr+1
 
-		rts	; --------------------------
+		rts
+		; ------------------------------
 .endproc
 
 

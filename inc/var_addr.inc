@@ -16,6 +16,8 @@ tmp_rgstA				: .byte 0
 tmp_rgstX				: .byte 0
 tmp_rgstY				: .byte 0
 
+
+
 ; These are not used often, but are used in NMI
 ppu_ctrl1_cpy			: .byte 0		; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000(2)|
 ppu_ctrl2_cpy			: .byte 0		; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|

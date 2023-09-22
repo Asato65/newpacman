@@ -23,7 +23,6 @@ MAP_11_1:
 	.byte (GET_OBJ_POS $9, $9), 'G'
 	.byte (GET_OBJ_POS $a, $a), 'G'
 	.byte (GET_OBJ_POS $c, $c), 'G'
-	.byte (GET_OBJ_POS $d, $d), 'G'
 	.byte (GET_OBJ_POS $e, $c), 'G'
 	.byte (GET_OBJ_POS $f, $b), 'G'
 	.byte OBJMAP_NEXT
@@ -40,7 +39,6 @@ MAP_11_1:
 	.byte (GET_OBJ_POS $a, $a), 'B'
 	.byte (GET_OBJ_POS $b, $b), 'B'
 	.byte (GET_OBJ_POS $c, $c), 'B'
-	.byte (GET_OBJ_POS $d, $d), 'B'
 	.byte (GET_OBJ_POS $e, $c), 'B'
 	.byte (GET_OBJ_POS $f, $b), 'B'
 	.byte OBJMAP_END
@@ -59,14 +57,13 @@ MAP_11_2:
 	.byte (GET_OBJ_POS $a, $a), 'Q'
 	.byte (GET_OBJ_POS $b, $b), 'Q'
 	.byte (GET_OBJ_POS $c, $c), 'Q'
-	.byte (GET_OBJ_POS $d, $d), 'Q'
 	.byte (GET_OBJ_POS $e, $c), 'Q'
 	.byte (GET_OBJ_POS $f, $b), 'Q'
 	.byte OBJMAP_END
 	.byte (GET_OBJ_POS $f, $b), 'A'
 
 
-BROCK_ID:
+BROCK_ID_ARR:
 	; 40 = %0100
 	.addr OBJ_SKY						; @ (or 0)
 	.addr $0000							; A

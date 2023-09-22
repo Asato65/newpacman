@@ -51,6 +51,7 @@
 		sta is_processing_main
 
 		jmp _main
+		; ------------------------------
 .endproc
 
 
