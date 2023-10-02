@@ -15,6 +15,7 @@
 		beq @NO_PUSHED_BTN_A
 
 		jsr DrawMap::_updateOneLine
+		jsr Subfunc::_preparePltData
 @NO_PUSHED_BTN_A:
 
 		; ----- End main -----

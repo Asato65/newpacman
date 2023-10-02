@@ -45,6 +45,26 @@
 		rti	; --------------------------
 
 @NMI_MAIN:
+
+	ldx #0
+	stx tmp1
+@PLT_STORE_LOOP:
+	lda plt_addr+1
+	sta PPU_ADDR
+	lda plt_addr+0
+	add #8
+	add tmp1
+	sta PPU_ADDR
+
+	lda BG_PLT_BUFF, x
+	sta PPU_DATA
+	lda tmp1
+	add #8
+	sta tmp1
+	inx
+	cpx #8
+	bcc @PLT_STORE_LOOP
+
 		lda ppu_ctrl1_cpy
 		ora #%0000_0100					; Vertical mode
 		sta ppu_ctrl1_cpy
@@ -142,7 +162,7 @@
 		shr
 		sta bg_buff_pointer				; A = 0
 		inc frm_cnt
-		jsr subfunc::_setScroll
+		jsr Subfunc::_setScroll
 		pla
 		rti	; --------------------------
 .endproc

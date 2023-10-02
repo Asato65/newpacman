@@ -29,7 +29,7 @@
 
 .include "./asm/joypad.asm"
 .include "./asm/macro.asm"
-.include "./asm/sub.asm"
+.include "./asm/subfunc.asm"
 .include "./asm/nmi.asm"
 .include "./asm/init.asm"
 .include "./asm/draw_map.asm"

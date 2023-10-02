@@ -9,22 +9,33 @@ MAP_ARR_11:
 	.addr $ffff
 
 MAP_11_1:
-	.byte (GET_OBJ_POS $0, $0), 'G'
-	.byte (GET_OBJ_POS $1, $1), 'G'
+	.byte (GET_OBJ_POS $0, $0), '^'
+	.byte (GET_OBJ_POS $0, $1), 'G'
+	.byte (GET_OBJ_POS $0, $2), 'G'
+	.byte (GET_OBJ_POS $0, $3), 'G'
+	.byte (GET_OBJ_POS $1, $0), 'G'
+	.byte (GET_OBJ_POS $1, $1), '^'
 	.byte (GET_OBJ_POS $1, $2), 'G'
 	.byte (GET_OBJ_POS $1, $3), 'G'
-	.byte (GET_OBJ_POS $2, $2), 'G'
-	.byte (GET_OBJ_POS $3, $3), 'G'
-	.byte (GET_OBJ_POS $4, $4), 'G'
-	.byte (GET_OBJ_POS $5, $5), 'G'
-	.byte (GET_OBJ_POS $6, $6), 'G'
-	.byte (GET_OBJ_POS $7, $7), 'G'
-	.byte (GET_OBJ_POS $8, $8), 'G'
-	.byte (GET_OBJ_POS $9, $9), 'G'
-	.byte (GET_OBJ_POS $a, $a), 'G'
-	.byte (GET_OBJ_POS $c, $c), 'G'
-	.byte (GET_OBJ_POS $e, $c), 'G'
-	.byte (GET_OBJ_POS $f, $b), 'G'
+	.byte (GET_OBJ_POS $1, $4), 'G'
+	.byte (GET_OBJ_POS $1, $5), 'G'
+	.byte (GET_OBJ_POS $2, $0), 'G'
+	.byte (GET_OBJ_POS $2, $1), 'G'
+	.byte (GET_OBJ_POS $2, $2), '^'
+	.byte (GET_OBJ_POS $2, $3), 'G'
+	.byte (GET_OBJ_POS $2, $4), 'G'
+	.byte (GET_OBJ_POS $2, $5), 'G'
+	.byte (GET_OBJ_POS $3, $3), '^'
+	.byte (GET_OBJ_POS $4, $4), '^'
+	.byte (GET_OBJ_POS $5, $5), '^'
+	.byte (GET_OBJ_POS $6, $6), '^'
+	.byte (GET_OBJ_POS $7, $7), '^'
+	.byte (GET_OBJ_POS $8, $8), '^'
+	.byte (GET_OBJ_POS $9, $9), '^'
+	.byte (GET_OBJ_POS $a, $a), '^'
+	.byte (GET_OBJ_POS $c, $c), '^'
+	.byte (GET_OBJ_POS $e, $c), '^'
+	.byte (GET_OBJ_POS $f, $b), '^'
 	.byte OBJMAP_NEXT
 	.byte (GET_OBJ_POS $0, $0), 'B'
 	.byte (GET_OBJ_POS $1, $1), 'B'
@@ -68,7 +79,7 @@ BROCK_ID_ARR:
 	.addr OBJ_SKY						; @ (or 0)
 	.addr $0000							; A
 	.addr OBJ_BROCK						; B
-	.addr OBJ_COIN						; C
+	.addr $0000							; C
 	.addr $0000							; D
 	.addr $0000							; E
 	.addr $0000							; F
@@ -96,7 +107,7 @@ BROCK_ID_ARR:
 	.addr $0000							; [
 	.addr $0000							; \
 	.addr $0000							; ]
-	.addr $0000							; ^
+	.addr OBJ_COIN						; ^
 	.addr $0000							; _
 	; 60 = %0110
 	.addr $0000							; `

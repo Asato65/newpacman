@@ -10,7 +10,7 @@ ASSEMBLER = ca65.exe
 LINKER = ld65.exe
 EMULATOR = Mesen.exe
 
-all : clean build play
+all : build clean play
 
 build : $(NES_FILE) $(OBJ_FILE)
 
@@ -18,8 +18,8 @@ play : $(NES_FILE)
 	$(EMULATOR) $(NES_FILE)
 
 clean :
-	-rm $(OBJ_FILE) $(DBG_FILE)
-	-del $(OBJ_FILE) $(DBG_FILE)
+	-rm $(OBJ_FILE)
+	-del $(OBJ_FILE)
 
 $(OBJ_FILE) : $(ASM_FILE)
 	$(ASSEMBLER) $(ASM_FILE) -t none --debug --debug-info --listing $(LST_FILE)

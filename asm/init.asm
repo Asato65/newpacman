@@ -18,7 +18,7 @@
 		*/
 		bit $2002
 
-		jsr subfunc::_waitVblank					; 1st time
+		jsr Subfunc::_waitVblank					; 1st time
 
 		; It takes about 30,000 cycles for the PPU to stabilize.
 
@@ -58,7 +58,7 @@
 		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 		sta ppu_ctrl2_cpy
 
-		jsr subfunc::_waitVblank					; 2nd time
+		jsr Subfunc::_waitVblank					; 2nd time
 
 		; Transfar pallete
 		lda #>PLT_TABLE_ADDR
@@ -87,9 +87,9 @@
 	jsr DrawMap::_setMapAddr
 
 		; Screen On
-		jsr subfunc::_restorePPUSet
-		jsr subfunc::_setScroll
+		jsr Subfunc::_restorePPUSet
+		jsr Subfunc::_setScroll
 
-		jsr subfunc::_waitVblank
-		jsr subfunc::_dispStatus
+		jsr Subfunc::_waitVblank
+		jsr Subfunc::_dispStatus
 .endmacro
