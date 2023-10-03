@@ -58,20 +58,9 @@
 		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 		sta ppu_ctrl2_cpy
 
-		jsr Subfunc::_waitVblank					; 2nd time
+		jsr Subfunc::_waitVblank		; 2nd time
 
-		; Transfar pallete
-		lda #>PLT_TABLE_ADDR
-		sta PPU_ADDR
-		lda #<PLT_TABLE_ADDR			; Addr lo = 00
-		sta PPU_ADDR
-		tax
-@TFR_PAL:
-		lda DEFAULT_PLT, x
-		sta PPU_DATA
-		inx
-		cpx #$20
-		bne @TFR_PAL
+		tfrPlt 0
 
 		lda #0
 		sta OAM_ADDR

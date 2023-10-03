@@ -256,3 +256,40 @@
 			.error "Arg \"c\" in macro ashr is wrong."
 		.endif
 .endmacro
+
+
+
+.macro tfrPlt n
+		; Transfar pallete
+		lda #>PLT_TABLE_ADDR
+		sta PPU_ADDR
+		lda #<PLT_TABLE_ADDR			; Addr lo = 0
+		sta PPU_ADDR
+		tax								; X = 0
+:
+		ldy #3
+		lda #$22						; under ground -> #$0f
+		sta PPU_DATA
+:
+		lda DEFAULT_PLT, x				; under ground -> UNDER_GROUND_PLT
+		sta PPU_DATA
+		inx
+		dey
+		bne :-
+		cpx #$3*8
+		bcc :--
+
+	lda #$23
+	sta PPU_ADDR
+	lda #$c0
+	sta PPU_ADDR
+	lda #$ff
+	sta PPU_DATA
+	sta PPU_DATA
+	sta PPU_DATA
+	sta PPU_DATA
+	sta PPU_DATA
+	sta PPU_DATA
+	sta PPU_DATA
+	sta PPU_DATA
+.endmacro

@@ -34,6 +34,15 @@ map_arr_num				: .byte 0
 ; @PARAM	None
 ; @BREAK	A X Y tmp1 addr_tmp1 addr_tmp2
 ; @RETURN	None
+/* main label
+	@START:
+	@GET_POS_AND_OBJ_LOOP:
+	@END_OF_MAP:						-> goto nextlabel (@LOAD_NEXT_MAP)
+	@LOAD_NEXT_MAP:						-> goto @GET_POS_AND_OBJ_LOOP
+	@END_OF_STAGE:						-> goto nextlabel (@PREPARE_BG_MAP_BUF)
+	@PREPARE_BG_MAP_BUF:
+	@STORE_BG_MAP_BUF_LOOP:
+*/
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -58,7 +67,7 @@ map_arr_num				: .byte 0
 		sty DrawMap::row_counter
 
 		ldy DrawMap::index
-@GET_POS_AND_OBJ:
+@GET_POS_AND_OBJ_LOOP:
 		; ----------- get pos ----------
 		lda (DrawMap::map_addr), y
 
@@ -67,17 +76,17 @@ map_arr_num				: .byte 0
 		beq @LOAD_NEXT_MAP
 
 		cmp #DrawMap::OBJMAP_END
-		beq @END_MAP_DATA
+		beq @END_OF_MAP
 
 		; Check if it can be updated
 		sta tmp1						; Start using tmp1
 		and #%0000_1111
 		cmp DrawMap::row_counter
-		bne @LOOP_EXIT
+		bne @GET_POS_AND_OBJ_LOOP_EXIT
 
 		lda DrawMap::map_buff_num
 		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
-		bne @LOOP_EXIT
+		bne @GET_POS_AND_OBJ_LOOP_EXIT
 
 		; Set addr of bg map buff
 		and #%0000_0001					; A = map_buff_num
@@ -94,33 +103,32 @@ map_arr_num				: .byte 0
 		sta (addr_tmp1, x)
 
 		iny
-		bne @GET_POS_AND_OBJ			; Jmp
+		bne @GET_POS_AND_OBJ_LOOP			; Jmp
 		; ------------------------------
 
-@LOOP_EXIT:
+@GET_POS_AND_OBJ_LOOP_EXIT:
 		sty DrawMap::index
 		jmp @PREPARE_BG_MAP_BUF
 		; ------------------------------
 
-@LOAD_NEXT_MAP:
-		inc DrawMap::cnt_map_next
-		iny
-		jmp @GET_POS_AND_OBJ
-		; ------------------------------
 
-@END_MAP_DATA:
-		; ------ Load the next map -----
+		; End of map data (Not end of stage)
+@END_OF_MAP:
 		inc DrawMap::map_arr_num
 		ldy DrawMap::map_arr_num
 		jsr _setMapAddr					; Use Y as arg
 		cmp #ENDCODE					; A = Addr Hi
-		beq @END_STAGE_DRAW
+		beq @END_OF_STAGE
 		ldy #$ff
 		sty DrawMap::index
-		bne @LOAD_NEXT_MAP				; Jmp
+
+@LOAD_NEXT_MAP:
+		inc DrawMap::cnt_map_next
+		iny
+		jmp @GET_POS_AND_OBJ_LOOP
 		; ------------------------------
 
-@END_STAGE_DRAW:
+@END_OF_STAGE:
 		ldy #0
 		sty DrawMap::index				; X = 0
 		iny
@@ -138,7 +146,7 @@ map_arr_num				: .byte 0
 		ora #$20						; $20 or $24
 		sta bg_map_addr+1
 
-		stx tmp1						; Init, start using tmp1 (-> Can break X)
+		stx tmp1						; Init and start using tmp1 (-> Can break X)
 
 		lda addr_tmp1+0
 		add #$40
@@ -149,11 +157,8 @@ map_arr_num				: .byte 0
 		ora tmp1						; End using tmp1
 		sta bg_map_addr+1
 
-		ldy #0
-		sty bg_map_buff_index
-
 		; Store plt addr(ppu)
-		lda addr_tmp1+0						; posX
+		lda addr_tmp1+0					; posX
 		shr #1
 		add #$c0
 		sta plt_addr+0
@@ -163,6 +168,9 @@ map_arr_num				: .byte 0
 		add #$23
 		sta plt_addr+1
 
+		ldy #0
+		sty bg_map_buff_index
+
 
 @STORE_BG_MAP_BUF_LOOP:					; for (y = 0; y < $0d; y++)
 		tya
@@ -170,60 +178,60 @@ map_arr_num				: .byte 0
 		tay
 		lda (addr_tmp1), y
 
-	; prepare plt data -----------------
-	sty tmp2							; (save counter) += $10
-	ldy tmp1							; (save counter) += 1
-	pha
-	and #%0011_0000
-	tax									; X: plt num(bit4-5) : tmp (Start using)
-	lda DrawMap::row_counter
-	and #1
-	sta tmp3
-	tya
-	and #%0000_0001
-	shl #1
-	ora tmp3
-	sta tmp3
+		; prepare plt data -----------------
+		sty tmp2						; (save counter) += $10
+		ldy tmp1						; (save counter) += 1
+		pha
+		and #%0011_0000
+		tax								; X: plt num(bit4-5) : tmp (Start using)
+		lda DrawMap::row_counter
+		and #1
+		sta tmp3
+		tya
+		and #%0000_0001
+		shl #1
+		ora tmp3
+		sta tmp3
 
-	; y /= 2 (Use @PLT0) -> MEMO: 短縮可能
-	tya
-	shr #1
-	tay
+		; y /= 2 (Use @PLT0) -> MEMO: 短縮可能
+		tya
+		shr #1
+		tay
 
-	txa									; End using X (plt num)
-	ldx tmp3
-	/*
-	PLT_DATA = BROCK3|BROCK2|BROCK1|BROCK0
-	-------------------------------
-	| BROCK0(>>4) | BROCK1(>>2) |
-	| BROCK2(0)   | BROCK3(<<2) |
-	-------------------------------
-	*/
-	beq @BROCK0
-	dex
-	beq @BROCK1
-	dex
-	beq @BROCK2
-	dex
-	beq @BROCK3
+		txa								; End using X (plt num)
+		ldx tmp3
+		/*
+			PLT_DATA = BROCK3|BROCK2|BROCK1|BROCK0
+			-------------------------------
+			| BROCK0(>>4) | BROCK1(>>2) |
+			| BROCK2(0)   | BROCK3(<<2) |
+			-------------------------------
+		*/
+		beq @BROCK0
+		dex
+		beq @BROCK1
+		dex
+		beq @BROCK2
+		dex
+		beq @BROCK3
 @BROCK0:
-	shr #4
-	jmp @STORE_TO_PLT_BUFF
-	; ----------------------------------
+		shr #4
+		jmp @STORE_TO_PLT_BUFF
+		; ------------------------------
 @BROCK1:
-	shr #2
-	jmp @ADD_LEFT_BROCK_PLT
-	; ----------------------------------
+		shr #2
+		jmp @ADD_LEFT_BROCK_PLT
+		; ------------------------------
 @BROCK3:
-	shl #2
+		shl #2
 @BROCK2:
 @ADD_LEFT_BROCK_PLT:
-	ora BG_PLT_BUFF, y
+		ora BG_PLT_BUFF, y
 @STORE_TO_PLT_BUFF:
-	sta BG_PLT_BUFF, y
+		sta BG_PLT_BUFF, y
 
-	pla
-	ldy tmp2
+		pla
+		ldy tmp2
 
 		and #%0011_1111
 		shl #1
