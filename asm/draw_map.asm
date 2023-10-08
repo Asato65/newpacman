@@ -9,6 +9,11 @@ row_counter				: .byte 0
 index					: .byte 0
 cnt_map_next			: .byte 0
 map_arr_num				: .byte 0
+fill_upper				: .byte 0
+fill_lower				: .byte 0
+fill_ground_block		: .byte 0
+fill_block				: .byte 0
+fill_ground_end			: .byte 0
 
 
 ;*------------------------------------------------------------------------------
@@ -60,7 +65,6 @@ map_arr_num				: .byte 0
 		iny
 		cpy #$10
 		bne @NO_OVF_ROW_CNT
-
 		tay								; Y = 0
 		inc DrawMap::map_buff_num
 @NO_OVF_ROW_CNT:
@@ -72,10 +76,10 @@ map_arr_num				: .byte 0
 		lda (DrawMap::map_addr), y
 
 		; Check Special Code
-		cmp #DrawMap::OBJMAP_NEXT
+		cmp #OBJMAP_NEXT
 		beq @LOAD_NEXT_MAP
 
-		cmp #DrawMap::OBJMAP_END
+		cmp #OBJMAP_END
 		beq @END_OF_MAP
 
 		; Check if it can be updated
@@ -95,6 +99,33 @@ map_arr_num				: .byte 0
 
 		lda tmp1						; End using tmp1
 		sta addr_tmp1+0
+		pha
+
+	and #%0000_1111
+	sta addr_tmp1+0
+	txa
+	pha
+	tya
+	pha
+	ldx #0
+	ldy #0
+@LOOP:
+	lda FILL_BLOCKS, y
+	sta (addr_tmp1, x)
+	lda addr_tmp1+0
+	add #$10
+	sta addr_tmp1+0
+	iny
+	cpy #$d
+	bne @LOOP
+
+	pla
+	tay
+	pla
+	tax
+
+	pla
+	sta addr_tmp1+0
 
 		; ----------- get chr ----------
 		iny
@@ -297,7 +328,7 @@ map_arr_num				: .byte 0
 ; Set addr of maps
 ; @PARAM	Y: map index
 ; @BREAK	A Y
-; @RETURN	None (A = addr Hi)
+; @RETURN	None (A = addr Lo)
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -306,6 +337,7 @@ map_arr_num				: .byte 0
 		tya
 		shl
 		tay
+		pha								; push y
 
 		lda (DrawMap::map_arr_addr), y
 		sta DrawMap::map_addr
@@ -313,6 +345,51 @@ map_arr_num				: .byte 0
 		iny
 		lda (DrawMap::map_arr_addr), y
 		sta DrawMap::map_addr+1
+
+	; ffコードをこの関数の返値にして，この関数の外でマップ終了を判定しているが
+	; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
+	; 直接@END_OF_STAGEにジャンプしてもOKなはずだが（マップ終了判定でジャンプするラベル）
+	; procを使っているため今は無理
+	cmp #$ff
+	bne @NO_EXIT
+	pla
+	tay
+	lda #$ff
+	rts
+@NO_EXIT:
+
+	; ------------------------------
+
+	ldy #0
+
+	lda (DrawMap::map_addr), y
+	and #%0000_1111
+	sta DrawMap::fill_ground_end
+
+	lda (DrawMap::map_addr), y
+	shr #4
+	tay
+	cpy DrawMap::fill_ground_end
+	beq @NOLOOP
+
+	lda DrawMap::fill_ground_block
+
+@LOOP:
+	sta FILL_BLOCKS, y
+	iny
+	cpy DrawMap::fill_ground_end
+	bne @LOOP
+@NOLOOP:
+
+	ldy #4
+	sty DrawMap::index
+
+	; ----------------------------------
+
+		pla
+		tay
+
+		lda DrawMap::map_addr
 
 		rts
 		; ------------------------------

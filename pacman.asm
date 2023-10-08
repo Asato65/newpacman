@@ -17,10 +17,10 @@
 
 .rodata									; ----- data -----
 
-.include "./inc/defmacro.inc"
 .include "./inc/const.inc"
 .include "./inc/const_addr.inc"
 .include "./inc/var_addr.inc"
+.include "./inc/defmacro.inc"
 .include "./inc/palette.inc"
 .include "./inc/struct.inc"
 .include "./inc/map_data.inc"

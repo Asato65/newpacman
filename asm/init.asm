@@ -70,6 +70,12 @@
 	lda #$ff
 	sta DrawMap::row_counter
 
+	and #0
+	sta DrawMap::index
+
+	lda #'G'
+	sta DrawMap::fill_ground_block
+
 	; test(load map 1 of world 1-1)
 	ldy #0
 	jsr DrawMap::_setStageAddr

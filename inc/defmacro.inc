@@ -36,5 +36,5 @@
 ; @PARAM	posX, posY
 ; @RETURN	$YX
 ;*------------------------------------------------------------------------------
-.define GET_OBJ_POS(posX, posY)		(posY) * $10 + (posX)
+.define GET_OBJ_POS(posX, posY)		($c - (posY)) * $10 + (posX)
 

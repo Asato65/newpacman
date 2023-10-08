@@ -21,48 +21,6 @@ Current file: pacman.asm
 000010r 1               
 000010r 1               .rodata									; ----- data -----
 000000r 1               
-000000r 1               .include "./inc/defmacro.inc"
-000000r 2               ;*------------------------------------------------------------------------------
-000000r 2               ; Calcurate BG address
-000000r 2               ; @PARAM ptx: X coordinate
-000000r 2               ; @PARAM pty: Y coordinate
-000000r 2               ; @PARAM scn: Screen number
-000000r 2               ;*------------------------------------------------------------------------------
-000000r 2               
-000000r 2               .define ADDR_BG (ptx, pty, scn)			$2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
-000000r 2               .define ADDR_BG_BE (ptx, pty, scn)		GET_BE ADDR_BG (ptx), (pty), (scn)
-000000r 2               
-000000r 2               ;*------------------------------------------------------------------------------
-000000r 2               ; Calcurate SPR address
-000000r 2               ; @PARAM spr_num: Sprite number (0~63)
-000000r 2               ; @PARAM member:
-000000r 2               ; 	pty: PosiTion Y
-000000r 2               ; 	num: Tile(8*8) number
-000000r 2               ; 	att: Attribute (VertFlip|HorizonFlip|Prio|Unused(3)|PltNum(2))
-000000r 2               ; 	ptx: PosiTion X
-000000r 2               ;*------------------------------------------------------------------------------
-000000r 2               
-000000r 2               .define ADDR_SPR(spr_num, member)		SPR_BUFF + ((spr_num)*4) + SPR_STRUCT::member
-000000r 2               
-000000r 2               
-000000r 2               ;*------------------------------------------------------------------------------
-000000r 2               ; Get data in big endian
-000000r 2               ; dbyt = Define BYTe?
-000000r 2               ; Define word data with the hi & lo bytes swapped
-000000r 2               ; ($1234=$12,$34)
-000000r 2               ;*------------------------------------------------------------------------------
-000000r 2               
-000000r 2               .define GET_BE(data)					.dbyt data
-000000r 2               
-000000r 2               
-000000r 2               ;*------------------------------------------------------------------------------
-000000r 2               ; Get obj position
-000000r 2               ; @PARAM	posX, posY
-000000r 2               ; @RETURN	$YX
-000000r 2               ;*------------------------------------------------------------------------------
-000000r 2               .define GET_OBJ_POS(posX, posY)		(posY) * $10 + (posX)
-000000r 2               
-000000r 2               
 000000r 1               .include "./inc/const.inc"
 000000r 2               PPU_VERTICAL_MODE						= %11111110
 000000r 2               PPU_HORIZONTAL_MODE						= %11111111
@@ -79,8 +37,9 @@ Current file: pacman.asm
 000000r 2               ZP					= $00
 000000r 2               ; Unused $0200
 000000r 2               BG_MAP_BUFF			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
-000000r 2               BG_PLT_BUFF			= $0134				; size = 8(data)
-000000r 2               BG_BUFF				= $013c
+000000r 2               BG_PLT_BUFF			= $0134				; size = 8
+000000r 2               FILL_BLOCKS			= $013c				; size = 13 ($d)
+000000r 2               BG_BUFF				= $0149
 000000r 2               SPR_BUFF			= $0300
 000000r 2               MAP1				= $0400
 000000r 2               MAP2				= $0500
@@ -161,6 +120,48 @@ Current file: pacman.asm
 000000r 2               
 000000r 2               .code
 000000r 2               
+000000r 1               .include "./inc/defmacro.inc"
+000000r 2               ;*------------------------------------------------------------------------------
+000000r 2               ; Calcurate BG address
+000000r 2               ; @PARAM ptx: X coordinate
+000000r 2               ; @PARAM pty: Y coordinate
+000000r 2               ; @PARAM scn: Screen number
+000000r 2               ;*------------------------------------------------------------------------------
+000000r 2               
+000000r 2               .define ADDR_BG (ptx, pty, scn)			$2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
+000000r 2               .define ADDR_BG_BE (ptx, pty, scn)		GET_BE ADDR_BG (ptx), (pty), (scn)
+000000r 2               
+000000r 2               ;*------------------------------------------------------------------------------
+000000r 2               ; Calcurate SPR address
+000000r 2               ; @PARAM spr_num: Sprite number (0~63)
+000000r 2               ; @PARAM member:
+000000r 2               ; 	pty: PosiTion Y
+000000r 2               ; 	num: Tile(8*8) number
+000000r 2               ; 	att: Attribute (VertFlip|HorizonFlip|Prio|Unused(3)|PltNum(2))
+000000r 2               ; 	ptx: PosiTion X
+000000r 2               ;*------------------------------------------------------------------------------
+000000r 2               
+000000r 2               .define ADDR_SPR(spr_num, member)		SPR_BUFF + ((spr_num)*4) + SPR_STRUCT::member
+000000r 2               
+000000r 2               
+000000r 2               ;*------------------------------------------------------------------------------
+000000r 2               ; Get data in big endian
+000000r 2               ; dbyt = Define BYTe?
+000000r 2               ; Define word data with the hi & lo bytes swapped
+000000r 2               ; ($1234=$12,$34)
+000000r 2               ;*------------------------------------------------------------------------------
+000000r 2               
+000000r 2               .define GET_BE(data)					.dbyt data
+000000r 2               
+000000r 2               
+000000r 2               ;*------------------------------------------------------------------------------
+000000r 2               ; Get obj position
+000000r 2               ; @PARAM	posX, posY
+000000r 2               ; @RETURN	$YX
+000000r 2               ;*------------------------------------------------------------------------------
+000000r 2               .define GET_OBJ_POS(posX, posY)		($c - (posY)) * $10 + (posX)
+000000r 2               
+000000r 2               
 000000r 1               .include "./inc/palette.inc"
 000000r 2               DEFAULT_PLT:
 000000r 2               		; BG
@@ -209,182 +210,153 @@ Current file: pacman.asm
 000032r 2               
 000032r 2               MAP_ARR_11:
 000032r 2  rr rr        	.addr MAP_11_1
-000034r 2  rr rr        	.addr MAP_11_2
-000036r 2  FF FF        	.addr $ffff
-000038r 2               
-000038r 2               MAP_11_1:
-000038r 2  00 5E        	.byte (GET_OBJ_POS $0, $0), '^'
-00003Ar 2  10 47        	.byte (GET_OBJ_POS $0, $1), 'G'
-00003Cr 2  20 47        	.byte (GET_OBJ_POS $0, $2), 'G'
-00003Er 2  30 47        	.byte (GET_OBJ_POS $0, $3), 'G'
-000040r 2  01 47        	.byte (GET_OBJ_POS $1, $0), 'G'
-000042r 2  11 5E        	.byte (GET_OBJ_POS $1, $1), '^'
-000044r 2  21 47        	.byte (GET_OBJ_POS $1, $2), 'G'
-000046r 2  31 47        	.byte (GET_OBJ_POS $1, $3), 'G'
-000048r 2  41 47        	.byte (GET_OBJ_POS $1, $4), 'G'
-00004Ar 2  51 47        	.byte (GET_OBJ_POS $1, $5), 'G'
-00004Cr 2  02 47        	.byte (GET_OBJ_POS $2, $0), 'G'
-00004Er 2  12 47        	.byte (GET_OBJ_POS $2, $1), 'G'
-000050r 2  22 5E        	.byte (GET_OBJ_POS $2, $2), '^'
-000052r 2  32 47        	.byte (GET_OBJ_POS $2, $3), 'G'
-000054r 2  42 47        	.byte (GET_OBJ_POS $2, $4), 'G'
-000056r 2  52 47        	.byte (GET_OBJ_POS $2, $5), 'G'
-000058r 2  33 5E        	.byte (GET_OBJ_POS $3, $3), '^'
-00005Ar 2  44 5E        	.byte (GET_OBJ_POS $4, $4), '^'
-00005Cr 2  55 5E        	.byte (GET_OBJ_POS $5, $5), '^'
-00005Er 2  66 5E        	.byte (GET_OBJ_POS $6, $6), '^'
-000060r 2  77 5E        	.byte (GET_OBJ_POS $7, $7), '^'
-000062r 2  88 5E        	.byte (GET_OBJ_POS $8, $8), '^'
-000064r 2  99 5E        	.byte (GET_OBJ_POS $9, $9), '^'
-000066r 2  AA 5E        	.byte (GET_OBJ_POS $a, $a), '^'
-000068r 2  CC 5E        	.byte (GET_OBJ_POS $c, $c), '^'
-00006Ar 2  CE 5E        	.byte (GET_OBJ_POS $e, $c), '^'
-00006Cr 2  BF 5E        	.byte (GET_OBJ_POS $f, $b), '^'
-00006Er 2  FE           	.byte OBJMAP_NEXT
-00006Fr 2  00 42        	.byte (GET_OBJ_POS $0, $0), 'B'
-000071r 2  11 42        	.byte (GET_OBJ_POS $1, $1), 'B'
-000073r 2  22 42        	.byte (GET_OBJ_POS $2, $2), 'B'
-000075r 2  33 42        	.byte (GET_OBJ_POS $3, $3), 'B'
-000077r 2  44 42        	.byte (GET_OBJ_POS $4, $4), 'B'
-000079r 2  55 42        	.byte (GET_OBJ_POS $5, $5), 'B'
-00007Br 2  66 42        	.byte (GET_OBJ_POS $6, $6), 'B'
-00007Dr 2  77 42        	.byte (GET_OBJ_POS $7, $7), 'B'
-00007Fr 2  88 42        	.byte (GET_OBJ_POS $8, $8), 'B'
-000081r 2  99 42        	.byte (GET_OBJ_POS $9, $9), 'B'
-000083r 2  AA 42        	.byte (GET_OBJ_POS $a, $a), 'B'
-000085r 2  BB 42        	.byte (GET_OBJ_POS $b, $b), 'B'
-000087r 2  CC 42        	.byte (GET_OBJ_POS $c, $c), 'B'
-000089r 2  CE 42        	.byte (GET_OBJ_POS $e, $c), 'B'
-00008Br 2  BF 42        	.byte (GET_OBJ_POS $f, $b), 'B'
-00008Dr 2  FF           	.byte OBJMAP_END
-00008Er 2               
-00008Er 2               MAP_11_2:
-00008Er 2  00 51        	.byte (GET_OBJ_POS $0, $0), 'Q'
-000090r 2  11 51        	.byte (GET_OBJ_POS $1, $1), 'Q'
-000092r 2  22 51        	.byte (GET_OBJ_POS $2, $2), 'Q'
-000094r 2  33 51        	.byte (GET_OBJ_POS $3, $3), 'Q'
-000096r 2  44 51        	.byte (GET_OBJ_POS $4, $4), 'Q'
-000098r 2  55 51        	.byte (GET_OBJ_POS $5, $5), 'Q'
-00009Ar 2  66 51        	.byte (GET_OBJ_POS $6, $6), 'Q'
-00009Cr 2  77 51        	.byte (GET_OBJ_POS $7, $7), 'Q'
-00009Er 2  88 51        	.byte (GET_OBJ_POS $8, $8), 'Q'
-0000A0r 2  99 51        	.byte (GET_OBJ_POS $9, $9), 'Q'
-0000A2r 2  AA 51        	.byte (GET_OBJ_POS $a, $a), 'Q'
-0000A4r 2  BB 51        	.byte (GET_OBJ_POS $b, $b), 'Q'
-0000A6r 2  CC 51        	.byte (GET_OBJ_POS $c, $c), 'Q'
-0000A8r 2  CE 51        	.byte (GET_OBJ_POS $e, $c), 'Q'
-0000AAr 2  BF 51        	.byte (GET_OBJ_POS $f, $b), 'Q'
-0000ACr 2  FF           	.byte OBJMAP_END
-0000ADr 2  BF 41        	.byte (GET_OBJ_POS $f, $b), 'A'
-0000AFr 2               
-0000AFr 2               
-0000AFr 2               BROCK_ID_ARR:
-0000AFr 2               	; 40 = %0100
-0000AFr 2  rr rr        	.addr OBJ_SKY						; @ (or 0)
-0000B1r 2  00 00        	.addr $0000							; A
-0000B3r 2  rr rr        	.addr OBJ_BROCK						; B
-0000B5r 2  00 00        	.addr $0000							; C
-0000B7r 2  00 00        	.addr $0000							; D
-0000B9r 2  00 00        	.addr $0000							; E
-0000BBr 2  00 00        	.addr $0000							; F
-0000BDr 2  rr rr        	.addr OBJ_GROUND					; G
-0000BFr 2  00 00        	.addr $0000							; H
-0000C1r 2  00 00        	.addr $0000							; I
-0000C3r 2  00 00        	.addr $0000							; J
-0000C5r 2  00 00        	.addr $0000							; K
-0000C7r 2  00 00        	.addr $0000							; L
-0000C9r 2  00 00        	.addr $0000							; M
-0000CBr 2  00 00        	.addr $0000							; N
-0000CDr 2  00 00        	.addr $0000							; O
-0000CFr 2               	; 50 = %0101
-0000CFr 2  00 00        	.addr $0000							; P
-0000D1r 2  rr rr        	.addr OBJ_QBLOCK					; Q
-0000D3r 2  00 00        	.addr $0000							; R
-0000D5r 2  00 00        	.addr $0000							; S
-0000D7r 2  00 00        	.addr $0000							; T
-0000D9r 2  00 00        	.addr $0000							; U
-0000DBr 2  00 00        	.addr $0000							; V
-0000DDr 2  00 00        	.addr $0000							; W
-0000DFr 2  00 00        	.addr $0000							; X
-0000E1r 2  00 00        	.addr $0000							; Y
-0000E3r 2  00 00        	.addr $0000							; Z
-0000E5r 2  00 00        	.addr $0000							; [
-0000E7r 2  00 00        	.addr $0000							; \
-0000E9r 2  00 00        	.addr $0000							; ]
-0000EBr 2  rr rr        	.addr OBJ_COIN						; ^
-0000EDr 2  00 00        	.addr $0000							; _
-0000EFr 2               	; 60 = %0110
-0000EFr 2  00 00        	.addr $0000							; `
-0000F1r 2  00 00        	.addr $0000							; a
-0000F3r 2  00 00        	.addr $0000							; b
-0000F5r 2  00 00        	.addr $0000							; c
-0000F7r 2  00 00        	.addr $0000							; d
-0000F9r 2  00 00        	.addr $0000							; e
-0000FBr 2  00 00        	.addr $0000							; f
-0000FDr 2  00 00        	.addr $0000							; g
-0000FFr 2  00 00        	.addr $0000							; h
-000101r 2  00 00        	.addr $0000							; i
-000103r 2  00 00        	.addr $0000							; j
-000105r 2  00 00        	.addr $0000							; k
-000107r 2  00 00        	.addr $0000							; l
-000109r 2  00 00        	.addr $0000							; m
-00010Br 2  00 00        	.addr $0000							; n
-00010Dr 2  00 00        	.addr $0000							; o
-00010Fr 2               	; 70 = %0111
-00010Fr 2  00 00        	.addr $0000							; p
-000111r 2  00 00        	.addr $0000							; q
-000113r 2  00 00        	.addr $0000							; r
-000115r 2  00 00        	.addr $0000							; s
-000117r 2  00 00        	.addr $0000							; t
-000119r 2  00 00        	.addr $0000							; u
-00011Br 2  00 00        	.addr $0000							; v
-00011Dr 2  00 00        	.addr $0000							; w
-00011Fr 2  00 00        	.addr $0000							; x
-000121r 2  00 00        	.addr $0000							; y
-000123r 2  00 00        	.addr $0000							; z
-000125r 2  00 00        	.addr $0000							; {
-000127r 2  00 00        	.addr $0000							; |
-000129r 2  00 00        	.addr $0000							; }
-00012Br 2  00 00        	.addr $0000							; ~
-00012Dr 2               
-00012Dr 2               
-00012Dr 2               OBJ_SKY:
-00012Dr 2  00 00        	.byte $00, $00
-00012Fr 2  00 00        	.byte $00, $00
-000131r 2               
-000131r 2               OBJ_QBLOCK:
-000131r 2  90 91        	.byte $90, $91
-000133r 2  92 93        	.byte $92, $93
-000135r 2               
-000135r 2               OBJ_BROCK:
-000135r 2  94 94        	.byte $94, $94
-000137r 2  95 95        	.byte $95, $95
-000139r 2               
-000139r 2               OBJ_COIN:
-000139r 2  84 85        	.byte $84, $85
-00013Br 2  86 87        	.byte $86, $87
-00013Dr 2               
-00013Dr 2               OBJ_GROUND:
-00013Dr 2  80 81        	.byte $80, $81
-00013Fr 2  82 83        	.byte $82, $83
-000141r 2               
-000141r 2               
-000141r 1               
-000141r 1               .code									; ----- code -----
-000141r 1               
-000141r 1               .include "./asm/joypad.asm"
-000141r 2               .scope Joypad
-000141r 2               
-000141r 2               BTN_A									= %10000000
-000141r 2               BTN_B									= %01000000
-000141r 2               BTN_S									= %00100000
-000141r 2               BTN_T									= %00010000
-000141r 2               BTN_U									= %00001000
-000141r 2               BTN_D									= %00000100
-000141r 2               BTN_L									= %00000010
-000141r 2               BTN_R									= %00000001
-000141r 2               
-000141r 2               .ZeroPage
+000034r 2  FF FF        	.addr $ffff
+000036r 2               
+000036r 2               MAP_11_1:
+000036r 2  DD           	.byte $dd							; GROUND b, c(not d)
+000037r 2  80 00        	.byte %10000000, %00000000			; BROCK 13
+000039r 2  47           	.byte 'G'
+00003Ar 2  C0 47        	.byte (GET_OBJ_POS $0, $0), 'G'
+00003Cr 2  B0 47        	.byte (GET_OBJ_POS $0, $1), 'G'
+00003Er 2  C1 5E        	.byte (GET_OBJ_POS $1, $0), '^'
+000040r 2  B1 5E        	.byte (GET_OBJ_POS $1, $1), '^'
+000042r 2  72 51        	.byte (GET_OBJ_POS $2, $5), 'Q'
+000044r 2  62 51        	.byte (GET_OBJ_POS $2, $6), 'Q'
+000046r 2  73 51        	.byte (GET_OBJ_POS $3, $5), 'Q'
+000048r 2  63 51        	.byte (GET_OBJ_POS $3, $6), 'Q'
+00004Ar 2  C4 40        	.byte (GET_OBJ_POS $4, $0), '@'
+00004Cr 2  B4 40        	.byte (GET_OBJ_POS $4, $1), '@'
+00004Er 2  C5 40        	.byte (GET_OBJ_POS $5, $0), '@'
+000050r 2  B5 47        	.byte (GET_OBJ_POS $5, $1), 'G'
+000052r 2  C6 47        	.byte (GET_OBJ_POS $6, $0), 'G'
+000054r 2  B6 47        	.byte (GET_OBJ_POS $6, $1), 'G'
+000056r 2  C7 47        	.byte (GET_OBJ_POS $7, $0), 'G'
+000058r 2  B7 47        	.byte (GET_OBJ_POS $7, $1), 'G'
+00005Ar 2  C8 47        	.byte (GET_OBJ_POS $8, $0), 'G'
+00005Cr 2  B8 47        	.byte (GET_OBJ_POS $8, $1), 'G'
+00005Er 2  C9 47        	.byte (GET_OBJ_POS $9, $0), 'G'
+000060r 2  B9 47        	.byte (GET_OBJ_POS $9, $1), 'G'
+000062r 2  CA 47        	.byte (GET_OBJ_POS $a, $0), 'G'
+000064r 2  BA 47        	.byte (GET_OBJ_POS $a, $1), 'G'
+000066r 2  CB 47        	.byte (GET_OBJ_POS $b, $0), 'G'
+000068r 2  BB 47        	.byte (GET_OBJ_POS $b, $1), 'G'
+00006Ar 2  FE           	.byte OBJMAP_NEXT
+00006Br 2  70 5E        	.byte (GET_OBJ_POS $0, $5), '^'
+00006Dr 2  60 5E        	.byte (GET_OBJ_POS $0, $6), '^'
+00006Fr 2  FE           	.byte OBJMAP_NEXT
+000070r 2  70 51        	.byte (GET_OBJ_POS $0, $5), 'Q'
+000072r 2  71 51        	.byte (GET_OBJ_POS $1, $5), 'Q'
+000074r 2  FF           	.byte OBJMAP_END
+000075r 2               
+000075r 2               
+000075r 2               
+000075r 2               BROCK_ID_ARR:
+000075r 2               	; 40 = %0100
+000075r 2  rr rr        	.addr OBJ_SKY						; @ (or 0)
+000077r 2  00 00        	.addr $0000							; A
+000079r 2  rr rr        	.addr OBJ_BROCK						; B
+00007Br 2  00 00        	.addr $0000							; C
+00007Dr 2  00 00        	.addr $0000							; D
+00007Fr 2  00 00        	.addr $0000							; E
+000081r 2  00 00        	.addr $0000							; F
+000083r 2  rr rr        	.addr OBJ_GROUND					; G
+000085r 2  00 00        	.addr $0000							; H
+000087r 2  00 00        	.addr $0000							; I
+000089r 2  00 00        	.addr $0000							; J
+00008Br 2  00 00        	.addr $0000							; K
+00008Dr 2  00 00        	.addr $0000							; L
+00008Fr 2  00 00        	.addr $0000							; M
+000091r 2  00 00        	.addr $0000							; N
+000093r 2  00 00        	.addr $0000							; O
+000095r 2               	; 50 = %0101
+000095r 2  00 00        	.addr $0000							; P
+000097r 2  rr rr        	.addr OBJ_QBLOCK					; Q
+000099r 2  00 00        	.addr $0000							; R
+00009Br 2  00 00        	.addr $0000							; S
+00009Dr 2  00 00        	.addr $0000							; T
+00009Fr 2  00 00        	.addr $0000							; U
+0000A1r 2  00 00        	.addr $0000							; V
+0000A3r 2  00 00        	.addr $0000							; W
+0000A5r 2  00 00        	.addr $0000							; X
+0000A7r 2  00 00        	.addr $0000							; Y
+0000A9r 2  00 00        	.addr $0000							; Z
+0000ABr 2  00 00        	.addr $0000							; [
+0000ADr 2  00 00        	.addr $0000							; \
+0000AFr 2  00 00        	.addr $0000							; ]
+0000B1r 2  rr rr        	.addr OBJ_COIN						; ^
+0000B3r 2  00 00        	.addr $0000							; _
+0000B5r 2               	; 60 = %0110
+0000B5r 2  00 00        	.addr $0000							; `
+0000B7r 2  00 00        	.addr $0000							; a
+0000B9r 2  00 00        	.addr $0000							; b
+0000BBr 2  00 00        	.addr $0000							; c
+0000BDr 2  00 00        	.addr $0000							; d
+0000BFr 2  00 00        	.addr $0000							; e
+0000C1r 2  00 00        	.addr $0000							; f
+0000C3r 2  00 00        	.addr $0000							; g
+0000C5r 2  00 00        	.addr $0000							; h
+0000C7r 2  00 00        	.addr $0000							; i
+0000C9r 2  00 00        	.addr $0000							; j
+0000CBr 2  00 00        	.addr $0000							; k
+0000CDr 2  00 00        	.addr $0000							; l
+0000CFr 2  00 00        	.addr $0000							; m
+0000D1r 2  00 00        	.addr $0000							; n
+0000D3r 2  00 00        	.addr $0000							; o
+0000D5r 2               	; 70 = %0111
+0000D5r 2  00 00        	.addr $0000							; p
+0000D7r 2  00 00        	.addr $0000							; q
+0000D9r 2  00 00        	.addr $0000							; r
+0000DBr 2  00 00        	.addr $0000							; s
+0000DDr 2  00 00        	.addr $0000							; t
+0000DFr 2  00 00        	.addr $0000							; u
+0000E1r 2  00 00        	.addr $0000							; v
+0000E3r 2  00 00        	.addr $0000							; w
+0000E5r 2  00 00        	.addr $0000							; x
+0000E7r 2  00 00        	.addr $0000							; y
+0000E9r 2  00 00        	.addr $0000							; z
+0000EBr 2  00 00        	.addr $0000							; {
+0000EDr 2  00 00        	.addr $0000							; |
+0000EFr 2  00 00        	.addr $0000							; }
+0000F1r 2  00 00        	.addr $0000							; ~
+0000F3r 2               
+0000F3r 2               
+0000F3r 2               OBJ_SKY:
+0000F3r 2  00 00        	.byte $00, $00
+0000F5r 2  00 00        	.byte $00, $00
+0000F7r 2               
+0000F7r 2               OBJ_QBLOCK:
+0000F7r 2  90 91        	.byte $90, $91
+0000F9r 2  92 93        	.byte $92, $93
+0000FBr 2               
+0000FBr 2               OBJ_BROCK:
+0000FBr 2  94 94        	.byte $94, $94
+0000FDr 2  95 95        	.byte $95, $95
+0000FFr 2               
+0000FFr 2               OBJ_COIN:
+0000FFr 2  84 85        	.byte $84, $85
+000101r 2  86 87        	.byte $86, $87
+000103r 2               
+000103r 2               OBJ_GROUND:
+000103r 2  80 81        	.byte $80, $81
+000105r 2  82 83        	.byte $82, $83
+000107r 2               
+000107r 2               
+000107r 1               
+000107r 1               .code									; ----- code -----
+000107r 1               
+000107r 1               .include "./asm/joypad.asm"
+000107r 2               .scope Joypad
+000107r 2               
+000107r 2               BTN_A									= %10000000
+000107r 2               BTN_B									= %01000000
+000107r 2               BTN_S									= %00100000
+000107r 2               BTN_T									= %00010000
+000107r 2               BTN_U									= %00001000
+000107r 2               BTN_D									= %00000100
+000107r 2               BTN_L									= %00000010
+000107r 2               BTN_R									= %00000001
+000107r 2               
+000107r 2               .ZeroPage
 000017r 2  00           joy1					: .byte 0
 000018r 2  00           joy2					: .byte 0
 000019r 2  00           joy1_prev				: .byte 0
@@ -401,468 +373,468 @@ Current file: pacman.asm
 00001Dr 2               ;*------------------------------------------------------------------------------
 00001Dr 2               
 00001Dr 2               .code									; ----- code -----
+000107r 2               
+000107r 2               .proc _getJoyData
+000107r 2               		; set prev
+000107r 2  A5 rr        		lda Joypad::joy1
+000109r 2  85 rr        		sta Joypad::joy1_prev
+00010Br 2  A5 rr        		lda Joypad::joy2
+00010Dr 2  85 rr        		sta Joypad::joy2_prev
+00010Fr 2               
+00010Fr 2  20 rr rr     		jsr Joypad::_readJoy
+000112r 2               
+000112r 2  A5 rr        		lda Joypad::joy1
+000114r 2  29 0A        		and #Joypad::BTN_U|Joypad::BTN_L				; Compare Up and Left...
+000116r 2  4A           		lsr
+000117r 2  25 rr        		and Joypad::joy1						; to Down and Right
+000119r 2  F0 0A        		beq @GET_PUSHSTART_BTN
+00011Br 2               		; Use previous frame's directions
+00011Br 2  A5 rr        		lda Joypad::joy1
+00011Dr 2  45 rr        		eor Joypad::joy1_prev
+00011Fr 2  29 F0        		and #%11110000
+000121r 2  45 rr        		eor Joypad::joy1_prev
+000123r 2  85 rr        		sta Joypad::joy1
+000125r 2               
+000125r 2               @GET_PUSHSTART_BTN:
+000125r 2               		; set pushstart
+000125r 2  A5 rr        		lda Joypad::joy1_prev
+000127r 2  49 FF        		eor #%11111111
+000129r 2  25 rr        		and Joypad::joy1
+00012Br 2  85 rr        		sta Joypad::joy1_pushstart
+00012Dr 2  A5 rr        		lda Joypad::joy2_prev
+00012Fr 2  49 FF        		eor #%11111111
+000131r 2  25 rr        		and Joypad::joy2
+000133r 2  85 rr        		sta Joypad::joy2_pushstart
+000135r 2               
+000135r 2  60           		rts
+000136r 2               		; ------------------------------
+000136r 2               .endproc
+000136r 2               
+000136r 2               
+000136r 2               ;*------------------------------------------------------------------------------
+000136r 2               ; Read controller
+000136r 2               ; @PARAM	None
+000136r 2               ; @BREAK	A
+000136r 2               ; @RETURN	None
+000136r 2               ;*------------------------------------------------------------------------------
+000136r 2               
+000136r 2               .code									; ----- code -----
+000136r 2               
+000136r 2               .proc _readJoy
+000136r 2               		; Init controller & Set a ring counter
+000136r 2  A9 01        		lda #1
+000138r 2  8D 16 40     		sta JOYPAD1
+00013Br 2  85 rr        		sta Joypad::joy2						; ring counter
+00013Dr 2  4A           		lsr								; A = 0
+00013Er 2  8D 16 40     		sta JOYPAD1
 000141r 2               
-000141r 2               .proc _getJoyData
-000141r 2               		; set prev
-000141r 2  A5 rr        		lda Joypad::joy1
-000143r 2  85 rr        		sta Joypad::joy1_prev
-000145r 2  A5 rr        		lda Joypad::joy2
-000147r 2  85 rr        		sta Joypad::joy2_prev
-000149r 2               
-000149r 2  20 rr rr     		jsr Joypad::_readJoy
-00014Cr 2               
-00014Cr 2  A5 rr        		lda Joypad::joy1
-00014Er 2  29 0A        		and #Joypad::BTN_U|Joypad::BTN_L				; Compare Up and Left...
-000150r 2  4A           		lsr
-000151r 2  25 rr        		and Joypad::joy1						; to Down and Right
-000153r 2  F0 0A        		beq @GET_PUSHSTART_BTN
-000155r 2               		; Use previous frame's directions
-000155r 2  A5 rr        		lda Joypad::joy1
-000157r 2  45 rr        		eor Joypad::joy1_prev
-000159r 2  29 F0        		and #%11110000
-00015Br 2  45 rr        		eor Joypad::joy1_prev
-00015Dr 2  85 rr        		sta Joypad::joy1
-00015Fr 2               
-00015Fr 2               @GET_PUSHSTART_BTN:
-00015Fr 2               		; set pushstart
-00015Fr 2  A5 rr        		lda Joypad::joy1_prev
-000161r 2  49 FF        		eor #%11111111
-000163r 2  25 rr        		and Joypad::joy1
-000165r 2  85 rr        		sta Joypad::joy1_pushstart
-000167r 2  A5 rr        		lda Joypad::joy2_prev
-000169r 2  49 FF        		eor #%11111111
-00016Br 2  25 rr        		and Joypad::joy2
-00016Dr 2  85 rr        		sta Joypad::joy2_pushstart
-00016Fr 2               
-00016Fr 2  60           		rts
-000170r 2               		; ------------------------------
-000170r 2               .endproc
-000170r 2               
-000170r 2               
-000170r 2               ;*------------------------------------------------------------------------------
-000170r 2               ; Read controller
-000170r 2               ; @PARAM	None
-000170r 2               ; @BREAK	A
-000170r 2               ; @RETURN	None
-000170r 2               ;*------------------------------------------------------------------------------
-000170r 2               
-000170r 2               .code									; ----- code -----
-000170r 2               
-000170r 2               .proc _readJoy
-000170r 2               		; Init controller & Set a ring counter
-000170r 2  A9 01        		lda #1
-000172r 2  8D 16 40     		sta JOYPAD1
-000175r 2  85 rr        		sta Joypad::joy2						; ring counter
-000177r 2  4A           		lsr								; A = 0
-000178r 2  8D 16 40     		sta JOYPAD1
+000141r 2               @READ_JOY_LOOP:
+000141r 2  AD 16 40     		lda JOYPAD1
+000144r 2  29 03        		and #%00000011
+000146r 2  C9 01        		cmp #$01						; A - 1 = A + 0xff; if A > 0 then Carry=1
+000148r 2  26 rr        		rol Joypad::joy1						; Carry -> Bit0; Bit7 -> Carry
+00014Ar 2  AD 17 40     		lda JOYPAD2
+00014Dr 2  29 03        		and #%00000011
+00014Fr 2  C9 01        		cmp #$01
+000151r 2  26 rr        		rol Joypad::joy2
+000153r 2  90 EC        		bcc @READ_JOY_LOOP				; CarryON -> end
+000155r 2  60           		rts
+000156r 2               		; ------------------------------
+000156r 2               .endproc
+000156r 2               
+000156r 2               
+000156r 2               .endscope
+000156r 2               
+000156r 1               .include "./asm/macro.asm"
+000156r 2               ; ------------------------------------------------------------------------------
+000156r 2               ; Load array
+000156r 2               ; A = Arr[X][Y]
+000156r 2               ; @PARAM	ADDR: Array Address
+000156r 2               ; @PARAM	X Y: index (Access Arr[x][y])
+000156r 2               ; @BREAK	tmp1
+000156r 2               ; ------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .macro ldarr addr
+000156r 2               		.if !(.blank(addr))
+000156r 2               			sty tmp1						; save Y
+000156r 2               			txa
+000156r 2               			asl								; ×2（アドレスが16bitなのでARR[x][y]のxが+1 => 読み込むアドレスは+2する必要がある
+000156r 2               			tay								; アドレッシングに使うためYレジスタへ
+000156r 2               			lda addr, y						; Low
+000156r 2               			sta <addr_tmp1
+000156r 2               			lda addr+1, y					; High
+000156r 2               			sta >addr_tmp1
+000156r 2               			ldy tmp1						; restore Y
+000156r 2               			lda (addr_tmp1), y
+000156r 2               		.else
+000156r 2               			.error "Arg addr in macro ldarr is wrong."
+000156r 2               		.endif
+000156r 2               .endmacro
+000156r 2               
+000156r 2               
+000156r 2               ; ------------------------------------------------------------------------------
+000156r 2               ; Calculate Negative Numbers
+000156r 2               ; ------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .macro cnn
+000156r 2               		eor #$ff
+000156r 2               		add #$01
+000156r 2               .endmacro
+000156r 2               
+000156r 2               
+000156r 2               ; ------------------------------------------------------------------------------
+000156r 2               ; Addition
+000156r 2               ; This Macro only supports Immediate/Zeropage/Absolute addressing.
+000156r 2               ; Other addressing modes are not optimized for speed.
+000156r 2               ; Other addressing usage: add a, {$00, x} / add a, {($00), y}
+000156r 2               ; @PARAM	arg1: register or Address
+000156r 2               ; @PARAM	arg2
+000156r 2               ; ------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .macro add arg1, arg2
+000156r 2               		.if (.paramcount = 1)
+000156r 2               			; arg1: val
+000156r 2               			; add #3 / add $80
+000156r 2               			clc
+000156r 2               			adc arg1
+000156r 2               		.elseif (.paramcount = 2)
+000156r 2               			; arg1: target
+000156r 2               			; arg2: val
+000156r 2               			.if (.match({arg1}, a))
+000156r 2               				; add a, #3 / add a, $80
+000156r 2               				clc
+000156r 2               				adc arg2
+000156r 2               			.elseif (.match({arg1}, x))
+000156r 2               				; add x, ??
+000156r 2               				.if (\
+000156r 2               					.match(.left(1, {arg2}), #) &&\
+000156r 2               					.right(.tcount({arg2})-1, {arg2}) <= 7\
+000156r 2               				)
+000156r 2               					; add x, #0~7
+000156r 2               					.repeat (.right(.tcount({arg2})-1, {arg2}))
+000156r 2               						inx
+000156r 2               					.endrepeat
+000156r 2               				.else
+000156r 2               					pha
+000156r 2               					txa
+000156r 2               					clc
+000156r 2               					adc arg2
+000156r 2               					tax
+000156r 2               					pla
+000156r 2               				.endif
+000156r 2               			.elseif (.match({arg1}, y))
+000156r 2               				; add y, ??
+000156r 2               				.if (\
+000156r 2               					.match(.left(1, {arg2}), #) &&\
+000156r 2               					.right(.tcount({arg2})-1, {arg2}) <= 7\
+000156r 2               				)
+000156r 2               					; add y, #0~7
+000156r 2               					.repeat (.right(.tcount ({arg2})-1, {arg2}))
+000156r 2               						iny
+000156r 2               					.endrepeat
+000156r 2               				.else
+000156r 2               					pha
+000156r 2               					tya
+000156r 2               					clc
+000156r 2               					adc arg2
+000156r 2               					tay
+000156r 2               					pla
+000156r 2               				.endif
+000156r 2               			.endif
+000156r 2               		.else
+000156r 2               			.error "Args in macro add are wrong."
+000156r 2               		.endif
+000156r 2               .endmacro
+000156r 2               
+000156r 2               
+000156r 2               ; ------------------------------------------------------------------------------
+000156r 2               ; Subtraction
+000156r 2               ; See macro add for comments
+000156r 2               ; @PARAM	arg1: register or Address
+000156r 2               ; @PARAM	arg2
+000156r 2               ; ------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .macro sub arg1, arg2
+000156r 2               		.if (.paramcount = 1)
+000156r 2               			sec
+000156r 2               			sbc arg1
+000156r 2               		.elseif (.paramcount = 2 && .match({arg1}, a))
+000156r 2               			sec
+000156r 2               			sbc arg2
+000156r 2               		.elseif (.paramcount = 2 && .match({arg1}, x))
+000156r 2               			.if (\
+000156r 2               				.match(.left(1, {arg2}), #) &&\
+000156r 2               				.right(.tcount({arg2})-1, {arg2}) <= 7\
+000156r 2               			)
+000156r 2               				.repeat (.right(.tcount({arg2})-1, {arg2}))
+000156r 2               					dex
+000156r 2               				.endrepeat
+000156r 2               			.else
+000156r 2               				pha
+000156r 2               				txa
+000156r 2               				sec
+000156r 2               				sbc arg2
+000156r 2               				tax
+000156r 2               				pla
+000156r 2               			.endif
+000156r 2               		.elseif (.paramcount = 2 && .match({arg1}, y))
+000156r 2               			.if (\
+000156r 2               				.match(.left(1, {arg2}), #) &&\
+000156r 2               				.right(.tcount({arg2})-1, {arg2}) <= 7\
+000156r 2               			)
+000156r 2               				.repeat (.right(.tcount ({arg2})-1, {arg2}))
+000156r 2               					dey
+000156r 2               				.endrepeat
+000156r 2               			.else
+000156r 2               				pha
+000156r 2               				tya
+000156r 2               				sec
+000156r 2               				sbc arg2
+000156r 2               				tay
+000156r 2               				pla
+000156r 2               			.endif
+000156r 2               		.else
+000156r 2               			.error "Args in macro sub are wrong."
+000156r 2               		.endif
+000156r 2               .endmacro
+000156r 2               
+000156r 2               
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               ; Light shift
+000156r 2               ; arg1 <<= c
+000156r 2               ; @PARAM	c: default=#1
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .macro shl c
+000156r 2               		.if (.blank(c))
+000156r 2               			asl
+000156r 2               		.elseif (.match(.left(1, {c}), #))
+000156r 2               			.repeat	(.right(.tcount ({c})-1, {c}))
+000156r 2               				asl
+000156r 2               			.endrepeat
+000156r 2               		.else
+000156r 2               			.error "Arg \"c\" in macro shl is wrong."
+000156r 2               		.endif
+000156r 2               .endmacro
+000156r 2               
+000156r 2               
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               ; Right shift
+000156r 2               ; arg1 >>= c
+000156r 2               ; @PARAM	c: default=#1
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .macro shr c
+000156r 2               		.if (.blank(c))
+000156r 2               			lsr
+000156r 2               		.elseif (.match(.left(1, {c}), #))
+000156r 2               			.repeat	(.right(.tcount ({c})-1, {c}))
+000156r 2               				lsr
+000156r 2               			.endrepeat
+000156r 2               		.else
+000156r 2               			.error "Arg \"c\" in macro shr is wrong."
+000156r 2               		.endif
+000156r 2               .endmacro
+000156r 2               
+000156r 2               
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               ; Arithmetic left shift
+000156r 2               ;! Deprecated (Not shortened)
+000156r 2               ; A >>= c
+000156r 2               ; @PARAM	c: default=1
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .macro ashl c
+000156r 2               		cmp #%1000_0000
+000156r 2               		php								; Save carry
+000156r 2               		.if (.blank(c))
+000156r 2               			; ashl
+000156r 2               			shl #2
+000156r 2               		.elseif (.match(.left(1, {c}), #))
+000156r 2               			; ashl #4
+000156r 2               			shl #((.right(.tcount ({c})-1, {c})) + 1)
+000156r 2               		.else
+000156r 2               			.error "Arg \"c\" in macro ashl is wrong."
+000156r 2               		.endif
+000156r 2               		plp
+000156r 2               		ror								; a /= 2, carry into bit7
+000156r 2               .endmacro
+000156r 2               
+000156r 2               
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               ; Arithmetic right shift
+000156r 2               ; A >>= c
+000156r 2               ; @PARAM	c: default=1
+000156r 2               ;
+000156r 2               ; To ASR a memory location
+000156r 2               ; (From http://wiki.nesdev.com/w/index.php/Synthetic_instructions#Arithmetic_shift_right)
+000156r 2               ; 	lda addr		; Copy memory into A
+000156r 2               ; 	asl				; Copy sign bit of A into carry (shorter than CMP)
+000156r 2               ; 	ror addr
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .macro ashr c
+000156r 2               		.if (.blank(c))
+000156r 2               			; ashr
+000156r 2               			cmp #%1000_0000				; Bit7 into carry
+000156r 2               			ror							; Shift carry into Bit7
+000156r 2               		.elseif (.match(.left(1, {c}), #))
+000156r 2               			; ashr #4
+000156r 2               			.repeat (.right(.tcount ({c})-1, {c}))
+000156r 2               				cmp #%1000_0000
+000156r 2               				ror
+000156r 2               			.endrepeat
+000156r 2               		.else
+000156r 2               			.error "Arg \"c\" in macro ashr is wrong."
+000156r 2               		.endif
+000156r 2               .endmacro
+000156r 2               
+000156r 2               
+000156r 2               
+000156r 2               .macro tfrPlt n
+000156r 2               		; Transfar pallete
+000156r 2               		lda #>PLT_TABLE_ADDR
+000156r 2               		sta PPU_ADDR
+000156r 2               		lda #<PLT_TABLE_ADDR			; Addr lo = 0
+000156r 2               		sta PPU_ADDR
+000156r 2               		tax								; X = 0
+000156r 2               :
+000156r 2               		ldy #3
+000156r 2               		lda #$22						; under ground -> #$0f
+000156r 2               		sta PPU_DATA
+000156r 2               :
+000156r 2               		lda DEFAULT_PLT, x				; under ground -> UNDER_GROUND_PLT
+000156r 2               		sta PPU_DATA
+000156r 2               		inx
+000156r 2               		dey
+000156r 2               		bne :-
+000156r 2               		cpx #$3*8
+000156r 2               		bcc :--
+000156r 2               
+000156r 2               	lda #$23
+000156r 2               	sta PPU_ADDR
+000156r 2               	lda #$c0
+000156r 2               	sta PPU_ADDR
+000156r 2               	lda #$ff
+000156r 2               	sta PPU_DATA
+000156r 2               	sta PPU_DATA
+000156r 2               	sta PPU_DATA
+000156r 2               	sta PPU_DATA
+000156r 2               	sta PPU_DATA
+000156r 2               	sta PPU_DATA
+000156r 2               	sta PPU_DATA
+000156r 2               	sta PPU_DATA
+000156r 2               .endmacro
+000156r 2               
+000156r 1               .include "./asm/subfunc.asm"
+000156r 2               .scope Subfunc
+000156r 2               
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               ; Restore PPU setting
+000156r 2               ; @PARAM	None
+000156r 2               ; @BREAK	A
+000156r 2               ; @RETURN	None
+000156r 2               ;*------------------------------------------------------------------------------
+000156r 2               
+000156r 2               .code									; ----- code -----
+000156r 2               
+000156r 2               .proc _restorePPUSet
+000156r 2  A5 rr        		lda ppu_ctrl1_cpy
+000158r 2  8D 00 20     		sta PPU_CTRL1
+00015Br 2  A5 rr        		lda ppu_ctrl2_cpy
+00015Dr 2  8D 01 20     		sta PPU_CTRL2
+000160r 2  60           		rts
+000161r 2               		; ------------------------------
+000161r 2               .endproc
+000161r 2               
+000161r 2               
+000161r 2               
+000161r 2               ;*------------------------------------------------------------------------------
+000161r 2               ; Set scroll position
+000161r 2               ; Use during NMI or executing raster scroll.
+000161r 2               ; @PARAM	None
+000161r 2               ; @BREAK	A
+000161r 2               ; @RETURN	None
+000161r 2               ;*------------------------------------------------------------------------------
+000161r 2               
+000161r 2               .code									; ----- code -----
+000161r 2               
+000161r 2               .proc _setScroll
+000161r 2  A5 rr        		lda scroll_x
+000163r 2  8D 05 20     		sta PPU_SCROLL
+000166r 2  A5 rr        		lda scroll_y
+000168r 2  8D 05 20     		sta PPU_SCROLL
+00016Br 2               
+00016Br 2               	; TODO: きちんとスクロール実装したらメインスクリーンの切り替え実装
+00016Br 2  A5 rr        	lda ppu_ctrl1_cpy
+00016Dr 2  29 FC        	and #%1111_1100
+00016Fr 2  85 rr        	sta ppu_ctrl1_cpy
+000171r 2  8D 00 20     	sta PPU_CTRL1
+000174r 2               
+000174r 2  60           		rts
+000175r 2               		; ------------------------------
+000175r 2               .endproc
+000175r 2               
+000175r 2               
+000175r 2               ;*------------------------------------------------------------------------------
+000175r 2               ; Wait starting vblank
+000175r 2               ; @PARAM	None
+000175r 2               ; @BREAK	None
+000175r 2               ; @RETURN	Non
+000175r 2               ;*------------------------------------------------------------------------------
+000175r 2               
+000175r 2               .code									; ----- code -----
+000175r 2               
+000175r 2               .proc _waitVblank
+000175r 2  2C 02 20     		bit $2002
+000178r 2  10 FB        		bpl _waitVblank
+00017Ar 2  60           		rts
+00017Br 2               		; ------------------------------
+00017Br 2               .endproc
 00017Br 2               
-00017Br 2               @READ_JOY_LOOP:
-00017Br 2  AD 16 40     		lda JOYPAD1
-00017Er 2  29 03        		and #%00000011
-000180r 2  C9 01        		cmp #$01						; A - 1 = A + 0xff; if A > 0 then Carry=1
-000182r 2  26 rr        		rol Joypad::joy1						; Carry -> Bit0; Bit7 -> Carry
-000184r 2  AD 17 40     		lda JOYPAD2
-000187r 2  29 03        		and #%00000011
-000189r 2  C9 01        		cmp #$01
-00018Br 2  26 rr        		rol Joypad::joy2
-00018Dr 2  90 EC        		bcc @READ_JOY_LOOP				; CarryON -> end
+00017Br 2               
+00017Br 2               ;*------------------------------------------------------------------------------
+00017Br 2               ; Disp status text
+00017Br 2               ; @PARAM	None
+00017Br 2               ; @BREAK	A X Y
+00017Br 2               ; @RETURN	None
+00017Br 2               ;*------------------------------------------------------------------------------
+00017Br 2               
+00017Br 2               .code									; ----- code -----
+00017Br 2               
+00017Br 2               .proc _dispStatus
+00017Br 2  A6 rr        		ldx bg_buff_pointer
+00017Dr 2  A0 1F        		ldy #(@TEXT_END - @TEXT)
+00017Fr 2               @STORE_PPU_DATA_LOOP:
+00017Fr 2  BD rr rr     		lda @TEXT, x
+000182r 2  F0 07        		beq @END_STORE
+000184r 2  9D 49 01     		sta BG_BUFF, x
+000187r 2  E8           		inx
+000188r 2  88           		dey
+000189r 2  D0 F4        		bne @STORE_PPU_DATA_LOOP
+00018Br 2               @END_STORE:
+00018Br 2  86 rr        		stx bg_buff_pointer
+00018Dr 2  86 80        		stx $80
 00018Fr 2  60           		rts
 000190r 2               		; ------------------------------
-000190r 2               .endproc
 000190r 2               
-000190r 2               
-000190r 2               .endscope
-000190r 2               
-000190r 1               .include "./asm/macro.asm"
-000190r 2               ; ------------------------------------------------------------------------------
-000190r 2               ; Load array
-000190r 2               ; A = Arr[X][Y]
-000190r 2               ; @PARAM	ADDR: Array Address
-000190r 2               ; @PARAM	X Y: index (Access Arr[x][y])
-000190r 2               ; @BREAK	tmp1
-000190r 2               ; ------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .macro ldarr addr
-000190r 2               		.if !(.blank(addr))
-000190r 2               			sty tmp1						; save Y
-000190r 2               			txa
-000190r 2               			asl								; ×2（アドレスが16bitなのでARR[x][y]のxが+1 => 読み込むアドレスは+2する必要がある
-000190r 2               			tay								; アドレッシングに使うためYレジスタへ
-000190r 2               			lda addr, y						; Low
-000190r 2               			sta <addr_tmp1
-000190r 2               			lda addr+1, y					; High
-000190r 2               			sta >addr_tmp1
-000190r 2               			ldy tmp1						; restore Y
-000190r 2               			lda (addr_tmp1), y
-000190r 2               		.else
-000190r 2               			.error "Arg addr in macro ldarr is wrong."
-000190r 2               		.endif
-000190r 2               .endmacro
-000190r 2               
-000190r 2               
-000190r 2               ; ------------------------------------------------------------------------------
-000190r 2               ; Calculate Negative Numbers
-000190r 2               ; ------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .macro cnn
-000190r 2               		eor #$ff
-000190r 2               		add #$01
-000190r 2               .endmacro
-000190r 2               
-000190r 2               
-000190r 2               ; ------------------------------------------------------------------------------
-000190r 2               ; Addition
-000190r 2               ; This Macro only supports Immediate/Zeropage/Absolute addressing.
-000190r 2               ; Other addressing modes are not optimized for speed.
-000190r 2               ; Other addressing usage: add a, {$00, x} / add a, {($00), y}
-000190r 2               ; @PARAM	arg1: register or Address
-000190r 2               ; @PARAM	arg2
-000190r 2               ; ------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .macro add arg1, arg2
-000190r 2               		.if (.paramcount = 1)
-000190r 2               			; arg1: val
-000190r 2               			; add #3 / add $80
-000190r 2               			clc
-000190r 2               			adc arg1
-000190r 2               		.elseif (.paramcount = 2)
-000190r 2               			; arg1: target
-000190r 2               			; arg2: val
-000190r 2               			.if (.match({arg1}, a))
-000190r 2               				; add a, #3 / add a, $80
-000190r 2               				clc
-000190r 2               				adc arg2
-000190r 2               			.elseif (.match({arg1}, x))
-000190r 2               				; add x, ??
-000190r 2               				.if (\
-000190r 2               					.match(.left(1, {arg2}), #) &&\
-000190r 2               					.right(.tcount({arg2})-1, {arg2}) <= 7\
-000190r 2               				)
-000190r 2               					; add x, #0~7
-000190r 2               					.repeat (.right(.tcount({arg2})-1, {arg2}))
-000190r 2               						inx
-000190r 2               					.endrepeat
-000190r 2               				.else
-000190r 2               					pha
-000190r 2               					txa
-000190r 2               					clc
-000190r 2               					adc arg2
-000190r 2               					tax
-000190r 2               					pla
-000190r 2               				.endif
-000190r 2               			.elseif (.match({arg1}, y))
-000190r 2               				; add y, ??
-000190r 2               				.if (\
-000190r 2               					.match(.left(1, {arg2}), #) &&\
-000190r 2               					.right(.tcount({arg2})-1, {arg2}) <= 7\
-000190r 2               				)
-000190r 2               					; add y, #0~7
-000190r 2               					.repeat (.right(.tcount ({arg2})-1, {arg2}))
-000190r 2               						iny
-000190r 2               					.endrepeat
-000190r 2               				.else
-000190r 2               					pha
-000190r 2               					tya
-000190r 2               					clc
-000190r 2               					adc arg2
-000190r 2               					tay
-000190r 2               					pla
-000190r 2               				.endif
-000190r 2               			.endif
-000190r 2               		.else
-000190r 2               			.error "Args in macro add are wrong."
-000190r 2               		.endif
-000190r 2               .endmacro
-000190r 2               
-000190r 2               
-000190r 2               ; ------------------------------------------------------------------------------
-000190r 2               ; Subtraction
-000190r 2               ; See macro add for comments
-000190r 2               ; @PARAM	arg1: register or Address
-000190r 2               ; @PARAM	arg2
-000190r 2               ; ------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .macro sub arg1, arg2
-000190r 2               		.if (.paramcount = 1)
-000190r 2               			sec
-000190r 2               			sbc arg1
-000190r 2               		.elseif (.paramcount = 2 && .match({arg1}, a))
-000190r 2               			sec
-000190r 2               			sbc arg2
-000190r 2               		.elseif (.paramcount = 2 && .match({arg1}, x))
-000190r 2               			.if (\
-000190r 2               				.match(.left(1, {arg2}), #) &&\
-000190r 2               				.right(.tcount({arg2})-1, {arg2}) <= 7\
-000190r 2               			)
-000190r 2               				.repeat (.right(.tcount({arg2})-1, {arg2}))
-000190r 2               					dex
-000190r 2               				.endrepeat
-000190r 2               			.else
-000190r 2               				pha
-000190r 2               				txa
-000190r 2               				sec
-000190r 2               				sbc arg2
-000190r 2               				tax
-000190r 2               				pla
-000190r 2               			.endif
-000190r 2               		.elseif (.paramcount = 2 && .match({arg1}, y))
-000190r 2               			.if (\
-000190r 2               				.match(.left(1, {arg2}), #) &&\
-000190r 2               				.right(.tcount({arg2})-1, {arg2}) <= 7\
-000190r 2               			)
-000190r 2               				.repeat (.right(.tcount ({arg2})-1, {arg2}))
-000190r 2               					dey
-000190r 2               				.endrepeat
-000190r 2               			.else
-000190r 2               				pha
-000190r 2               				tya
-000190r 2               				sec
-000190r 2               				sbc arg2
-000190r 2               				tay
-000190r 2               				pla
-000190r 2               			.endif
-000190r 2               		.else
-000190r 2               			.error "Args in macro sub are wrong."
-000190r 2               		.endif
-000190r 2               .endmacro
-000190r 2               
-000190r 2               
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               ; Light shift
-000190r 2               ; arg1 <<= c
-000190r 2               ; @PARAM	c: default=#1
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .macro shl c
-000190r 2               		.if (.blank(c))
-000190r 2               			asl
-000190r 2               		.elseif (.match(.left(1, {c}), #))
-000190r 2               			.repeat	(.right(.tcount ({c})-1, {c}))
-000190r 2               				asl
-000190r 2               			.endrepeat
-000190r 2               		.else
-000190r 2               			.error "Arg \"c\" in macro shl is wrong."
-000190r 2               		.endif
-000190r 2               .endmacro
-000190r 2               
-000190r 2               
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               ; Right shift
-000190r 2               ; arg1 >>= c
-000190r 2               ; @PARAM	c: default=#1
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .macro shr c
-000190r 2               		.if (.blank(c))
-000190r 2               			lsr
-000190r 2               		.elseif (.match(.left(1, {c}), #))
-000190r 2               			.repeat	(.right(.tcount ({c})-1, {c}))
-000190r 2               				lsr
-000190r 2               			.endrepeat
-000190r 2               		.else
-000190r 2               			.error "Arg \"c\" in macro shr is wrong."
-000190r 2               		.endif
-000190r 2               .endmacro
-000190r 2               
-000190r 2               
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               ; Arithmetic left shift
-000190r 2               ;! Deprecated (Not shortened)
-000190r 2               ; A >>= c
-000190r 2               ; @PARAM	c: default=1
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .macro ashl c
-000190r 2               		cmp #%1000_0000
-000190r 2               		php								; Save carry
-000190r 2               		.if (.blank(c))
-000190r 2               			; ashl
-000190r 2               			shl #2
-000190r 2               		.elseif (.match(.left(1, {c}), #))
-000190r 2               			; ashl #4
-000190r 2               			shl #((.right(.tcount ({c})-1, {c})) + 1)
-000190r 2               		.else
-000190r 2               			.error "Arg \"c\" in macro ashl is wrong."
-000190r 2               		.endif
-000190r 2               		plp
-000190r 2               		ror								; a /= 2, carry into bit7
-000190r 2               .endmacro
-000190r 2               
-000190r 2               
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               ; Arithmetic right shift
-000190r 2               ; A >>= c
-000190r 2               ; @PARAM	c: default=1
-000190r 2               ;
-000190r 2               ; To ASR a memory location
-000190r 2               ; (From http://wiki.nesdev.com/w/index.php/Synthetic_instructions#Arithmetic_shift_right)
-000190r 2               ; 	lda addr		; Copy memory into A
-000190r 2               ; 	asl				; Copy sign bit of A into carry (shorter than CMP)
-000190r 2               ; 	ror addr
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .macro ashr c
-000190r 2               		.if (.blank(c))
-000190r 2               			; ashr
-000190r 2               			cmp #%1000_0000				; Bit7 into carry
-000190r 2               			ror							; Shift carry into Bit7
-000190r 2               		.elseif (.match(.left(1, {c}), #))
-000190r 2               			; ashr #4
-000190r 2               			.repeat (.right(.tcount ({c})-1, {c}))
-000190r 2               				cmp #%1000_0000
-000190r 2               				ror
-000190r 2               			.endrepeat
-000190r 2               		.else
-000190r 2               			.error "Arg \"c\" in macro ashr is wrong."
-000190r 2               		.endif
-000190r 2               .endmacro
-000190r 2               
-000190r 2               
-000190r 2               
-000190r 2               .macro tfrPlt n
-000190r 2               		; Transfar pallete
-000190r 2               		lda #>PLT_TABLE_ADDR
-000190r 2               		sta PPU_ADDR
-000190r 2               		lda #<PLT_TABLE_ADDR			; Addr lo = 0
-000190r 2               		sta PPU_ADDR
-000190r 2               		tax								; X = 0
-000190r 2               :
-000190r 2               		ldy #3
-000190r 2               		lda #$0f
-000190r 2               		sta PPU_DATA
-000190r 2               :
-000190r 2               		lda UNDER_GROUND_PLT, x
-000190r 2               		sta PPU_DATA
-000190r 2               		inx
-000190r 2               		dey
-000190r 2               		bne :-
-000190r 2               		cpx #$3*8
-000190r 2               		bcc :--
-000190r 2               
-000190r 2               	lda #$23
-000190r 2               	sta PPU_ADDR
-000190r 2               	lda #$c0
-000190r 2               	sta PPU_ADDR
-000190r 2               	lda #$ff
-000190r 2               	sta PPU_DATA
-000190r 2               	sta PPU_DATA
-000190r 2               	sta PPU_DATA
-000190r 2               	sta PPU_DATA
-000190r 2               	sta PPU_DATA
-000190r 2               	sta PPU_DATA
-000190r 2               	sta PPU_DATA
-000190r 2               	sta PPU_DATA
-000190r 2               .endmacro
-000190r 2               
-000190r 1               .include "./asm/subfunc.asm"
-000190r 2               .scope Subfunc
-000190r 2               
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               ; Restore PPU setting
-000190r 2               ; @PARAM	None
-000190r 2               ; @BREAK	A
-000190r 2               ; @RETURN	None
-000190r 2               ;*------------------------------------------------------------------------------
-000190r 2               
-000190r 2               .code									; ----- code -----
-000190r 2               
-000190r 2               .proc _restorePPUSet
-000190r 2  A5 rr        		lda ppu_ctrl1_cpy
-000192r 2  8D 00 20     		sta PPU_CTRL1
-000195r 2  A5 rr        		lda ppu_ctrl2_cpy
-000197r 2  8D 01 20     		sta PPU_CTRL2
-00019Ar 2  60           		rts
-00019Br 2               		; ------------------------------
-00019Br 2               .endproc
-00019Br 2               
-00019Br 2               
-00019Br 2               
-00019Br 2               ;*------------------------------------------------------------------------------
-00019Br 2               ; Set scroll position
-00019Br 2               ; Use during NMI or executing raster scroll.
-00019Br 2               ; @PARAM	None
-00019Br 2               ; @BREAK	A
-00019Br 2               ; @RETURN	None
-00019Br 2               ;*------------------------------------------------------------------------------
-00019Br 2               
-00019Br 2               .code									; ----- code -----
-00019Br 2               
-00019Br 2               .proc _setScroll
-00019Br 2  A5 rr        		lda scroll_x
-00019Dr 2  8D 05 20     		sta PPU_SCROLL
-0001A0r 2  A5 rr        		lda scroll_y
-0001A2r 2  8D 05 20     		sta PPU_SCROLL
-0001A5r 2               
-0001A5r 2               	; TODO: きちんとスクロール実装したらメインスクリーンの切り替え実装
-0001A5r 2  A5 rr        	lda ppu_ctrl1_cpy
-0001A7r 2  29 FC        	and #%1111_1100
-0001A9r 2  85 rr        	sta ppu_ctrl1_cpy
-0001ABr 2  8D 00 20     	sta PPU_CTRL1
-0001AEr 2               
-0001AEr 2  60           		rts
-0001AFr 2               		; ------------------------------
-0001AFr 2               .endproc
-0001AFr 2               
-0001AFr 2               
-0001AFr 2               ;*------------------------------------------------------------------------------
-0001AFr 2               ; Wait starting vblank
-0001AFr 2               ; @PARAM	None
-0001AFr 2               ; @BREAK	None
-0001AFr 2               ; @RETURN	Non
-0001AFr 2               ;*------------------------------------------------------------------------------
-0001AFr 2               
-0001AFr 2               .code									; ----- code -----
-0001AFr 2               
-0001AFr 2               .proc _waitVblank
-0001AFr 2  2C 02 20     		bit $2002
-0001B2r 2  10 FB        		bpl _waitVblank
-0001B4r 2  60           		rts
-0001B5r 2               		; ------------------------------
-0001B5r 2               .endproc
-0001B5r 2               
-0001B5r 2               
-0001B5r 2               ;*------------------------------------------------------------------------------
-0001B5r 2               ; Disp status text
-0001B5r 2               ; @PARAM	None
-0001B5r 2               ; @BREAK	A X Y
-0001B5r 2               ; @RETURN	None
-0001B5r 2               ;*------------------------------------------------------------------------------
-0001B5r 2               
-0001B5r 2               .code									; ----- code -----
-0001B5r 2               
-0001B5r 2               .proc _dispStatus
-0001B5r 2  A6 rr        		ldx bg_buff_pointer
-0001B7r 2  A0 1F        		ldy #(@TEXT_END - @TEXT)
-0001B9r 2               @STORE_PPU_DATA_LOOP:
-0001B9r 2  BD rr rr     		lda @TEXT, x
-0001BCr 2  F0 07        		beq @END_STORE
-0001BEr 2  9D 3C 01     		sta BG_BUFF, x
-0001C1r 2  E8           		inx
-0001C2r 2  88           		dey
-0001C3r 2  D0 F4        		bne @STORE_PPU_DATA_LOOP
-0001C5r 2               @END_STORE:
-0001C5r 2  86 rr        		stx bg_buff_pointer
-0001C7r 2  86 80        		stx $80
-0001C9r 2  60           		rts
-0001CAr 2               		; ------------------------------
-0001CAr 2               
-0001CAr 2               .rodata									; ----- data -----
+000190r 2               .rodata									; ----- data -----
 000000r 2               @TEXT:
 000000r 2  FE 20 22     		.byte PPU_VERTICAL_MODE
 000003r 2               		ADDR_BG_BE 2, 1, 0
@@ -898,256 +870,262 @@ Current file: pacman.asm
 000020r 2               ;*------------------------------------------------------------------------------
 000020r 2               
 000020r 2               .code									; ----- code -----
-0001CAr 2               
-0001CAr 2               .macro tfrDataToPPU ADDR
-0001CAr 2               	lda BG_BUFF, x
-0001CAr 2               	sta ADDR
-0001CAr 2               	inx
-0001CAr 2               .endmacro
-0001CAr 2               
-0001CAr 2               ; memo
-0001CAr 2               ; ----- PPU buff data structure -----
-0001CAr 2               ; r: Direction
-0001CAr 2               ; 	Bit0 is a flag, others are 1.
-0001CAr 2               ; 	-> 0b1111_111[0/1]
-0001CAr 2               ; 	-> 0xFE（Horizontal）/0xFF（Vertical）
-0001CAr 2               ; a: Addr
-0001CAr 2               ; d: Data
-0001CAr 2               ; r [a a] [d d d ... d] r [a a] [d d ... d]
-0001CAr 2               
-0001CAr 2               
-0001CAr 2               ;*------------------------------------------------------------------------------
-0001CAr 2               ; NMI (Interrupt)
-0001CAr 2               ; @BREAK X Y (When end main process.)
-0001CAr 2               ; To shorten the clock, put the buffer data on the stack
-0001CAr 2               ; 	(Shorten clock by buff data length)
-0001CAr 2               ; 	pla -> 3 clc
-0001CAr 2               ; 	lda ZP/ABSORUTE, x -> 4 clc
-0001CAr 2               ;*------------------------------------------------------------------------------
-0001CAr 2               
-0001CAr 2               .code									; ----- code -----
-0001CAr 2               
-0001CAr 2               .proc _nmi
-0001CAr 2  48           		pha								; If main processing has not finished, tmp_rgstA may be in use
-0001CBr 2  E6 rr        		inc nmi_cnt
-0001CDr 2  A5 rr        		lda is_processing_main
-0001CFr 2  F0 02        		beq @NMI_MAIN
-0001D1r 2  68           		pla
-0001D2r 2  40           		rti	; --------------------------
-0001D3r 2               
-0001D3r 2               @NMI_MAIN:
-0001D3r 2               
-0001D3r 2  A2 00        	ldx #0
-0001D5r 2  86 rr        	stx tmp1
-0001D7r 2               @PLT_STORE_LOOP:
-0001D7r 2  A5 rr        	lda plt_addr+1
-0001D9r 2  8D 06 20     	sta PPU_ADDR
-0001DCr 2  A5 rr        	lda plt_addr+0
-0001DEr 2  18 69 08     	add #8
-0001E1r 2  18 65 rr     	add tmp1
-0001E4r 2  8D 06 20     	sta PPU_ADDR
-0001E7r 2               
-0001E7r 2  BD 34 01     	lda BG_PLT_BUFF, x
-0001EAr 2  8D 07 20     	sta PPU_DATA
-0001EDr 2  A5 rr        	lda tmp1
-0001EFr 2  18 69 08     	add #8
-0001F2r 2  85 rr        	sta tmp1
-0001F4r 2  E8           	inx
-0001F5r 2  E0 08        	cpx #8
-0001F7r 2  90 DE        	bcc @PLT_STORE_LOOP
-0001F9r 2               
-0001F9r 2  A5 rr        		lda ppu_ctrl1_cpy
-0001FBr 2  09 04        		ora #%0000_0100					; Vertical mode
-0001FDr 2  85 rr        		sta ppu_ctrl1_cpy
-0001FFr 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
-000202r 2               
-000202r 2               		; line 1
-000202r 2  A5 rr        		lda bg_map_addr+1				; hi
-000204r 2  8D 06 20     		sta PPU_ADDR
-000207r 2  A5 rr        		lda bg_map_addr+0				; lo
-000209r 2  8D 06 20     		sta PPU_ADDR
-00020Cr 2               
-00020Cr 2  A2 00        		ldx #0
-00020Er 2               @STORE_MAP_LOOP:
-00020Er 2  BD 00 01     		lda BG_MAP_BUFF, x
-000211r 2  8D 07 20     		sta PPU_DATA
-000214r 2  E8           		inx
-000215r 2  E0 1A        		cpx #$1a
-000217r 2  D0 F5        		bne @STORE_MAP_LOOP
-000219r 2               
-000219r 2               		; line 2
-000219r 2  A5 rr        		lda bg_map_addr+1				; hi
-00021Br 2  8D 06 20     		sta PPU_ADDR
-00021Er 2  A6 rr        		ldx bg_map_addr+0				; lo (increment)
+000190r 2               
+000190r 2               .macro tfrDataToPPU ADDR
+000190r 2               	lda BG_BUFF, x
+000190r 2               	sta ADDR
+000190r 2               	inx
+000190r 2               .endmacro
+000190r 2               
+000190r 2               ; memo
+000190r 2               ; ----- PPU buff data structure -----
+000190r 2               ; r: Direction
+000190r 2               ; 	Bit0 is a flag, others are 1.
+000190r 2               ; 	-> 0b1111_111[0/1]
+000190r 2               ; 	-> 0xFE（Horizontal）/0xFF（Vertical）
+000190r 2               ; a: Addr
+000190r 2               ; d: Data
+000190r 2               ; r [a a] [d d d ... d] r [a a] [d d ... d]
+000190r 2               
+000190r 2               
+000190r 2               ;*------------------------------------------------------------------------------
+000190r 2               ; NMI (Interrupt)
+000190r 2               ; @BREAK X Y (When end main process.)
+000190r 2               ; To shorten the clock, put the buffer data on the stack
+000190r 2               ; 	(Shorten clock by buff data length)
+000190r 2               ; 	pla -> 3 clc
+000190r 2               ; 	lda ZP/ABSORUTE, x -> 4 clc
+000190r 2               ;*------------------------------------------------------------------------------
+000190r 2               
+000190r 2               .code									; ----- code -----
+000190r 2               
+000190r 2               .proc _nmi
+000190r 2  48           		pha								; If main processing has not finished, tmp_rgstA may be in use
+000191r 2  E6 rr        		inc nmi_cnt
+000193r 2  A5 rr        		lda is_processing_main
+000195r 2  F0 02        		beq @NMI_MAIN
+000197r 2  68           		pla
+000198r 2  40           		rti	; --------------------------
+000199r 2               
+000199r 2               @NMI_MAIN:
+000199r 2               
+000199r 2  A2 00        	ldx #0
+00019Br 2  86 rr        	stx tmp1
+00019Dr 2               @PLT_STORE_LOOP:
+00019Dr 2  A5 rr        	lda plt_addr+1
+00019Fr 2  8D 06 20     	sta PPU_ADDR
+0001A2r 2  A5 rr        	lda plt_addr+0
+0001A4r 2  18 69 08     	add #8
+0001A7r 2  18 65 rr     	add tmp1
+0001AAr 2  8D 06 20     	sta PPU_ADDR
+0001ADr 2               
+0001ADr 2  BD 34 01     	lda BG_PLT_BUFF, x
+0001B0r 2  8D 07 20     	sta PPU_DATA
+0001B3r 2  A5 rr        	lda tmp1
+0001B5r 2  18 69 08     	add #8
+0001B8r 2  85 rr        	sta tmp1
+0001BAr 2  E8           	inx
+0001BBr 2  E0 08        	cpx #8
+0001BDr 2  90 DE        	bcc @PLT_STORE_LOOP
+0001BFr 2               
+0001BFr 2  A5 rr        		lda ppu_ctrl1_cpy
+0001C1r 2  09 04        		ora #%0000_0100					; Vertical mode
+0001C3r 2  85 rr        		sta ppu_ctrl1_cpy
+0001C5r 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
+0001C8r 2               
+0001C8r 2               		; line 1
+0001C8r 2  A5 rr        		lda bg_map_addr+1				; hi
+0001CAr 2  8D 06 20     		sta PPU_ADDR
+0001CDr 2  A5 rr        		lda bg_map_addr+0				; lo
+0001CFr 2  8D 06 20     		sta PPU_ADDR
+0001D2r 2               
+0001D2r 2  A2 00        		ldx #0
+0001D4r 2               @STORE_MAP_LOOP:
+0001D4r 2  BD 00 01     		lda BG_MAP_BUFF, x
+0001D7r 2  8D 07 20     		sta PPU_DATA
+0001DAr 2  E8           		inx
+0001DBr 2  E0 1A        		cpx #$1a
+0001DDr 2  D0 F5        		bne @STORE_MAP_LOOP
+0001DFr 2               
+0001DFr 2               		; line 2
+0001DFr 2  A5 rr        		lda bg_map_addr+1				; hi
+0001E1r 2  8D 06 20     		sta PPU_ADDR
+0001E4r 2  A6 rr        		ldx bg_map_addr+0				; lo (increment)
+0001E6r 2  E8           		inx
+0001E7r 2  8E 06 20     		stx PPU_ADDR
+0001EAr 2               
+0001EAr 2  A2 00        		ldx #0
+0001ECr 2               @STORE_MAP_LOOP2:
+0001ECr 2  BD 1A 01     		lda BG_MAP_BUFF+$1a, x
+0001EFr 2  8D 07 20     		sta PPU_DATA
+0001F2r 2  E8           		inx
+0001F3r 2  E0 1A        		cpx #$1a
+0001F5r 2  D0 F5        		bne @STORE_MAP_LOOP2
+0001F7r 2               
+0001F7r 2  A9 00        		lda #0
+0001F9r 2  C5 rr        		cmp bg_buff_pointer
+0001FBr 2  F0 35        		beq @STORE_CHR
+0001FDr 2  AA           		tax
+0001FEr 2  BD 49 01     		lda BG_BUFF, x
+000201r 2               @SET_MODE:
+000201r 2  29 01        		and #%00000001					; Get flag
+000203r 2  0A 0A        		shl #2							; Move flag to Bit2
+000205r 2  85 rr        		sta tmp1						; Start using tmp1
+000207r 2  A5 rr        		lda ppu_ctrl1_cpy
+000209r 2  29 FB        		and #%11111011					; Mask direction flag
+00020Br 2  05 rr        		ora tmp1						; End using tmp1
+00020Dr 2  85 rr        		sta ppu_ctrl1_cpy
+00020Fr 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
+000212r 2               @SET_ADDR:
+000212r 2  E8           		inx								; Not do inx when go to @EXIT
+000213r 2  BD 49 01     		lda BG_BUFF, x
+000216r 2  8D 06 20     		sta PPU_ADDR
+000219r 2  E8           		inx
+00021Ar 2  BD 49 01     		lda BG_BUFF, x
+00021Dr 2  8D 06 20     		sta PPU_ADDR
 000220r 2  E8           		inx
-000221r 2  8E 06 20     		stx PPU_ADDR
-000224r 2               
-000224r 2  A2 00        		ldx #0
-000226r 2               @STORE_MAP_LOOP2:
-000226r 2  BD 1A 01     		lda BG_MAP_BUFF+$1a, x
-000229r 2  8D 07 20     		sta PPU_DATA
-00022Cr 2  E8           		inx
-00022Dr 2  E0 1A        		cpx #$1a
-00022Fr 2  D0 F5        		bne @STORE_MAP_LOOP2
-000231r 2               
-000231r 2  A9 00        		lda #0
-000233r 2  C5 rr        		cmp bg_buff_pointer
-000235r 2  F0 35        		beq @STORE_CHR
-000237r 2  AA           		tax
-000238r 2  BD 3C 01     		lda BG_BUFF, x
-00023Br 2               @SET_MODE:
-00023Br 2  29 01        		and #%00000001					; Get flag
-00023Dr 2  0A 0A        		shl #2							; Move flag to Bit2
-00023Fr 2  85 rr        		sta tmp1						; Start using tmp1
-000241r 2  A5 rr        		lda ppu_ctrl1_cpy
-000243r 2  29 FB        		and #%11111011					; Mask direction flag
-000245r 2  05 rr        		ora tmp1						; End using tmp1
-000247r 2  85 rr        		sta ppu_ctrl1_cpy
-000249r 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
-00024Cr 2               @SET_ADDR:
-00024Cr 2  E8           		inx								; Not do inx when go to @EXIT
-00024Dr 2  BD 3C 01     		lda BG_BUFF, x
-000250r 2  8D 06 20     		sta PPU_ADDR
-000253r 2  E8           		inx
-000254r 2  BD 3C 01     		lda BG_BUFF, x
-000257r 2  8D 06 20     		sta PPU_ADDR
-00025Ar 2  E8           		inx
-00025Br 2               @STORE_DATA:
-00025Br 2  BD 3C 01     		lda BG_BUFF, x
-00025Er 2  A8           		tay
-00025Fr 2  C9 FE        		cmp #$fe
-000261r 2  B0 D8        		bcs @SET_MODE					; no inx
-000263r 2  98           		tya
-000264r 2  8D 07 20     		sta PPU_DATA
-000267r 2  E8           		inx
-000268r 2  E4 rr        		cpx bg_buff_pointer
-00026Ar 2  D0 EF        		bne @STORE_DATA
-00026Cr 2               
-00026Cr 2               		; @SET_MODE + @SET_ADDR = 51 cycle
-00026Cr 2               		; @STORE_DATA (return @STORE_DATA) = 24 cycle
-00026Cr 2               		; @STORE_DATA (return @SET_MODE) = 13 cycle
-00026Cr 2               
-00026Cr 2               		; str1 = "A  B"
-00026Cr 2               		; 	=> 51 + space_len * 24 cycle
-00026Cr 2               		; 	=> mode(1) + addr(2) + data(2 + space_len) = (5 + space_len) bytes
-00026Cr 2               		; 	|  len  || 1  | 2  |  3  |  4  |
-00026Cr 2               		; 	| cycle || 75 | 99 | 123 | 147 |
-00026Cr 2               		;	| bytes || 6  | 7  |  8  |  9  |
-00026Cr 2               		; str2 = 'A', str3 = 'B'
-00026Cr 2               		; 	=> (51 + 13) * 2 = 64 * 2 = 128 cycle
-00026Cr 2               		; 	=> (mode(1) + addr(2) + data(1)) * 2 = 8 bytes
-00026Cr 2               		; space length:
-00026Cr 2               		; 	1: 75 cycle,	6 bytes (str1)
-00026Cr 2               		; 	2: 99 cycle,	7 bytes
-00026Cr 2               		; 	3: 123 cycle,	8 bytes
-00026Cr 2               		; 	4~: 128 cycle,	8 bytes (str2)
-00026Cr 2               @STORE_CHR:
-00026Cr 2  A9 00        		lda #0
-00026Er 2  8D 03 20     		sta OAM_ADDR
-000271r 2  A9 03        		lda #$03
-000273r 2  8D 14 40     		sta OAM_DMA
-000276r 2               
-000276r 2               @EXIT:
-000276r 2  A9 01        		lda #1
-000278r 2  85 rr        		sta is_processing_main
-00027Ar 2  4A           		shr
-00027Br 2  85 rr        		sta bg_buff_pointer				; A = 0
-00027Dr 2  E6 rr        		inc frm_cnt
-00027Fr 2  20 rr rr     		jsr Subfunc::_setScroll
-000282r 2  68           		pla
-000283r 2  40           		rti	; --------------------------
-000284r 2               .endproc
-000284r 2               
-000284r 1               .include "./asm/init.asm"
-000284r 2               .code									; ----- code -----
-000284r 2               
-000284r 2               .macro init
-000284r 2               		sei								; Ban IRQ
-000284r 2               		cld								; Ban BCD
-000284r 2               		ldx #$ff
-000284r 2               		txs
-000284r 2               		inx
-000284r 2               		stx PPU_CTRL1
-000284r 2               		stx PPU_CTRL2
-000284r 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
-000284r 2               
-000284r 2               		/*
-000284r 2               		A & $2002 -> set Z(zero flag)
-000284r 2               		$2002 bit7(vblank) -> N(negative), bit6(sprite 0 hit) -> V(overflow)
-000284r 2               		Reset vblank & sprite 0 hit flag
-000284r 2               		(The state of this flag after reset is undefined.)
-000284r 2               		*/
-000284r 2               		bit $2002
-000284r 2               
-000284r 2               		jsr Subfunc::_waitVblank					; 1st time
-000284r 2               
-000284r 2               		; It takes about 30,000 cycles for the PPU to stabilize.
-000284r 2               
-000284r 2               		lda #$20
-000284r 2               		sta PPU_ADDR
-000284r 2               		txa								; X = A = 0
-000284r 2               		sta PPU_ADDR
-000284r 2               @CLR_MEM:
-000284r 2               		sta $00, x
-000284r 2               		sta $0100, x
-000284r 2               		sta $0200, x
-000284r 2               		sta $0400, x
-000284r 2               		sta $0500, x
-000284r 2               		sta $0600, x
-000284r 2               		sta $0700, x
-000284r 2               		inx
-000284r 2               		bne @CLR_MEM
-000284r 2               
-000284r 2               		; CLEAR $2000~27ff
-000284r 2               		ldy #8
-000284r 2               @CLR_VRAM:
-000284r 2               		sta PPU_DATA
-000284r 2               		inx
-000284r 2               		bne @CLR_VRAM
-000284r 2               		dey
-000284r 2               		bne @CLR_VRAM
-000284r 2               
-000284r 2               		lda #$ff
-000284r 2               @CLR_CHR_MEM:
-000284r 2               		sta $0300, x
-000284r 2               		inx
-000284r 2               		bne @CLR_CHR_MEM
-000284r 2               
-000284r 2               		; Store initial value
-000284r 2               		lda #%10010000					; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
-000284r 2               		sta ppu_ctrl1_cpy
-000284r 2               		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
-000284r 2               		sta ppu_ctrl2_cpy
-000284r 2               
-000284r 2               		jsr Subfunc::_waitVblank		; 2nd time
-000284r 2               
-000284r 2               		tfrPlt 0
-000284r 2               
-000284r 2               		lda #0
-000284r 2               		sta OAM_ADDR
-000284r 2               		lda #$03
-000284r 2               		sta OAM_DMA
-000284r 2               
-000284r 2               	lda #$ff
-000284r 2               	sta DrawMap::row_counter
-000284r 2               
-000284r 2               	; test(load map 1 of world 1-1)
-000284r 2               	ldy #0
-000284r 2               	jsr DrawMap::_setStageAddr
-000284r 2               	jsr DrawMap::_setMapAddr
-000284r 2               
-000284r 2               		; Screen On
-000284r 2               		jsr Subfunc::_restorePPUSet
-000284r 2               		jsr Subfunc::_setScroll
-000284r 2               
-000284r 2               		jsr Subfunc::_waitVblank
-000284r 2               		jsr Subfunc::_dispStatus
-000284r 2               .endmacro
-000284r 2               
-000284r 1               .include "./asm/draw_map.asm"
-000284r 2               .scope DrawMap
-000284r 2               
-000284r 2               .ZeroPage
+000221r 2               @STORE_DATA:
+000221r 2  BD 49 01     		lda BG_BUFF, x
+000224r 2  A8           		tay
+000225r 2  C9 FE        		cmp #$fe
+000227r 2  B0 D8        		bcs @SET_MODE					; no inx
+000229r 2  98           		tya
+00022Ar 2  8D 07 20     		sta PPU_DATA
+00022Dr 2  E8           		inx
+00022Er 2  E4 rr        		cpx bg_buff_pointer
+000230r 2  D0 EF        		bne @STORE_DATA
+000232r 2               
+000232r 2               		; @SET_MODE + @SET_ADDR = 51 cycle
+000232r 2               		; @STORE_DATA (return @STORE_DATA) = 24 cycle
+000232r 2               		; @STORE_DATA (return @SET_MODE) = 13 cycle
+000232r 2               
+000232r 2               		; str1 = "A  B"
+000232r 2               		; 	=> 51 + space_len * 24 cycle
+000232r 2               		; 	=> mode(1) + addr(2) + data(2 + space_len) = (5 + space_len) bytes
+000232r 2               		; 	|  len  || 1  | 2  |  3  |  4  |
+000232r 2               		; 	| cycle || 75 | 99 | 123 | 147 |
+000232r 2               		;	| bytes || 6  | 7  |  8  |  9  |
+000232r 2               		; str2 = 'A', str3 = 'B'
+000232r 2               		; 	=> (51 + 13) * 2 = 64 * 2 = 128 cycle
+000232r 2               		; 	=> (mode(1) + addr(2) + data(1)) * 2 = 8 bytes
+000232r 2               		; space length:
+000232r 2               		; 	1: 75 cycle,	6 bytes (str1)
+000232r 2               		; 	2: 99 cycle,	7 bytes
+000232r 2               		; 	3: 123 cycle,	8 bytes
+000232r 2               		; 	4~: 128 cycle,	8 bytes (str2)
+000232r 2               @STORE_CHR:
+000232r 2  A9 00        		lda #0
+000234r 2  8D 03 20     		sta OAM_ADDR
+000237r 2  A9 03        		lda #$03
+000239r 2  8D 14 40     		sta OAM_DMA
+00023Cr 2               
+00023Cr 2               @EXIT:
+00023Cr 2  A9 01        		lda #1
+00023Er 2  85 rr        		sta is_processing_main
+000240r 2  4A           		shr
+000241r 2  85 rr        		sta bg_buff_pointer				; A = 0
+000243r 2  E6 rr        		inc frm_cnt
+000245r 2  20 rr rr     		jsr Subfunc::_setScroll
+000248r 2  68           		pla
+000249r 2  40           		rti	; --------------------------
+00024Ar 2               .endproc
+00024Ar 2               
+00024Ar 1               .include "./asm/init.asm"
+00024Ar 2               .code									; ----- code -----
+00024Ar 2               
+00024Ar 2               .macro init
+00024Ar 2               		sei								; Ban IRQ
+00024Ar 2               		cld								; Ban BCD
+00024Ar 2               		ldx #$ff
+00024Ar 2               		txs
+00024Ar 2               		inx
+00024Ar 2               		stx PPU_CTRL1
+00024Ar 2               		stx PPU_CTRL2
+00024Ar 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
+00024Ar 2               
+00024Ar 2               		/*
+00024Ar 2               		A & $2002 -> set Z(zero flag)
+00024Ar 2               		$2002 bit7(vblank) -> N(negative), bit6(sprite 0 hit) -> V(overflow)
+00024Ar 2               		Reset vblank & sprite 0 hit flag
+00024Ar 2               		(The state of this flag after reset is undefined.)
+00024Ar 2               		*/
+00024Ar 2               		bit $2002
+00024Ar 2               
+00024Ar 2               		jsr Subfunc::_waitVblank					; 1st time
+00024Ar 2               
+00024Ar 2               		; It takes about 30,000 cycles for the PPU to stabilize.
+00024Ar 2               
+00024Ar 2               		lda #$20
+00024Ar 2               		sta PPU_ADDR
+00024Ar 2               		txa								; X = A = 0
+00024Ar 2               		sta PPU_ADDR
+00024Ar 2               @CLR_MEM:
+00024Ar 2               		sta $00, x
+00024Ar 2               		sta $0100, x
+00024Ar 2               		sta $0200, x
+00024Ar 2               		sta $0400, x
+00024Ar 2               		sta $0500, x
+00024Ar 2               		sta $0600, x
+00024Ar 2               		sta $0700, x
+00024Ar 2               		inx
+00024Ar 2               		bne @CLR_MEM
+00024Ar 2               
+00024Ar 2               		; CLEAR $2000~27ff
+00024Ar 2               		ldy #8
+00024Ar 2               @CLR_VRAM:
+00024Ar 2               		sta PPU_DATA
+00024Ar 2               		inx
+00024Ar 2               		bne @CLR_VRAM
+00024Ar 2               		dey
+00024Ar 2               		bne @CLR_VRAM
+00024Ar 2               
+00024Ar 2               		lda #$ff
+00024Ar 2               @CLR_CHR_MEM:
+00024Ar 2               		sta $0300, x
+00024Ar 2               		inx
+00024Ar 2               		bne @CLR_CHR_MEM
+00024Ar 2               
+00024Ar 2               		; Store initial value
+00024Ar 2               		lda #%10010000					; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
+00024Ar 2               		sta ppu_ctrl1_cpy
+00024Ar 2               		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+00024Ar 2               		sta ppu_ctrl2_cpy
+00024Ar 2               
+00024Ar 2               		jsr Subfunc::_waitVblank		; 2nd time
+00024Ar 2               
+00024Ar 2               		tfrPlt 0
+00024Ar 2               
+00024Ar 2               		lda #0
+00024Ar 2               		sta OAM_ADDR
+00024Ar 2               		lda #$03
+00024Ar 2               		sta OAM_DMA
+00024Ar 2               
+00024Ar 2               	lda #$ff
+00024Ar 2               	sta DrawMap::row_counter
+00024Ar 2               
+00024Ar 2               	and #0
+00024Ar 2               	sta DrawMap::index
+00024Ar 2               
+00024Ar 2               	lda #'G'
+00024Ar 2               	sta DrawMap::fill_ground_block
+00024Ar 2               
+00024Ar 2               	; test(load map 1 of world 1-1)
+00024Ar 2               	ldy #0
+00024Ar 2               	jsr DrawMap::_setStageAddr
+00024Ar 2               	jsr DrawMap::_setMapAddr
+00024Ar 2               
+00024Ar 2               		; Screen On
+00024Ar 2               		jsr Subfunc::_restorePPUSet
+00024Ar 2               		jsr Subfunc::_setScroll
+00024Ar 2               
+00024Ar 2               		jsr Subfunc::_waitVblank
+00024Ar 2               		jsr Subfunc::_dispStatus
+00024Ar 2               .endmacro
+00024Ar 2               
+00024Ar 1               .include "./asm/draw_map.asm"
+00024Ar 2               .scope DrawMap
+00024Ar 2               
+00024Ar 2               .ZeroPage
 00001Dr 2  00           map_buff_num			: .byte 0
 00001Er 2  00 00        map_arr_addr			: .addr 0
 000020r 2  00 00        map_addr				: .addr 0
@@ -1156,353 +1134,430 @@ Current file: pacman.asm
 000024r 2  00           index					: .byte 0
 000025r 2  00           cnt_map_next			: .byte 0
 000026r 2  00           map_arr_num				: .byte 0
-000027r 2               
-000027r 2               
-000027r 2               ;*------------------------------------------------------------------------------
-000027r 2               ; Transfar obj data (8*8) to BG map buff($04XX/$05XX)
-000027r 2               ; @PARAM	mode(char): 'L' or 'R'
-000027r 2               ; @RETURN	None
-000027r 2               ; if mode == 'L': $2000, $2002, $2016, $240a...
-000027r 2               ; elif mode == 'R': $2001, $2003, $2017, $240b...
-000027r 2               ;*------------------------------------------------------------------------------
-000027r 2               
-000027r 2               .macro trfToBgMapBuf mode
-000027r 2               		lda (addr_tmp2), y
-000027r 2               		.if mode = 'L'
-000027r 2               			sta BG_MAP_BUFF+0, x
-000027r 2               		.else
-000027r 2               			sta BG_MAP_BUFF+($0d*2), x
-000027r 2               		.endif
-000027r 2               .endmacro
-000027r 2               
-000027r 2               
-000027r 2               ;*------------------------------------------------------------------------------
-000027r 2               ; Update one row
-000027r 2               ; @PARAM	None
-000027r 2               ; @BREAK	A X Y tmp1 addr_tmp1 addr_tmp2
-000027r 2               ; @RETURN	None
-000027r 2               /* main label
-000027r 2               	@START:
-000027r 2               	@GET_POS_AND_OBJ_LOOP:
-000027r 2               	@END_OF_MAP:						-> goto nextlabel (@LOAD_NEXT_MAP)
-000027r 2               	@LOAD_NEXT_MAP:						-> goto @GET_POS_AND_OBJ_LOOP
-000027r 2               	@END_OF_STAGE:						-> goto nextlabel (@PREPARE_BG_MAP_BUF)
-000027r 2               	@PREPARE_BG_MAP_BUF:
-000027r 2               	@STORE_BG_MAP_BUF_LOOP:
-000027r 2               */
-000027r 2               ;*------------------------------------------------------------------------------
-000027r 2               
-000027r 2               .code									; ----- code -----
-000284r 2               
-000284r 2               .proc _updateOneLine
-000284r 2  A5 rr        		lda DrawMap::isend_draw_stage
-000286r 2  F0 01        		beq @START
-000288r 2  60           		rts
-000289r 2               		; ------------------------------
-000289r 2               
-000289r 2               @START:
-000289r 2               		; A = 0
-000289r 2  AA           		tax								; X = 0
-00028Ar 2  A4 rr        		ldy DrawMap::row_counter
-00028Cr 2  C8           		iny
-00028Dr 2  C0 10        		cpy #$10
-00028Fr 2  D0 03        		bne @NO_OVF_ROW_CNT
-000291r 2               
-000291r 2  A8           		tay								; Y = 0
-000292r 2  E6 rr        		inc DrawMap::map_buff_num
-000294r 2               @NO_OVF_ROW_CNT:
-000294r 2  84 rr        		sty DrawMap::row_counter
-000296r 2               
-000296r 2  A4 rr        		ldy DrawMap::index
-000298r 2               @GET_POS_AND_OBJ_LOOP:
-000298r 2               		; ----------- get pos ----------
-000298r 2  B1 rr        		lda (DrawMap::map_addr), y
-00029Ar 2               
-00029Ar 2               		; Check Special Code
-00029Ar 2  C9 FE        		cmp #DrawMap::OBJMAP_NEXT
-00029Cr 2  F0 3A        		beq @LOAD_NEXT_MAP
+000027r 2  00           fill_upper				: .byte 0
+000028r 2  00           fill_lower				: .byte 0
+000029r 2  00           fill_ground_block		: .byte 0
+00002Ar 2  00           fill_block				: .byte 0
+00002Br 2  00           fill_ground_end			: .byte 0
+00002Cr 2               
+00002Cr 2               
+00002Cr 2               ;*------------------------------------------------------------------------------
+00002Cr 2               ; Transfar obj data (8*8) to BG map buff($04XX/$05XX)
+00002Cr 2               ; @PARAM	mode(char): 'L' or 'R'
+00002Cr 2               ; @RETURN	None
+00002Cr 2               ; if mode == 'L': $2000, $2002, $2016, $240a...
+00002Cr 2               ; elif mode == 'R': $2001, $2003, $2017, $240b...
+00002Cr 2               ;*------------------------------------------------------------------------------
+00002Cr 2               
+00002Cr 2               .macro trfToBgMapBuf mode
+00002Cr 2               		lda (addr_tmp2), y
+00002Cr 2               		.if mode = 'L'
+00002Cr 2               			sta BG_MAP_BUFF+0, x
+00002Cr 2               		.else
+00002Cr 2               			sta BG_MAP_BUFF+($0d*2), x
+00002Cr 2               		.endif
+00002Cr 2               .endmacro
+00002Cr 2               
+00002Cr 2               
+00002Cr 2               ;*------------------------------------------------------------------------------
+00002Cr 2               ; Update one row
+00002Cr 2               ; @PARAM	None
+00002Cr 2               ; @BREAK	A X Y tmp1 addr_tmp1 addr_tmp2
+00002Cr 2               ; @RETURN	None
+00002Cr 2               /* main label
+00002Cr 2               	@START:
+00002Cr 2               	@GET_POS_AND_OBJ_LOOP:
+00002Cr 2               	@END_OF_MAP:						-> goto nextlabel (@LOAD_NEXT_MAP)
+00002Cr 2               	@LOAD_NEXT_MAP:						-> goto @GET_POS_AND_OBJ_LOOP
+00002Cr 2               	@END_OF_STAGE:						-> goto nextlabel (@PREPARE_BG_MAP_BUF)
+00002Cr 2               	@PREPARE_BG_MAP_BUF:
+00002Cr 2               	@STORE_BG_MAP_BUF_LOOP:
+00002Cr 2               */
+00002Cr 2               ;*------------------------------------------------------------------------------
+00002Cr 2               
+00002Cr 2               .code									; ----- code -----
+00024Ar 2               
+00024Ar 2               .proc _updateOneLine
+00024Ar 2  A5 rr        		lda DrawMap::isend_draw_stage
+00024Cr 2  F0 01        		beq @START
+00024Er 2  60           		rts
+00024Fr 2               		; ------------------------------
+00024Fr 2               
+00024Fr 2               @START:
+00024Fr 2               		; A = 0
+00024Fr 2  AA           		tax								; X = 0
+000250r 2  A4 rr        		ldy DrawMap::row_counter
+000252r 2  C8           		iny
+000253r 2  C0 10        		cpy #$10
+000255r 2  D0 03        		bne @NO_OVF_ROW_CNT
+000257r 2  A8           		tay								; Y = 0
+000258r 2  E6 rr        		inc DrawMap::map_buff_num
+00025Ar 2               @NO_OVF_ROW_CNT:
+00025Ar 2  84 rr        		sty DrawMap::row_counter
+00025Cr 2               
+00025Cr 2  A4 rr        		ldy DrawMap::index
+00025Er 2               @GET_POS_AND_OBJ_LOOP:
+00025Er 2               		; ----------- get pos ----------
+00025Er 2  B1 rr        		lda (DrawMap::map_addr), y
+000260r 2               
+000260r 2               		; Check Special Code
+000260r 2  C9 FE        		cmp #OBJMAP_NEXT
+000262r 2  F0 5F        		beq @LOAD_NEXT_MAP
+000264r 2               
+000264r 2  C9 FF        		cmp #OBJMAP_END
+000266r 2  F0 4C        		beq @END_OF_MAP
+000268r 2               
+000268r 2               		; Check if it can be updated
+000268r 2  85 rr        		sta tmp1						; Start using tmp1
+00026Ar 2  29 0F        		and #%0000_1111
+00026Cr 2  C5 rr        		cmp DrawMap::row_counter
+00026Er 2  D0 3F        		bne @GET_POS_AND_OBJ_LOOP_EXIT
+000270r 2               
+000270r 2  A5 rr        		lda DrawMap::map_buff_num
+000272r 2  C5 rr        		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
+000274r 2  D0 39        		bne @GET_POS_AND_OBJ_LOOP_EXIT
+000276r 2               
+000276r 2               		; Set addr of bg map buff
+000276r 2  29 01        		and #%0000_0001					; A = map_buff_num
+000278r 2  09 04        		ora #4
+00027Ar 2  85 rr        		sta addr_tmp1+1
+00027Cr 2               
+00027Cr 2  A5 rr        		lda tmp1						; End using tmp1
+00027Er 2  85 rr        		sta addr_tmp1+0
+000280r 2  48           		pha
+000281r 2               
+000281r 2  29 0F        	and #%0000_1111
+000283r 2  85 rr        	sta addr_tmp1+0
+000285r 2  8A           	txa
+000286r 2  48           	pha
+000287r 2  98           	tya
+000288r 2  48           	pha
+000289r 2  A2 00        	ldx #0
+00028Br 2  A0 00        	ldy #0
+00028Dr 2               @LOOP:
+00028Dr 2  B9 3C 01     	lda FILL_BLOCKS, y
+000290r 2  81 rr        	sta (addr_tmp1, x)
+000292r 2  A5 rr        	lda addr_tmp1+0
+000294r 2  18 69 10     	add #$10
+000297r 2  85 rr        	sta addr_tmp1+0
+000299r 2  C8           	iny
+00029Ar 2  C0 0D        	cpy #$d
+00029Cr 2  D0 EF        	bne @LOOP
 00029Er 2               
-00029Er 2  C9 FF        		cmp #DrawMap::OBJMAP_END
-0002A0r 2  F0 27        		beq @END_OF_MAP
+00029Er 2  68           	pla
+00029Fr 2  A8           	tay
+0002A0r 2  68           	pla
+0002A1r 2  AA           	tax
 0002A2r 2               
-0002A2r 2               		; Check if it can be updated
-0002A2r 2  85 rr        		sta tmp1						; Start using tmp1
-0002A4r 2  29 0F        		and #%0000_1111
-0002A6r 2  C5 rr        		cmp DrawMap::row_counter
-0002A8r 2  D0 1A        		bne @GET_POS_AND_OBJ_LOOP_EXIT
-0002AAr 2               
-0002AAr 2  A5 rr        		lda DrawMap::map_buff_num
-0002ACr 2  C5 rr        		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
-0002AEr 2  D0 14        		bne @GET_POS_AND_OBJ_LOOP_EXIT
-0002B0r 2               
-0002B0r 2               		; Set addr of bg map buff
-0002B0r 2  29 01        		and #%0000_0001					; A = map_buff_num
-0002B2r 2  09 04        		ora #4
-0002B4r 2  85 rr        		sta addr_tmp1+1
-0002B6r 2               
-0002B6r 2  A5 rr        		lda tmp1						; End using tmp1
-0002B8r 2  85 rr        		sta addr_tmp1+0
-0002BAr 2               
-0002BAr 2               		; ----------- get chr ----------
-0002BAr 2  C8           		iny
-0002BBr 2  B1 rr        		lda (DrawMap::map_addr), y
-0002BDr 2  A2 00        		ldx #0
-0002BFr 2  81 rr        		sta (addr_tmp1, x)
-0002C1r 2               
-0002C1r 2  C8           		iny
-0002C2r 2  D0 D4        		bne @GET_POS_AND_OBJ_LOOP			; Jmp
-0002C4r 2               		; ------------------------------
-0002C4r 2               
-0002C4r 2               @GET_POS_AND_OBJ_LOOP_EXIT:
-0002C4r 2  84 rr        		sty DrawMap::index
-0002C6r 2  4C rr rr     		jmp @PREPARE_BG_MAP_BUF
+0002A2r 2  68           	pla
+0002A3r 2  85 rr        	sta addr_tmp1+0
+0002A5r 2               
+0002A5r 2               		; ----------- get chr ----------
+0002A5r 2  C8           		iny
+0002A6r 2  B1 rr        		lda (DrawMap::map_addr), y
+0002A8r 2  A2 00        		ldx #0
+0002AAr 2  81 rr        		sta (addr_tmp1, x)
+0002ACr 2               
+0002ACr 2  C8           		iny
+0002ADr 2  D0 AF        		bne @GET_POS_AND_OBJ_LOOP			; Jmp
+0002AFr 2               		; ------------------------------
+0002AFr 2               
+0002AFr 2               @GET_POS_AND_OBJ_LOOP_EXIT:
+0002AFr 2  84 rr        		sty DrawMap::index
+0002B1r 2  4C rr rr     		jmp @PREPARE_BG_MAP_BUF
+0002B4r 2               		; ------------------------------
+0002B4r 2               
+0002B4r 2               
+0002B4r 2               		; End of map data (Not end of stage)
+0002B4r 2               @END_OF_MAP:
+0002B4r 2  E6 rr        		inc DrawMap::map_arr_num
+0002B6r 2  A4 rr        		ldy DrawMap::map_arr_num
+0002B8r 2  20 rr rr     		jsr _setMapAddr					; Use Y as arg
+0002BBr 2  C9 FF        		cmp #ENDCODE					; A = Addr Hi
+0002BDr 2  F0 0A        		beq @END_OF_STAGE
+0002BFr 2  A0 FF        		ldy #$ff
+0002C1r 2  84 rr        		sty DrawMap::index
+0002C3r 2               
+0002C3r 2               @LOAD_NEXT_MAP:
+0002C3r 2  E6 rr        		inc DrawMap::cnt_map_next
+0002C5r 2  C8           		iny
+0002C6r 2  4C rr rr     		jmp @GET_POS_AND_OBJ_LOOP
 0002C9r 2               		; ------------------------------
 0002C9r 2               
-0002C9r 2               
-0002C9r 2               		; End of map data (Not end of stage)
-0002C9r 2               @END_OF_MAP:
-0002C9r 2  E6 rr        		inc DrawMap::map_arr_num
-0002CBr 2  A4 rr        		ldy DrawMap::map_arr_num
-0002CDr 2  20 rr rr     		jsr _setMapAddr					; Use Y as arg
-0002D0r 2  C9 FF        		cmp #ENDCODE					; A = Addr Hi
-0002D2r 2  F0 0A        		beq @END_OF_STAGE
-0002D4r 2  A0 FF        		ldy #$ff
-0002D6r 2  84 rr        		sty DrawMap::index
-0002D8r 2               
-0002D8r 2               @LOAD_NEXT_MAP:
-0002D8r 2  E6 rr        		inc DrawMap::cnt_map_next
-0002DAr 2  C8           		iny
-0002DBr 2  4C rr rr     		jmp @GET_POS_AND_OBJ_LOOP
-0002DEr 2               		; ------------------------------
-0002DEr 2               
-0002DEr 2               @END_OF_STAGE:
-0002DEr 2  A0 00        		ldy #0
-0002E0r 2  84 rr        		sty DrawMap::index				; X = 0
-0002E2r 2  C8           		iny
-0002E3r 2  84 rr        		sty DrawMap::isend_draw_stage
-0002E5r 2               
-0002E5r 2               @PREPARE_BG_MAP_BUF:
-0002E5r 2               		; X = 0
-0002E5r 2  A5 rr        		lda addr_tmp1+0
-0002E7r 2  29 0F        		and #%0000_1111
-0002E9r 2  85 rr        		sta addr_tmp1+0					; PosY = 0
-0002EBr 2               
-0002EBr 2  A5 rr        		lda addr_tmp1+1					; 4 or 5
-0002EDr 2  29 01        		and #1
-0002EFr 2  0A 0A        		shl #2							; 0 or 4
-0002F1r 2  09 20        		ora #$20						; $20 or $24
-0002F3r 2  85 rr        		sta bg_map_addr+1
-0002F5r 2               
-0002F5r 2  86 rr        		stx tmp1						; Init and start using tmp1 (-> Can break X)
-0002F7r 2               
-0002F7r 2  A5 rr        		lda addr_tmp1+0
-0002F9r 2  18 69 40     		add #$40
-0002FCr 2  0A           		shl #1
-0002FDr 2  26 rr        		rol tmp1
-0002FFr 2  85 rr        		sta bg_map_addr+0
-000301r 2  A5 rr        		lda bg_map_addr+1
-000303r 2  05 rr        		ora tmp1						; End using tmp1
-000305r 2  85 rr        		sta bg_map_addr+1
-000307r 2               
-000307r 2               		; Store plt addr(ppu)
-000307r 2  A5 rr        		lda addr_tmp1+0					; posX
-000309r 2  4A           		shr #1
-00030Ar 2  18 69 C0     		add #$c0
-00030Dr 2  85 rr        		sta plt_addr+0
-00030Fr 2  A5 rr        		lda addr_tmp1+1
-000311r 2  29 01        		and #1
-000313r 2  0A 0A        		shl #2
-000315r 2  18 69 23     		add #$23
-000318r 2  85 rr        		sta plt_addr+1
-00031Ar 2               
-00031Ar 2  A0 00        		ldy #0
-00031Cr 2  84 rr        		sty bg_map_buff_index
-00031Er 2               
-00031Er 2               
-00031Er 2               @STORE_BG_MAP_BUF_LOOP:					; for (y = 0; y < $0d; y++)
-00031Er 2  98           		tya
-00031Fr 2  0A 0A 0A 0A  		shl #4
-000323r 2  A8           		tay
-000324r 2  B1 rr        		lda (addr_tmp1), y
-000326r 2               
-000326r 2               		; prepare plt data -----------------
-000326r 2  84 rr        		sty tmp2						; (save counter) += $10
-000328r 2  A4 rr        		ldy tmp1						; (save counter) += 1
-00032Ar 2  48           		pha
-00032Br 2  29 30        		and #%0011_0000
-00032Dr 2  AA           		tax								; X: plt num(bit4-5) : tmp (Start using)
-00032Er 2  A5 rr        		lda DrawMap::row_counter
-000330r 2  29 01        		and #1
-000332r 2  85 rr        		sta tmp3
-000334r 2  98           		tya
-000335r 2  29 01        		and #%0000_0001
-000337r 2  0A           		shl #1
-000338r 2  05 rr        		ora tmp3
-00033Ar 2  85 rr        		sta tmp3
-00033Cr 2               
-00033Cr 2               		; y /= 2 (Use @PLT0) -> MEMO: 短縮可能
-00033Cr 2  98           		tya
-00033Dr 2  4A           		shr #1
-00033Er 2  A8           		tay
-00033Fr 2               
-00033Fr 2  8A           		txa								; End using X (plt num)
-000340r 2  A6 rr        		ldx tmp3
-000342r 2               		/*
-000342r 2               			PLT_DATA = BROCK3|BROCK2|BROCK1|BROCK0
-000342r 2               			-------------------------------
-000342r 2               			| BROCK0(>>4) | BROCK1(>>2) |
-000342r 2               			| BROCK2(0)   | BROCK3(<<2) |
-000342r 2               			-------------------------------
-000342r 2               		*/
-000342r 2  F0 09        		beq @BROCK0
-000344r 2  CA           		dex
-000345r 2  F0 0D        		beq @BROCK1
-000347r 2  CA           		dex
-000348r 2  F0 11        		beq @BROCK2
-00034Ar 2  CA           		dex
-00034Br 2  F0 0C        		beq @BROCK3
-00034Dr 2               @BROCK0:
-00034Dr 2  4A 4A 4A 4A  		shr #4
-000351r 2  4C rr rr     		jmp @STORE_TO_PLT_BUFF
-000354r 2               		; ------------------------------
-000354r 2               @BROCK1:
-000354r 2  4A 4A        		shr #2
-000356r 2  4C rr rr     		jmp @ADD_LEFT_BROCK_PLT
-000359r 2               		; ------------------------------
-000359r 2               @BROCK3:
-000359r 2  0A 0A        		shl #2
-00035Br 2               @BROCK2:
-00035Br 2               @ADD_LEFT_BROCK_PLT:
-00035Br 2  19 34 01     		ora BG_PLT_BUFF, y
-00035Er 2               @STORE_TO_PLT_BUFF:
-00035Er 2  99 34 01     		sta BG_PLT_BUFF, y
-000361r 2               
-000361r 2  68           		pla
-000362r 2  A4 rr        		ldy tmp2
-000364r 2               
-000364r 2  29 3F        		and #%0011_1111
-000366r 2  0A           		shl #1
-000367r 2               
-000367r 2  AA           		tax
-000368r 2  BD rr rr     		lda BROCK_ID_ARR+0, x
-00036Br 2  85 rr        		sta addr_tmp2+0
-00036Dr 2  BD rr rr     		lda BROCK_ID_ARR+1, x
-000370r 2  85 rr        		sta addr_tmp2+1
-000372r 2               
-000372r 2  A6 rr        		ldx bg_map_buff_index
-000374r 2               
-000374r 2  A0 00        		ldy #0
-000376r 2  B1 rr 9D 00  		trfToBgMapBuf 'L'
-00037Ar 2  01           
-00037Br 2  C8           		iny
-00037Cr 2  B1 rr 9D 1A  		trfToBgMapBuf 'R'
-000380r 2  01           
-000381r 2               
-000381r 2  E8           		inx
-000382r 2  C8           		iny
-000383r 2  B1 rr 9D 00  		trfToBgMapBuf 'L'
-000387r 2  01           
-000388r 2  C8           		iny
-000389r 2  B1 rr 9D 1A  		trfToBgMapBuf 'R'
-00038Dr 2  01           
+0002C9r 2               @END_OF_STAGE:
+0002C9r 2  A0 00        		ldy #0
+0002CBr 2  84 rr        		sty DrawMap::index				; X = 0
+0002CDr 2  C8           		iny
+0002CEr 2  84 rr        		sty DrawMap::isend_draw_stage
+0002D0r 2               
+0002D0r 2               @PREPARE_BG_MAP_BUF:
+0002D0r 2               		; X = 0
+0002D0r 2  A5 rr        		lda addr_tmp1+0
+0002D2r 2  29 0F        		and #%0000_1111
+0002D4r 2  85 rr        		sta addr_tmp1+0					; PosY = 0
+0002D6r 2               
+0002D6r 2  A5 rr        		lda addr_tmp1+1					; 4 or 5
+0002D8r 2  29 01        		and #1
+0002DAr 2  0A 0A        		shl #2							; 0 or 4
+0002DCr 2  09 20        		ora #$20						; $20 or $24
+0002DEr 2  85 rr        		sta bg_map_addr+1
+0002E0r 2               
+0002E0r 2  86 rr        		stx tmp1						; Init and start using tmp1 (-> Can break X)
+0002E2r 2               
+0002E2r 2  A5 rr        		lda addr_tmp1+0
+0002E4r 2  18 69 40     		add #$40
+0002E7r 2  0A           		shl #1
+0002E8r 2  26 rr        		rol tmp1
+0002EAr 2  85 rr        		sta bg_map_addr+0
+0002ECr 2  A5 rr        		lda bg_map_addr+1
+0002EEr 2  05 rr        		ora tmp1						; End using tmp1
+0002F0r 2  85 rr        		sta bg_map_addr+1
+0002F2r 2               
+0002F2r 2               		; Store plt addr(ppu)
+0002F2r 2  A5 rr        		lda addr_tmp1+0					; posX
+0002F4r 2  4A           		shr #1
+0002F5r 2  18 69 C0     		add #$c0
+0002F8r 2  85 rr        		sta plt_addr+0
+0002FAr 2  A5 rr        		lda addr_tmp1+1
+0002FCr 2  29 01        		and #1
+0002FEr 2  0A 0A        		shl #2
+000300r 2  18 69 23     		add #$23
+000303r 2  85 rr        		sta plt_addr+1
+000305r 2               
+000305r 2  A0 00        		ldy #0
+000307r 2  84 rr        		sty bg_map_buff_index
+000309r 2               
+000309r 2               
+000309r 2               @STORE_BG_MAP_BUF_LOOP:					; for (y = 0; y < $0d; y++)
+000309r 2  98           		tya
+00030Ar 2  0A 0A 0A 0A  		shl #4
+00030Er 2  A8           		tay
+00030Fr 2  B1 rr        		lda (addr_tmp1), y
+000311r 2               
+000311r 2               		; prepare plt data -----------------
+000311r 2  84 rr        		sty tmp2						; (save counter) += $10
+000313r 2  A4 rr        		ldy tmp1						; (save counter) += 1
+000315r 2  48           		pha
+000316r 2  29 30        		and #%0011_0000
+000318r 2  AA           		tax								; X: plt num(bit4-5) : tmp (Start using)
+000319r 2  A5 rr        		lda DrawMap::row_counter
+00031Br 2  29 01        		and #1
+00031Dr 2  85 rr        		sta tmp3
+00031Fr 2  98           		tya
+000320r 2  29 01        		and #%0000_0001
+000322r 2  0A           		shl #1
+000323r 2  05 rr        		ora tmp3
+000325r 2  85 rr        		sta tmp3
+000327r 2               
+000327r 2               		; y /= 2 (Use @PLT0) -> MEMO: 短縮可能
+000327r 2  98           		tya
+000328r 2  4A           		shr #1
+000329r 2  A8           		tay
+00032Ar 2               
+00032Ar 2  8A           		txa								; End using X (plt num)
+00032Br 2  A6 rr        		ldx tmp3
+00032Dr 2               		/*
+00032Dr 2               			PLT_DATA = BROCK3|BROCK2|BROCK1|BROCK0
+00032Dr 2               			-------------------------------
+00032Dr 2               			| BROCK0(>>4) | BROCK1(>>2) |
+00032Dr 2               			| BROCK2(0)   | BROCK3(<<2) |
+00032Dr 2               			-------------------------------
+00032Dr 2               		*/
+00032Dr 2  F0 09        		beq @BROCK0
+00032Fr 2  CA           		dex
+000330r 2  F0 0D        		beq @BROCK1
+000332r 2  CA           		dex
+000333r 2  F0 11        		beq @BROCK2
+000335r 2  CA           		dex
+000336r 2  F0 0C        		beq @BROCK3
+000338r 2               @BROCK0:
+000338r 2  4A 4A 4A 4A  		shr #4
+00033Cr 2  4C rr rr     		jmp @STORE_TO_PLT_BUFF
+00033Fr 2               		; ------------------------------
+00033Fr 2               @BROCK1:
+00033Fr 2  4A 4A        		shr #2
+000341r 2  4C rr rr     		jmp @ADD_LEFT_BROCK_PLT
+000344r 2               		; ------------------------------
+000344r 2               @BROCK3:
+000344r 2  0A 0A        		shl #2
+000346r 2               @BROCK2:
+000346r 2               @ADD_LEFT_BROCK_PLT:
+000346r 2  19 34 01     		ora BG_PLT_BUFF, y
+000349r 2               @STORE_TO_PLT_BUFF:
+000349r 2  99 34 01     		sta BG_PLT_BUFF, y
+00034Cr 2               
+00034Cr 2  68           		pla
+00034Dr 2  A4 rr        		ldy tmp2
+00034Fr 2               
+00034Fr 2  29 3F        		and #%0011_1111
+000351r 2  0A           		shl #1
+000352r 2               
+000352r 2  AA           		tax
+000353r 2  BD rr rr     		lda BROCK_ID_ARR+0, x
+000356r 2  85 rr        		sta addr_tmp2+0
+000358r 2  BD rr rr     		lda BROCK_ID_ARR+1, x
+00035Br 2  85 rr        		sta addr_tmp2+1
+00035Dr 2               
+00035Dr 2  A6 rr        		ldx bg_map_buff_index
+00035Fr 2               
+00035Fr 2  A0 00        		ldy #0
+000361r 2  B1 rr 9D 00  		trfToBgMapBuf 'L'
+000365r 2  01           
+000366r 2  C8           		iny
+000367r 2  B1 rr 9D 1A  		trfToBgMapBuf 'R'
+00036Br 2  01           
+00036Cr 2               
+00036Cr 2  E8           		inx
+00036Dr 2  C8           		iny
+00036Er 2  B1 rr 9D 00  		trfToBgMapBuf 'L'
+000372r 2  01           
+000373r 2  C8           		iny
+000374r 2  B1 rr 9D 1A  		trfToBgMapBuf 'R'
+000378r 2  01           
+000379r 2               
+000379r 2  E8           		inx
+00037Ar 2  86 rr        		stx bg_map_buff_index
+00037Cr 2               
+00037Cr 2  A4 rr        		ldy tmp1
+00037Er 2  C8           		iny
+00037Fr 2  84 rr        		sty tmp1
+000381r 2  C0 0D        		cpy #$0d
+000383r 2  90 84        		bcc @STORE_BG_MAP_BUF_LOOP
+000385r 2               
+000385r 2  60           		rts
+000386r 2               		;-------------------------------
+000386r 2               .endproc
+000386r 2               
+000386r 2               ;*------------------------------------------------------------------------------
+000386r 2               ; Set addr of stages
+000386r 2               ; @PARAM	Y: stage number
+000386r 2               ; @BREAK	A Y
+000386r 2               ; @RETURN	None (A = addr Hi)
+000386r 2               ;*------------------------------------------------------------------------------
+000386r 2               
+000386r 2               .code									; ----- code -----
+000386r 2               
+000386r 2               .proc _setStageAddr
+000386r 2  98           		tya
+000387r 2  0A           		shl
+000388r 2  A8           		tay
+000389r 2               
+000389r 2  B9 rr rr     		lda STAGE_ARR, y
+00038Cr 2  85 rr        		sta DrawMap::map_arr_addr
 00038Er 2               
-00038Er 2  E8           		inx
-00038Fr 2  86 rr        		stx bg_map_buff_index
-000391r 2               
-000391r 2  A4 rr        		ldy tmp1
-000393r 2  C8           		iny
-000394r 2  84 rr        		sty tmp1
-000396r 2  C0 0D        		cpy #$0d
-000398r 2  90 84        		bcc @STORE_BG_MAP_BUF_LOOP
-00039Ar 2               
-00039Ar 2  60           		rts
-00039Br 2               		;-------------------------------
-00039Br 2               .endproc
-00039Br 2               
-00039Br 2               ;*------------------------------------------------------------------------------
-00039Br 2               ; Set addr of stages
-00039Br 2               ; @PARAM	Y: stage number
-00039Br 2               ; @BREAK	A Y
-00039Br 2               ; @RETURN	None (A = addr Hi)
-00039Br 2               ;*------------------------------------------------------------------------------
-00039Br 2               
-00039Br 2               .code									; ----- code -----
-00039Br 2               
-00039Br 2               .proc _setStageAddr
-00039Br 2  98           		tya
-00039Cr 2  0A           		shl
-00039Dr 2  A8           		tay
-00039Er 2               
-00039Er 2  B9 rr rr     		lda STAGE_ARR, y
-0003A1r 2  85 rr        		sta DrawMap::map_arr_addr
-0003A3r 2               
-0003A3r 2  B9 rr rr     		lda STAGE_ARR+1, y
-0003A6r 2  85 rr        		sta DrawMap::map_arr_addr+1
-0003A8r 2               
-0003A8r 2  60           		rts
-0003A9r 2               		; ------------------------------
-0003A9r 2               .endproc
-0003A9r 2               
-0003A9r 2               
-0003A9r 2               ;*------------------------------------------------------------------------------
-0003A9r 2               ; Set addr of maps
-0003A9r 2               ; @PARAM	Y: map index
-0003A9r 2               ; @BREAK	A Y
-0003A9r 2               ; @RETURN	None (A = addr Hi)
-0003A9r 2               ;*------------------------------------------------------------------------------
-0003A9r 2               
-0003A9r 2               .code									; ----- code -----
-0003A9r 2               
-0003A9r 2               .proc _setMapAddr
-0003A9r 2  98           		tya
-0003AAr 2  0A           		shl
-0003ABr 2  A8           		tay
+00038Er 2  B9 rr rr     		lda STAGE_ARR+1, y
+000391r 2  85 rr        		sta DrawMap::map_arr_addr+1
+000393r 2               
+000393r 2  60           		rts
+000394r 2               		; ------------------------------
+000394r 2               .endproc
+000394r 2               
+000394r 2               
+000394r 2               ;*------------------------------------------------------------------------------
+000394r 2               ; Set addr of maps
+000394r 2               ; @PARAM	Y: map index
+000394r 2               ; @BREAK	A Y
+000394r 2               ; @RETURN	None (A = addr Lo)
+000394r 2               ;*------------------------------------------------------------------------------
+000394r 2               
+000394r 2               .code									; ----- code -----
+000394r 2               
+000394r 2               .proc _setMapAddr
+000394r 2  98           		tya
+000395r 2  0A           		shl
+000396r 2  A8           		tay
+000397r 2  48           		pha								; push y
+000398r 2               
+000398r 2  B1 rr        		lda (DrawMap::map_arr_addr), y
+00039Ar 2  85 rr        		sta DrawMap::map_addr
+00039Cr 2               
+00039Cr 2  C8           		iny
+00039Dr 2  B1 rr        		lda (DrawMap::map_arr_addr), y
+00039Fr 2  85 rr        		sta DrawMap::map_addr+1
+0003A1r 2               
+0003A1r 2               	; ffコードをこの関数の返値にして，この関数の外でマップ終了を判定しているが
+0003A1r 2               	; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
+0003A1r 2               	; 直接@END_OF_STAGEにジャンプしてもOKなはずだが（マップ終了判定でジャンプするラベル）
+0003A1r 2               	; procを使っているため今は無理
+0003A1r 2  C9 FF        	cmp #$ff
+0003A3r 2  D0 05        	bne @NO_EXIT
+0003A5r 2  68           	pla
+0003A6r 2  A8           	tay
+0003A7r 2  A9 FF        	lda #$ff
+0003A9r 2  60           	rts
+0003AAr 2               @NO_EXIT:
+0003AAr 2               
+0003AAr 2               	; ------------------------------
+0003AAr 2               
+0003AAr 2  A0 00        	ldy #0
 0003ACr 2               
-0003ACr 2  B1 rr        		lda (DrawMap::map_arr_addr), y
-0003AEr 2  85 rr        		sta DrawMap::map_addr
-0003B0r 2               
-0003B0r 2  C8           		iny
-0003B1r 2  B1 rr        		lda (DrawMap::map_arr_addr), y
-0003B3r 2  85 rr        		sta DrawMap::map_addr+1
-0003B5r 2               
-0003B5r 2  60           		rts
-0003B6r 2               		; ------------------------------
-0003B6r 2               .endproc
-0003B6r 2               
-0003B6r 2               
-0003B6r 2               .endscope
-0003B6r 2               
-0003B6r 1               .include "main.asm"
-0003B6r 2               ;*------------------------------------------------------------------------------
-0003B6r 2               ; MAIN routine
-0003B6r 2               ;*------------------------------------------------------------------------------
-0003B6r 2               
-0003B6r 2               .code									; ----- code -----
-0003B6r 2               
-0003B6r 2               .proc _main
-0003B6r 2  A5 rr        		lda is_processing_main
-0003B8r 2  F0 FC        		beq _main
-0003BAr 2               
-0003BAr 2  20 rr rr     		jsr Joypad::_getJoyData
+0003ACr 2  B1 rr        	lda (DrawMap::map_addr), y
+0003AEr 2  29 0F        	and #%0000_1111
+0003B0r 2  85 rr        	sta DrawMap::fill_ground_end
+0003B2r 2               
+0003B2r 2  B1 rr        	lda (DrawMap::map_addr), y
+0003B4r 2  4A 4A 4A 4A  	shr #4
+0003B8r 2  A8           	tay
+0003B9r 2  C4 rr        	cpy DrawMap::fill_ground_end
+0003BBr 2  F0 0A        	beq @NOLOOP
 0003BDr 2               
-0003BDr 2  A5 rr        		lda Joypad::joy1_pushstart
-0003BFr 2  29 80        		and #Joypad::BTN_A
-0003C1r 2  F0 06        		beq @NO_PUSHED_BTN_A
-0003C3r 2               
-0003C3r 2  20 rr rr     		jsr DrawMap::_updateOneLine
-0003C6r 2  20 rr rr     		jsr Subfunc::_preparePltData
-0003C9r 2               @NO_PUSHED_BTN_A:
-0003C9r 2               
-0003C9r 2               		; ----- End main -----
-0003C9r 2  A9 00        		lda #0
-0003CBr 2  85 rr        		sta is_processing_main
-0003CDr 2  4C rr rr     		jmp _main
+0003BDr 2  A5 rr        	lda DrawMap::fill_ground_block
+0003BFr 2               
+0003BFr 2               @LOOP:
+0003BFr 2  99 3C 01     	sta FILL_BLOCKS, y
+0003C2r 2  C8           	iny
+0003C3r 2  C4 rr        	cpy DrawMap::fill_ground_end
+0003C5r 2  D0 F8        	bne @LOOP
+0003C7r 2               @NOLOOP:
+0003C7r 2               
+0003C7r 2  A0 04        	ldy #4
+0003C9r 2  84 rr        	sty DrawMap::index
+0003CBr 2               
+0003CBr 2               	; ----------------------------------
+0003CBr 2               
+0003CBr 2  68           		pla
+0003CCr 2  A8           		tay
+0003CDr 2               
+0003CDr 2  A5 rr        		lda DrawMap::map_addr
+0003CFr 2               
+0003CFr 2  60           		rts
 0003D0r 2               		; ------------------------------
 0003D0r 2               .endproc
 0003D0r 2               
-0003D0r 1               
-0003D0r 1               ; Use .org
-0003D0r 1               .org SPR_BUFF
+0003D0r 2               
+0003D0r 2               .endscope
+0003D0r 2               
+0003D0r 1               .include "main.asm"
+0003D0r 2               ;*------------------------------------------------------------------------------
+0003D0r 2               ; MAIN routine
+0003D0r 2               ;*------------------------------------------------------------------------------
+0003D0r 2               
+0003D0r 2               .code									; ----- code -----
+0003D0r 2               
+0003D0r 2               .proc _main
+0003D0r 2  A5 rr        		lda is_processing_main
+0003D2r 2  F0 FC        		beq _main
+0003D4r 2               
+0003D4r 2  20 rr rr     		jsr Joypad::_getJoyData
+0003D7r 2               
+0003D7r 2  A5 rr        		lda Joypad::joy1_pushstart
+0003D9r 2  29 80        		and #Joypad::BTN_A
+0003DBr 2  F0 06        		beq @NO_PUSHED_BTN_A
+0003DDr 2               
+0003DDr 2  20 rr rr     		jsr DrawMap::_updateOneLine
+0003E0r 2  20 rr rr     		jsr Subfunc::_preparePltData
+0003E3r 2               @NO_PUSHED_BTN_A:
+0003E3r 2               
+0003E3r 2               		; ----- End main -----
+0003E3r 2  A9 00        		lda #0
+0003E5r 2  85 rr        		sta is_processing_main
+0003E7r 2  4C rr rr     		jmp _main
+0003EAr 2               		; ------------------------------
+0003EAr 2               .endproc
+0003EAr 2               
+0003EAr 1               
+0003EAr 1               ; Use .org
+0003EAr 1               .org SPR_BUFF
 000300  1  xx xx xx xx  		.tag SPR_TBL
 000304  1  xx xx xx xx  
 000308  1  xx xx xx xx  
@@ -1516,28 +1571,28 @@ Current file: pacman.asm
 008000  1  78 D8 A2 FF  		init
 008004  1  9A E8 8E 00  
 008008  1  20 8E 01 20  
-0080B9  1               
-0080B9  1  A9 01        		lda #1
-0080BB  1  85 rr        		sta is_processing_main
-0080BD  1               
-0080BD  1  4C rr rr     		jmp _main
-0080C0  1               		; ------------------------------
-0080C0  1               .endproc
-0080C0  1               
-0080C0  1               
-0080C0  1               .proc _irq
-0080C0  1  40           		rti
-0080C1  1               .endproc
 0080C1  1               
-0080C1  1               
-0080C1  1               .segment "CHARS"
-0080C1  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
-0080C5  1  1C 24 26 66  
-0080C9  1  00 00 00 00  
-00A0C1  1               
-00A0C1  1               
-00A0C1  1               .segment "VECINFO"
-00A0C1  1  rr rr        		.addr _nmi
-00A0C3  1  00 80        		.addr _reset
-00A0C5  1  C0 80        		.addr _irq
-00A0C5  1               
+0080C1  1  A9 01        		lda #1
+0080C3  1  85 rr        		sta is_processing_main
+0080C5  1               
+0080C5  1  4C rr rr     		jmp _main
+0080C8  1               		; ------------------------------
+0080C8  1               .endproc
+0080C8  1               
+0080C8  1               
+0080C8  1               .proc _irq
+0080C8  1  40           		rti
+0080C9  1               .endproc
+0080C9  1               
+0080C9  1               
+0080C9  1               .segment "CHARS"
+0080C9  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
+0080CD  1  1C 24 26 66  
+0080D1  1  00 00 00 00  
+00A0C9  1               
+00A0C9  1               
+00A0C9  1               .segment "VECINFO"
+00A0C9  1  rr rr        		.addr _nmi
+00A0CB  1  00 80        		.addr _reset
+00A0CD  1  C8 80        		.addr _irq
+00A0CD  1               

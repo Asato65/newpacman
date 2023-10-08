@@ -1,8 +1,9 @@
 ZP					= $00
 ; Unused $0200
 BG_MAP_BUFF			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
-BG_PLT_BUFF			= $0134				; size = 8(data)
-BG_BUFF				= $013c
+BG_PLT_BUFF			= $0134				; size = 8
+FILL_BLOCKS			= $013c				; size = 13 ($d)
+BG_BUFF				= $0149
 SPR_BUFF			= $0300
 MAP1				= $0400
 MAP2				= $0500
