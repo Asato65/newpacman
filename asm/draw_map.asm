@@ -174,6 +174,11 @@ fill_ground_end			: .byte 0
 		sty DrawMap::isend_draw_stage
 
 @PREPARE_BG_MAP_BUF:
+		/*
+		ここのaddr_tmp1が変更されないせいで
+		bg_map_addrのloが変更されず
+		床の描画もされない？
+		*/
 		; X = 0
 		lda addr_tmp1+0
 		and #%0000_1111

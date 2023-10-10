@@ -1,7 +1,7 @@
 Modules list:
 -------------
 pacman.o:
-    CODE              Offs=000000  Size=0004F8  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=0004C4  Align=00001  Fill=0000
     RODATA            Offs=000000  Size=000020  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
@@ -27,7 +27,7 @@ DATA                  000400  000400  000000  00001
 USER_MEM              000700  000700  000000  00001
 STARTUP               008000  0080C8  0000C9  00001
 RODATA                0080C9  0080E8  000020  00001
-CODE                  0080E9  0085E0  0004F8  00001
+CODE                  0080E9  0085AC  0004C4  00001
 VECINFO               00FFFA  00FFFF  000006  00001
 
 
@@ -35,7 +35,7 @@ Exports list by name:
 ---------------------
 __BSS_LOAD__              000400  LA    __BSS_RUN__               000400  LA    
 __BSS_SIZE__              000000  EA    __CODE_LOAD__             0080E9  LA    
-__CODE_RUN__              0080E9  LA    __CODE_SIZE__             0004F8  EA    
+__CODE_RUN__              0080E9  LA    __CODE_SIZE__             0004C4  EA    
 __DATA_LOAD__             0080E9  LA    __DATA_RUN__              000400  LA    
 __DATA_SIZE__             000000  EA    __RAM_FILEOFFS__          00A03C  EA    
 __RAM_LAST__              000400  LA    __RAM_SIZE__              000400  EA    
@@ -45,7 +45,7 @@ __ROMCHR_FILEOFFS__       008010  EA    __ROMCHR_LAST__           002000  LA
 __ROMCHR_SIZE__           002000  EA    __ROMCHR_START__          000000  LA    
 __ROMINFO_FILEOFFS__      00800A  EA    __ROMINFO_LAST__          010000  LA    
 __ROMINFO_SIZE__          000006  EA    __ROMINFO_START__         00FFFA  LA    
-__ROMST_FILEOFFS__        000010  EA    __ROMST_LAST__            0085E1  LA    
+__ROMST_FILEOFFS__        000010  EA    __ROMST_LAST__            0085AD  LA    
 __ROMST_SIZE__            007FFA  EA    __ROMST_START__           008000  LA    
 __SRAM_FILEOFFS__         00A03C  EA    __SRAM_LAST__             006000  LA    
 __SRAM_SIZE__             002000  EA    __SRAM_START__            006000  LA    
@@ -73,7 +73,7 @@ __STACK_LAST__            000200  LA    __STACK_START__           000200  LA
 __STACK_SIZE__            000200  EA    __RAM_SIZE__              000400  EA    
 __BSS_LOAD__              000400  LA    __DATA_RUN__              000400  LA    
 __BSS_RUN__               000400  LA    __RAM_LAST__              000400  LA    
-__RAM_START__             000400  LA    __CODE_SIZE__             0004F8  EA    
+__RAM_START__             000400  LA    __CODE_SIZE__             0004C4  EA    
 __USER_MEM_START__        000700  LA    __USER_MEM_LAST__         000700  LA    
 __ROMCHR_LAST__           002000  LA    __SRAM_SIZE__             002000  EA    
 __ROMCHR_SIZE__           002000  EA    __SRAM_START__            006000  LA    
@@ -83,7 +83,7 @@ __STARTUP_LOAD__          008000  LA    __ROMINFO_FILEOFFS__      00800A  EA
 __ROMCHR_FILEOFFS__       008010  EA    __RODATA_RUN__            0080C9  LA    
 __RODATA_LOAD__           0080C9  LA    __CODE_LOAD__             0080E9  LA    
 __CODE_RUN__              0080E9  LA    __DATA_LOAD__             0080E9  LA    
-__ROMST_LAST__            0085E1  LA    __ZP_FILEOFFS__           00A010  EA    
+__ROMST_LAST__            0085AD  LA    __ZP_FILEOFFS__           00A010  EA    
 __SRAM_FILEOFFS__         00A03C  EA    __RAM_FILEOFFS__          00A03C  EA    
 __USER_MEM_FILEOFFS__     00A03C  EA    __STACK_FILEOFFS__        00A03C  EA    
 __VECINFO_LOAD__          00FFFA  LA    __ROMINFO_START__         00FFFA  LA    
