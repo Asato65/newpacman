@@ -73,7 +73,38 @@ fill_ground_end			: .byte 0
 		ldy DrawMap::index
 @GET_POS_AND_OBJ_LOOP:
 		; ----------- get pos ----------
-		lda (DrawMap::map_addr), y
+
+
+	lda DrawMap::map_buff_num
+	and #%0000_0001
+	ora #4
+	sta addr_tmp2+1
+	lda (DrawMap::map_addr), y
+	sta tmp1						; Start using tmp1 (jmp other label -> it can be break)
+
+	and #%0000_1111
+	sta addr_tmp2+0
+	txa
+	pha
+	tya
+	pha
+	ldx #0
+	ldy #0
+@LOOP:
+	lda FILL_BLOCKS, y
+	sta (addr_tmp2, x)
+	lda addr_tmp2+0
+	add #$10
+	sta addr_tmp2+0
+	iny
+	cpy #$d
+	bne @LOOP
+
+	pla
+	tay
+	pla
+	tax
+		lda tmp1
 
 		; Check Special Code
 		cmp #OBJMAP_NEXT
@@ -83,7 +114,7 @@ fill_ground_end			: .byte 0
 		beq @END_OF_MAP
 
 		; Check if it can be updated
-		sta tmp1						; Start using tmp1
+
 		and #%0000_1111
 		cmp DrawMap::row_counter
 		bne @GET_POS_AND_OBJ_LOOP_EXIT
@@ -99,33 +130,10 @@ fill_ground_end			: .byte 0
 
 		lda tmp1						; End using tmp1
 		sta addr_tmp1+0
-		pha
 
-	and #%0000_1111
-	sta addr_tmp1+0
-	txa
-	pha
-	tya
-	pha
-	ldx #0
-	ldy #0
-@LOOP:
-	lda FILL_BLOCKS, y
-	sta (addr_tmp1, x)
-	lda addr_tmp1+0
-	add #$10
-	sta addr_tmp1+0
-	iny
-	cpy #$d
-	bne @LOOP
 
-	pla
-	tay
-	pla
-	tax
 
-	pla
-	sta addr_tmp1+0
+
 
 		; ----------- get chr ----------
 		iny

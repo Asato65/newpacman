@@ -62,7 +62,7 @@
 	add #8
 	sta tmp1
 	inx
-	cpx #8
+	cpx #7
 	bcc @PLT_STORE_LOOP
 
 		lda ppu_ctrl1_cpy
