@@ -3,11 +3,11 @@
 .ZeroPage
 map_buff_num			: .byte 0
 map_arr_addr			: .addr 0
-map_addr				: .addr 0
+map_addr				: .addr 0		; Map obj/position data (-> data addr: ROM)
 isend_draw_stage		: .byte 0
-row_counter				: .byte 0
-index					: .byte 0
-cnt_map_next			: .byte 0
+row_counter				: .byte 0		; Every time this prg executed -> increment
+index					: .byte 0		; index of map_addr
+cnt_map_next			: .byte 0		; data (read from map_addr) = SP code(go next map) -> increment this counter
 map_arr_num				: .byte 0
 fill_upper				: .byte 0
 fill_lower				: .byte 0
@@ -59,30 +59,29 @@ fill_ground_end			: .byte 0
 		; ------------------------------
 
 @START:
-		; A = 0
-		tax								; X = 0
+	ldx #0
 		ldy DrawMap::row_counter
 		iny
 		cpy #$10
 		bne @NO_OVF_ROW_CNT
-		tay								; Y = 0
+	ldy #0
 		inc DrawMap::map_buff_num
 @NO_OVF_ROW_CNT:
 		sty DrawMap::row_counter
 
+
 		ldy DrawMap::index
 @GET_POS_AND_OBJ_LOOP:
 		; ----------- get pos ----------
-
-
+/*
 	lda DrawMap::map_buff_num
-	and #%0000_0001
+	and #BIT0
 	ora #4
 	sta addr_tmp2+1
 	lda (DrawMap::map_addr), y
 	sta tmp1						; Start using tmp1 (jmp other label -> it can be break)
 
-	and #%0000_1111
+	and #BIT_LO
 	sta addr_tmp2+0
 	txa
 	pha
@@ -104,7 +103,8 @@ fill_ground_end			: .byte 0
 	tay
 	pla
 	tax
-		lda tmp1
+*/
+		lda (DrawMap::map_addr), y
 
 		; Check Special Code
 		cmp #OBJMAP_NEXT
@@ -114,8 +114,8 @@ fill_ground_end			: .byte 0
 		beq @END_OF_MAP
 
 		; Check if it can be updated
-
-		and #%0000_1111
+		sta tmp1						; Start using tmp1
+		and #BYT_LO
 		cmp DrawMap::row_counter
 		bne @GET_POS_AND_OBJ_LOOP_EXIT
 
@@ -126,14 +126,37 @@ fill_ground_end			: .byte 0
 		; Set addr of bg map buff
 		and #%0000_0001					; A = map_buff_num
 		ora #4
-		sta addr_tmp1+1
+		sta addr_tmp1+HI
 
 		lda tmp1						; End using tmp1
-		sta addr_tmp1+0
+		sta addr_tmp1+LO
+		pha
 
+	and #%0000_1111
+	sta addr_tmp1+0
+	txa
+	pha
+	tya
+	pha
+	ldx #0
+	ldy #0
+@LOOP:
+	lda FILL_BLOCKS, y
+	sta (addr_tmp1, x)
+	lda addr_tmp1+LO
+	add #$10
+	sta addr_tmp1+LO
+	iny
+	cpy #$d
+	bne @LOOP
 
+	pla
+	tay
+	pla
+	tax
 
-
+	pla
+	sta addr_tmp1+LO
 
 		; ----------- get chr ----------
 		iny
@@ -155,10 +178,11 @@ fill_ground_end			: .byte 0
 @END_OF_MAP:
 		inc DrawMap::map_arr_num
 		ldy DrawMap::map_arr_num
-		jsr _setMapAddr					; Use Y as arg
+		jsr _setMapAddr
+		lda DrawMap::map_addr+HI
 		cmp #ENDCODE					; A = Addr Hi
 		beq @END_OF_STAGE
-		ldy #$ff
+		ldy #(0-1)
 		sty DrawMap::index
 
 @LOAD_NEXT_MAP:
@@ -180,37 +204,37 @@ fill_ground_end			: .byte 0
 		床の描画もされない？
 		*/
 		; X = 0
-		lda addr_tmp1+0
-		and #%0000_1111
-		sta addr_tmp1+0					; PosY = 0
+		lda addr_tmp1+LO
+		and #BIT_LO
+		sta addr_tmp1+LO					; PosY = 0
 
-		lda addr_tmp1+1					; 4 or 5
-		and #1
+		lda addr_tmp1+HI					; 4 or 5
+		and #BIT0
 		shl #2							; 0 or 4
 		ora #$20						; $20 or $24
-		sta bg_map_addr+1
+		sta bg_map_addr+HI
 
 		stx tmp1						; Init and start using tmp1 (-> Can break X)
 
-		lda addr_tmp1+0
+		lda addr_tmp1+LO
 		add #$40
 		shl #1
 		rol tmp1
-		sta bg_map_addr+0
-		lda bg_map_addr+1
+		sta bg_map_addr+LO
+		lda bg_map_addr+HI
 		ora tmp1						; End using tmp1
-		sta bg_map_addr+1
+		sta bg_map_addr+HI
 
 		; Store plt addr(ppu)
-		lda addr_tmp1+0					; posX
+		lda addr_tmp1+LO					; posX
 		shr #1
 		add #$c0
-		sta plt_addr+0
-		lda addr_tmp1+1
+		sta plt_addr+LO
+		lda addr_tmp1+HI
 		and #1
 		shl #2
 		add #$23
-		sta plt_addr+1
+		sta plt_addr+HI
 
 		ldy #0
 		sty bg_map_buff_index
@@ -226,13 +250,13 @@ fill_ground_end			: .byte 0
 		sty tmp2						; (save counter) += $10
 		ldy tmp1						; (save counter) += 1
 		pha
-		and #%0011_0000
+		and #BIT5|BIT4
 		tax								; X: plt num(bit4-5) : tmp (Start using)
 		lda DrawMap::row_counter
-		and #1
+		and #BIT0
 		sta tmp3
 		tya
-		and #%0000_0001
+		and #BIT0
 		shl #1
 		ora tmp3
 		sta tmp3
@@ -277,14 +301,14 @@ fill_ground_end			: .byte 0
 		pla
 		ldy tmp2
 
-		and #%0011_1111
+		and #BIT5|BIT4|BIT_LO
 		shl #1
 
 		tax
-		lda BROCK_ID_ARR+0, x
-		sta addr_tmp2+0
-		lda BROCK_ID_ARR+1, x
-		sta addr_tmp2+1
+		lda BROCK_ID_ARR+LO, x
+		sta addr_tmp2+LO
+		lda BROCK_ID_ARR+HI, x
+		sta addr_tmp2+HI
 
 		ldx bg_map_buff_index
 
@@ -341,7 +365,7 @@ fill_ground_end			: .byte 0
 ; Set addr of maps
 ; @PARAM	Y: map index
 ; @BREAK	A Y
-; @RETURN	None (A = addr Lo)
+; @RETURN	None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -363,11 +387,11 @@ fill_ground_end			: .byte 0
 	; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
 	; 直接@END_OF_STAGEにジャンプしてもOKなはずだが（マップ終了判定でジャンプするラベル）
 	; procを使っているため今は無理
-	cmp #$ff
+	cmp #ENDCODE
 	bne @NO_EXIT
 	pla
 	tay
-	lda #$ff
+	lda #ENDCODE
 	rts
 @NO_EXIT:
 
@@ -396,13 +420,10 @@ fill_ground_end			: .byte 0
 
 	ldy #4
 	sty DrawMap::index
-
 	; ----------------------------------
 
 		pla
 		tay
-
-		lda DrawMap::map_addr
 
 		rts
 		; ------------------------------
