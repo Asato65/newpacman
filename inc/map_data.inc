@@ -13,6 +13,8 @@ MAP_11_1:
 	.byte 'G'
 	.byte (GET_OBJ_POS $0, $0), 'G'
 	.byte (GET_OBJ_POS $1, $0), 'Q'
+	.byte (GET_OBJ_POS $1, $4), '^'
+	.byte (GET_OBJ_POS $5, $3), 'Q'
 	.byte OBJMAP_NEXT
 	.byte (GET_OBJ_POS $0, $5), '^'
 	.byte (GET_OBJ_POS $0, $6), '^'

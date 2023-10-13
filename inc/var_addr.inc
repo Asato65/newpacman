@@ -3,6 +3,9 @@
 tmp1					: .byte 0
 tmp2					: .byte 0
 tmp3					: .byte 0
+tmp4					: .byte 0
+tmp5					: .byte 0
+tmp6					: .byte 0
 
 bg_buff_pointer			: .byte 0
 addr_tmp1				: .addr 0
