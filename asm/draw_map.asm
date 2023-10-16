@@ -18,19 +18,40 @@ fill_ground_end			: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Transfar obj data (8*8) to BG map buff($04XX/$05XX)
-; @PARAM	mode(char): 'L' or 'R'
+; @PARAM	X: Block ID
+; @BREAK	A X Y
 ; @RETURN	None
-; if mode == 'L': $2000, $2002, $2016, $240a...
-; elif mode == 'R': $2001, $2003, $2017, $240b...
 ;*------------------------------------------------------------------------------
 
-.macro trfToBgMapBuf mode
+.macro trfToBgMapBuf
+		lda BLOCK_ID_ARR+LO, x
+		sta addr_tmp2+LO
+		lda BLOCK_ID_ARR+HI, x
+		sta addr_tmp2+HI
+
+		ldx bg_map_buff_index
+
+		ldy #0
 		lda (addr_tmp2), y
-		.if mode = 'L'
-			sta BG_MAP_BUFF+0, x
-		.else
-			sta BG_MAP_BUFF+($0d*2), x
-		.endif
+		sta BG_MAP_BUFF+0, x
+
+		iny
+		lda (addr_tmp2), y
+		sta BG_MAP_BUFF+($0d*2), x
+
+		inx
+
+		iny
+		lda (addr_tmp2), y
+		sta BG_MAP_BUFF+0, x
+
+		iny
+		lda (addr_tmp2), y
+		sta BG_MAP_BUFF+($0d*2), x
+
+		inx
+
+		stx bg_map_buff_index
 .endmacro
 
 
@@ -70,81 +91,7 @@ fill_ground_end			: .byte 0
 .endmacro
 
 
-.proc _updateOneLine
-		lda DrawMap::isend_draw_stage
-		beq @START
-		rts
-		; ------------------------------
-
-@START:
-		ldx #0
-		incRowCounter
-
-		ldy DrawMap::index
-@GET_POS_AND_OBJ_LOOP:
-		; ----------- get pos ----------
-/*
-	lda DrawMap::map_buff_num
-	and #BIT0
-	ora #4
-	sta addr_tmp2+1
-	lda (DrawMap::map_addr), y
-	sta tmp1						; Start using tmp1 (jmp other label -> it can be break)
-
-	and #BIT_LO
-	sta addr_tmp2+0
-	txa
-	pha
-	tya
-	pha
-	ldx #0
-	ldy #0
-@LOOP:
-	lda FILL_BLOCKS, y
-	sta (addr_tmp2, x)
-	lda addr_tmp2+0
-	add #$10
-	sta addr_tmp2+0
-	iny
-	cpy #$d
-	bne @LOOP
-
-	pla
-	tay
-	pla
-	tax
-*/
-		lda (DrawMap::map_addr), y
-		sta tmp1						; Start using tmp1
-
-		; Check Special Code
-		cmp #OBJMAP_NEXT
-		beq @LOAD_NEXT_MAP
-
-		cmp #OBJMAP_END
-		beq @END_OF_MAP
-
-		; Check if it can be updated
-		and #BYT_LO
-		cmp DrawMap::row_counter
-		bne @GET_POS_AND_OBJ_LOOP_EXIT
-
-
-		lda DrawMap::map_buff_num
-		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
-		bne @GET_POS_AND_OBJ_LOOP_EXIT
-
-		; -- Set addr of bg map buff ---
-		and #BIT0					; A = map_buff_num
-		ora #4
-		sta addr_tmp1+HI
-
-
-		lda tmp1						; End using tmp1
-		sta addr_tmp1+LO
-
-	pha
-
+.macro fillBlocks
 	and #BYT_LO
 	sta addr_tmp1+LO
 	txa
@@ -167,10 +114,76 @@ fill_ground_end			: .byte 0
 	tay
 	pla
 	tax
+.endmacro
 
-	pla
-	sta addr_tmp1+LO
 
+.macro loadNextMap
+		inc DrawMap::map_arr_num
+		ldy DrawMap::map_arr_num		; Y = ++map_arr_num
+		jsr _setMapAddr
+.endmacro
+
+
+.macro setPpuBgAddr
+		lda #0
+		sta tmp1						; Start using tmp1
+
+		lda addr_tmp1+LO
+		add #$40
+		shl #1
+		rol tmp1
+		sta ppu_bg_addr+LO
+
+		lda addr_tmp1+HI				; 4 or 5
+		and #BIT0
+		shl #2							; 0 or 4
+		ora #$20						; $20 or $24
+		ora tmp1						; End using tmp1
+		sta ppu_bg_addr+HI
+.endmacro
+
+
+.proc _updateOneLine
+		lda DrawMap::isend_draw_stage
+		beq @START
+		rts
+		; ------------------------------
+
+@START:
+		ldx #0
+		incRowCounter
+
+		ldy DrawMap::index
+@GET_POS_AND_OBJ_LOOP:
+		; ----------- get pos ----------
+
+		lda (DrawMap::map_addr), y
+		sta tmp1						; Start using tmp1
+
+		; Check Special Code
+		cmp #OBJMAP_NEXT
+		beq @LOAD_NEXT_MAP
+
+		cmp #OBJMAP_END
+		beq @END_OF_MAP
+
+		; Check if it can be updated
+		and #BYT_LO
+		cmp DrawMap::row_counter
+		bne @GET_POS_AND_OBJ_LOOP_EXIT
+
+		lda DrawMap::map_buff_num
+		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
+		bne @GET_POS_AND_OBJ_LOOP_EXIT
+
+		; -- Set addr of bg map buff ---
+		and #BIT0					; A = map_buff_num
+		ora #4
+		sta addr_tmp1+HI
+
+
+		lda tmp1						; End using tmp1
+		sta addr_tmp1+LO
 
 		; ----------- get chr ----------
 		iny
@@ -179,7 +192,7 @@ fill_ground_end			: .byte 0
 		sta (addr_tmp1, x)
 
 		iny
-		bne @GET_POS_AND_OBJ_LOOP			; Jmp
+		bne @GET_POS_AND_OBJ_LOOP		; Jmp
 		; ------------------------------
 
 @GET_POS_AND_OBJ_LOOP_EXIT:
@@ -190,15 +203,13 @@ fill_ground_end			: .byte 0
 
 		; End of map data (Not end of stage)
 @END_OF_MAP:
-		inc DrawMap::map_arr_num
-		ldy DrawMap::map_arr_num		; Y = ++map_arr_num
-		jsr _setMapAddr
+		loadNextMap
 
 		lda DrawMap::map_addr+HI
 		cmp #ENDCODE					; A = Addr Hi
 		beq @END_OF_STAGE
 
-		initIndex
+		ldy #3
 
 @LOAD_NEXT_MAP:
 		inc DrawMap::cnt_map_next
@@ -215,26 +226,9 @@ fill_ground_end			: .byte 0
 @PREPARE_BG_MAP_BUF:
 		lda addr_tmp1+LO
 		and #BYT_LO
-		sta addr_tmp1+LO					; PosY = 0
+		sta addr_tmp1+LO				; PosY = 0
 
-		lda addr_tmp1+HI					; 4 or 5
-		and #BIT0
-		shl #2							; 0 or 4
-		ora #$20						; $20 or $24
-		sta bg_map_addr+HI
-
-		lda #0
-		sta tmp1						; Start using tmp1
-
-		lda addr_tmp1+LO
-		add #$40
-		shl #1
-		rol tmp1
-		sta bg_map_addr+LO
-
-		lda bg_map_addr+HI
-		ora tmp1						; End using tmp1
-		sta bg_map_addr+HI
+		setPpuBgAddr
 
 		; Store plt addr(ppu)
 		lda addr_tmp1+LO					; posX
@@ -257,7 +251,7 @@ fill_ground_end			: .byte 0
 		tay
 		lda (addr_tmp1), y
 
-		; prepare plt data -----------------
+		; prepare plt data -------------
 		sty tmp2						; (save counter) += $10
 		ldy tmp1						; (save counter) += 1
 		pha
@@ -280,31 +274,31 @@ fill_ground_end			: .byte 0
 		txa								; End using X (plt num)
 		ldx tmp3
 		/*
-			PLT_DATA = BROCK3|BROCK2|BROCK1|BROCK0
-			-------------------------------
-			| BROCK0(>>4) | BROCK1(>>2) |
-			| BROCK2(0)   | BROCK3(<<2) |
-			-------------------------------
+		PLT_DATA = BLOCK3|BLOCK2|BLOCK1|BLOCK0
+		-------------------------------
+		| BLOCK0(>>4) | BLOCK1(>>2) |
+		| BLOCK2(0)   | BLOCK3(<<2) |
+		-------------------------------
 		*/
-		beq @BROCK0
+		beq @BLOCK0
 		dex
-		beq @BROCK1
+		beq @BLOCK1
 		dex
-		beq @BROCK2
+		beq @BLOCK2
 		dex
-		beq @BROCK3
-@BROCK0:
+		beq @BLOCK3
+@BLOCK0:
 		shr #4
 		jmp @STORE_TO_PLT_BUFF
 		; ------------------------------
-@BROCK1:
+@BLOCK1:
 		shr #2
-		jmp @ADD_LEFT_BROCK_PLT
+		jmp @ADD_LEFT_BLOCK_PLT
 		; ------------------------------
-@BROCK3:
+@BLOCK3:
 		shl #2
-@BROCK2:
-@ADD_LEFT_BROCK_PLT:
+@BLOCK2:
+@ADD_LEFT_BLOCK_PLT:
 		ora BG_PLT_BUFF, y
 @STORE_TO_PLT_BUFF:
 		sta BG_PLT_BUFF, y
@@ -312,30 +306,11 @@ fill_ground_end			: .byte 0
 		pla
 		ldy tmp2
 
-		and #BIT5|BIT4|BYT_LO
+		and #BIT5|BIT4|BIT3|BIT2|BIT1|BIT0
 		shl #1
 
 		tax
-		lda BROCK_ID_ARR+LO, x
-		sta addr_tmp2+LO
-		lda BROCK_ID_ARR+HI, x
-		sta addr_tmp2+HI
-
-		ldx bg_map_buff_index
-
-		ldy #0
-		trfToBgMapBuf 'L'
-		iny
-		trfToBgMapBuf 'R'
-
-		inx
-		iny
-		trfToBgMapBuf 'L'
-		iny
-		trfToBgMapBuf 'R'
-
-		inx
-		stx bg_map_buff_index
+		trfToBgMapBuf
 
 		ldy tmp1
 		iny

@@ -5,31 +5,55 @@ STAGE_ARR:
 
 MAP_ARR_11:
 	.addr MAP_11_1
+	.addr MAP_11_2
 	.addr $ffff
 
 MAP_11_1:
 	.byte $bd							; GROUND b, c(not d)
-	.byte %10000000, %00000000			; BROCK 13
+	.byte %10000000, %00000000			; BLOCK 13
 	.byte 'G'
 	.byte (GET_OBJ_POS $0, $0), 'G'
-	.byte (GET_OBJ_POS $1, $0), 'Q'
 	.byte (GET_OBJ_POS $1, $4), '^'
+	.byte (GET_OBJ_POS $1, $0), 'Q'
 	.byte (GET_OBJ_POS $5, $3), 'Q'
 	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $5), '^'
-	.byte (GET_OBJ_POS $0, $6), '^'
-	.byte OBJMAP_NEXT
 	.byte (GET_OBJ_POS $0, $5), 'Q'
+	.byte (GET_OBJ_POS $1, $5), 'Q'
+	.byte (GET_OBJ_POS $2, $5), 'Q'
+	.byte (GET_OBJ_POS $3, $5), 'Q'
+	.byte (GET_OBJ_POS $4, $5), 'Q'
+	.byte (GET_OBJ_POS $5, $5), 'Q'
+	.byte (GET_OBJ_POS $6, $5), 'Q'
+	.byte (GET_OBJ_POS $7, $5), 'Q'
+	.byte (GET_OBJ_POS $8, $5), 'Q'
+	.byte (GET_OBJ_POS $9, $5), 'Q'
+	.byte (GET_OBJ_POS $a, $5), 'Q'
+	.byte (GET_OBJ_POS $b, $5), 'Q'
+	.byte (GET_OBJ_POS $c, $5), 'Q'
+	.byte (GET_OBJ_POS $d, $5), 'Q'
+	.byte (GET_OBJ_POS $e, $5), 'Q'
+	.byte (GET_OBJ_POS $f, $5), 'Q'
+	.byte OBJMAP_END
+
+MAP_11_2:
+	.byte $bd							; GROUND b, c(not d)
+	.byte %10000000, %00000000			; BLOCK 13
+	.byte 'G'
+	.byte (GET_OBJ_POS $0, $7), 'Q'
+	.byte (GET_OBJ_POS $0, $6), 'Q'
+	.byte (GET_OBJ_POS $0, $5), 'Q'
+	.byte (GET_OBJ_POS $1, $7), 'Q'
+	.byte (GET_OBJ_POS $1, $6), 'Q'
 	.byte (GET_OBJ_POS $1, $5), 'Q'
 	.byte OBJMAP_END
 
 
 
-BROCK_ID_ARR:
+BLOCK_ID_ARR:
 	; 40 = %0100
 	.addr OBJ_SKY						; @ (or 0)
 	.addr $0000							; A
-	.addr OBJ_BROCK						; B
+	.addr OBJ_BLOCK						; B
 	.addr $0000							; C
 	.addr $0000							; D
 	.addr $0000							; E
@@ -103,7 +127,7 @@ OBJ_QBLOCK:
 	.byte $90, $91
 	.byte $92, $93
 
-OBJ_BROCK:
+OBJ_BLOCK:
 	.byte $94, $94
 	.byte $95, $95
 
