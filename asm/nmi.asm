@@ -71,9 +71,9 @@
 		sta PPU_CTRL1					; Not use restorePPUSet()
 
 		; line 1
-		lda bg_map_addr+1				; hi
+		lda ppu_bg_addr+1				; hi
 		sta PPU_ADDR
-		lda bg_map_addr+0				; lo
+		lda ppu_bg_addr+0				; lo
 		sta PPU_ADDR
 
 		ldx #0
@@ -85,9 +85,9 @@
 		bne @STORE_MAP_LOOP
 
 		; line 2
-		lda bg_map_addr+1				; hi
+		lda ppu_bg_addr+1				; hi
 		sta PPU_ADDR
-		ldx bg_map_addr+0				; lo (increment)
+		ldx ppu_bg_addr+0				; lo (increment)
 		inx
 		stx PPU_ADDR
 
