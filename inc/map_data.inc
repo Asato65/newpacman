@@ -9,7 +9,7 @@ MAP_ARR_11:
 	.addr $ffff
 
 MAP_11_1:
-	.byte $bd							; GROUND b, c(not d)
+	.byte $dd							; GROUND b, c(not d)
 	.byte %10000000, %00000000			; BLOCK 13
 	.byte 'G'
 	.byte (GET_OBJ_POS $0, $0), 'G'
@@ -45,15 +45,17 @@ MAP_11_2:
 	.byte (GET_OBJ_POS $1, $7), 'Q'
 	.byte (GET_OBJ_POS $1, $6), 'Q'
 	.byte (GET_OBJ_POS $1, $5), 'Q'
+	.byte (GET_OBJ_POS $2, $5), 'Q'
+	.byte (GET_OBJ_POS $3, $5), 'Q'
 	.byte OBJMAP_END
 
 
 
-BLOCK_ID_ARR:
+BROCK_ID_ARR:
 	; 40 = %0100
 	.addr OBJ_SKY						; @ (or 0)
 	.addr $0000							; A
-	.addr OBJ_BLOCK						; B
+	.addr OBJ_BROCK						; B
 	.addr $0000							; C
 	.addr $0000							; D
 	.addr $0000							; E
@@ -69,7 +71,7 @@ BLOCK_ID_ARR:
 	.addr $0000							; O
 	; 50 = %0101
 	.addr $0000							; P
-	.addr OBJ_QBLOCK					; Q
+	.addr OBJ_QBROCK					; Q
 	.addr $0000							; R
 	.addr $0000							; S
 	.addr $0000							; T
@@ -123,11 +125,11 @@ OBJ_SKY:
 	.byte $00, $00
 	.byte $00, $00
 
-OBJ_QBLOCK:
+OBJ_QBROCK:
 	.byte $90, $91
 	.byte $92, $93
 
-OBJ_BLOCK:
+OBJ_BROCK:
 	.byte $94, $94
 	.byte $95, $95
 

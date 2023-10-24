@@ -24,9 +24,9 @@ fill_ground_end			: .byte 0
 ;*------------------------------------------------------------------------------
 
 .macro trfToBgMapBuf
-		lda BLOCK_ID_ARR+LO, x
+		lda BROCK_ID_ARR+LO, x
 		sta addr_tmp2+LO
-		lda BLOCK_ID_ARR+HI, x
+		lda BROCK_ID_ARR+HI, x
 		sta addr_tmp2+HI
 
 		ldx bg_map_buff_index
@@ -55,14 +55,6 @@ fill_ground_end			: .byte 0
 .endmacro
 
 
-;*------------------------------------------------------------------------------
-; Increment row counter AND increment map-buff number
-; (executed whenever drawing map)
-; @PARAM	None
-; @BREAK	Y
-; @RETURN	None (Y: Row counter)
-;*------------------------------------------------------------------------------
-
 .macro incRowCounter
 		ldy DrawMap::row_counter
 		iny
@@ -75,26 +67,16 @@ fill_ground_end			: .byte 0
 .endmacro
 
 
-;*------------------------------------------------------------------------------
-; Init index (= FF)
-; @PARAM	None
-; @BREAK	Y
-; @RETURN	None (Y: Index)
-;*------------------------------------------------------------------------------
-
 .macro initIndex
 		ldy #NEGATIVE 1
 		sty DrawMap::index
 .endmacro
 
 
-;*------------------------------------------------------------------------------
-;
-;*------------------------------------------------------------------------------
-
 .macro fillBlocks
+	lda addr_tmp2+LO
 	and #BYT_LO
-	sta addr_tmp1+LO
+	sta addr_tmp2+LO
 	txa
 	pha
 	tya
@@ -103,10 +85,10 @@ fill_ground_end			: .byte 0
 	ldy #0
 @LOOP:
 	lda FILL_BLOCKS, y
-	sta (addr_tmp1, x)
-	lda addr_tmp1+LO
+	sta (addr_tmp2, x)
+	lda addr_tmp2+LO
 	add #$10
-	sta addr_tmp1+LO
+	sta addr_tmp2+LO
 	iny
 	cpy #$d
 	bne @LOOP
@@ -118,26 +100,12 @@ fill_ground_end			: .byte 0
 .endmacro
 
 
-;*------------------------------------------------------------------------------
-; Increment map array number AND load map
-; @PARAM	None
-; @BREAK	A(in _setMapAddr) Y
-; @RETURN	None
-;*------------------------------------------------------------------------------
-
 .macro loadNextMap
 		inc DrawMap::map_arr_num
 		ldy DrawMap::map_arr_num		; Y = ++map_arr_num
 		jsr _setMapAddr
 .endmacro
 
-
-;*------------------------------------------------------------------------------
-; Set PPU-BG addr
-; @PARAM	None
-; @BREAK	A Y tmp1
-; @RETURN	None
-;*------------------------------------------------------------------------------
 
 .macro setPpuBgAddr
 		lda #0
@@ -183,15 +151,23 @@ fill_ground_end			: .byte 0
 		; ------------------------------
 
 @START:
-		ldx #0
 		incRowCounter
+
+		lda DrawMap::map_buff_num
+		and #BIT0
+		ora #4
+		sta addr_tmp2+HI
+
+		lda DrawMap::row_counter
+		sta addr_tmp2
+
+		fillBlocks
 
 		ldy DrawMap::index
 @GET_POS_AND_OBJ_LOOP:
 		; ----------- get pos ----------
-
 		lda (DrawMap::map_addr), y
-		sta tmp1						; Start using tmp1
+		sta tmp1
 
 		; Check Special Code
 		cmp #OBJMAP_NEXT
@@ -210,7 +186,7 @@ fill_ground_end			: .byte 0
 		bne @GET_POS_AND_OBJ_LOOP_EXIT
 
 		; -- Set addr of bg map buff ---
-		and #BIT0						; A = map_buff_num
+		and #BIT0
 		ora #4
 		sta addr_tmp1+HI
 
@@ -242,7 +218,7 @@ fill_ground_end			: .byte 0
 		cmp #ENDCODE					; A = Addr Hi
 		beq @END_OF_STAGE
 
-		ldy #3
+		ldy #3							; この後inyされてy(index) = 4に
 
 @LOAD_NEXT_MAP:
 		inc DrawMap::cnt_map_next
@@ -257,8 +233,7 @@ fill_ground_end			: .byte 0
 		sty DrawMap::isend_draw_stage
 
 @PREPARE_BG_MAP_BUF:
-		lda addr_tmp1+LO
-		and #BYT_LO
+		lda row_counter
 		sta addr_tmp1+LO				; PosY = 0
 
 		setPpuBgAddr
@@ -285,20 +260,18 @@ fill_ground_end			: .byte 0
 		lda (addr_tmp1), y
 
 		; prepare plt data -------------
-		; sty tmp2						; (save counter) += $10   -> 不要？？？
-		sta tmp4						; Start using tmp4
+		sty tmp2						; (save counter) += $10
+		ldy tmp1						; (save counter) += 1
+		pha
 		and #BIT5|BIT4
 		tax								; X: plt num(bit4-5) : tmp (Start using)
-
-		ldy tmp1						; Counter (+= 1)
+		lda DrawMap::row_counter
+		and #BIT0
+		sta tmp3
 		tya
 		and #BIT0
 		shl #1
 		ora tmp3
-		sta tmp3
-
-		lda DrawMap::row_counter
-		and #BIT0
 		sta tmp3
 
 		; y /= 2 (Use @PLT0) -> MEMO: 短縮可能
@@ -306,6 +279,8 @@ fill_ground_end			: .byte 0
 		shr #1
 		tay
 
+		txa								; End using X (plt num)
+		ldx tmp3
 		/*
 		PLT_DATA = BLOCK3|BLOCK2|BLOCK1|BLOCK0
 		-------------------------------
@@ -313,8 +288,6 @@ fill_ground_end			: .byte 0
 		| BLOCK2(0)   | BLOCK3(<<2) |
 		-------------------------------
 		*/
-		txa								; End using X (plt num)
-		ldx tmp3
 		beq @BLOCK0
 		dex
 		beq @BLOCK1
@@ -338,8 +311,8 @@ fill_ground_end			: .byte 0
 @STORE_TO_PLT_BUFF:
 		sta BG_PLT_BUFF, y
 
-		lda tmp4						; End using tmp4
-		; ldy tmp2						; 不要????????????????????????????????????????????
+		pla
+		ldy tmp2
 
 		and #BIT5|BIT4|BIT3|BIT2|BIT1|BIT0
 		shl #1
@@ -393,15 +366,16 @@ fill_ground_end			: .byte 0
 
 .proc _setMapAddr
 		tya
-		shl #1
+		shl
 		tay
+		pha								; push y
 
-		; main
 		lda (DrawMap::map_arr_addr), y
-		sta DrawMap::map_addr+LO
+		sta DrawMap::map_addr
+
 		iny
 		lda (DrawMap::map_arr_addr), y
-		sta DrawMap::map_addr+HI
+		sta DrawMap::map_addr+1
 
 	; ffコードをこの関数の返値にして，この関数の外でマップ終了を判定しているが
 	; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
@@ -409,35 +383,41 @@ fill_ground_end			: .byte 0
 	; procを使っているため今は無理
 	cmp #ENDCODE
 	bne @NO_EXIT
+	pla
+	tay
+	lda #ENDCODE
 	rts
+@NO_EXIT:
+
 	; ------------------------------
 
-@NO_EXIT:
-	; ------------------------------
 	ldy #0
 
 	lda (DrawMap::map_addr), y
-	and #BYT_LO
+	and #%0000_1111
 	sta DrawMap::fill_ground_end
 
 	lda (DrawMap::map_addr), y
 	shr #4
 	tay
+	cpy DrawMap::fill_ground_end
+	beq @NOLOOP
 
 	lda DrawMap::fill_ground_block
 
 @LOOP:
-	cpy DrawMap::fill_ground_end
-	beq @LOOP_EXIT
 	sta FILL_BLOCKS, y
 	iny
+	cpy DrawMap::fill_ground_end
 	bne @LOOP
-
-@LOOP_EXIT:
+@NOLOOP:
 
 	ldy #4
 	sty DrawMap::index
 	; ----------------------------------
+
+		pla
+		tay
 
 		rts
 		; ------------------------------
