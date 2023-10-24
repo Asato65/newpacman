@@ -391,6 +391,8 @@ fill_ground_end			: .byte 0
 
 	; ------------------------------
 
+
+	; ----------- fill ground ----------
 	ldy #0
 
 	lda (DrawMap::map_addr), y
@@ -399,20 +401,55 @@ fill_ground_end			: .byte 0
 
 	lda (DrawMap::map_addr), y
 	shr #4
-	tay
-	cpy DrawMap::fill_ground_end
-	beq @NOLOOP
+	tax
+	cpx DrawMap::fill_ground_end
+	beq @FILL_GROUND_LOOP_END
 
 	lda DrawMap::fill_ground_block
 
-@LOOP:
-	sta FILL_BLOCKS, y
-	iny
-	cpy DrawMap::fill_ground_end
-	bne @LOOP
-@NOLOOP:
+@FILL_GROUND_LOOP:
+	sta FILL_BLOCKS, x
+	inx
+	cpx DrawMap::fill_ground_end
+	bne @FILL_GROUND_LOOP
+@FILL_GROUND_LOOP_END:
 
-	ldy #4
+	; ------------ fill block ----------
+	iny									; y = 1
+	lda (DrawMap::map_addr), y
+	sta DrawMap::fill_block
+
+	iny									; y = 2
+	lda (DrawMap::map_addr), y
+	shl #3
+	ldx #0
+@FILL_BLOCK_LOOP_UPPER:
+	shl #1
+	bcc @NO_BLOCK1
+	pha
+	lda DrawMap::fill_block
+	sta FILL_BLOCKS, x
+	pla
+@NO_BLOCK1:
+	inx
+	cpx #$5
+	bcc @FILL_BLOCK_LOOP_UPPER
+
+	iny									; y = 3
+	lda (DrawMap::map_addr), y
+@FILL_BLOCK_LOOP_LOWER:
+	shl #1
+	bcc @NO_BLOCK2
+	pha
+	lda DrawMap::fill_block
+	sta FILL_BLOCKS, x
+	pla
+@NO_BLOCK2:
+	inx
+	cpx #$d
+	bcc @FILL_BLOCK_LOOP_LOWER
+
+	iny									; y = 4
 	sty DrawMap::index
 	; ----------------------------------
 

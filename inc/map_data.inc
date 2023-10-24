@@ -9,9 +9,9 @@ MAP_ARR_11:
 	.addr $ffff
 
 MAP_11_1:
-	.byte $dd							; GROUND b, c(not d)
-	.byte %10000000, %00000000			; BLOCK 13
-	.byte 'G'
+	.byte $0d
+	.byte 'B'
+	.byte %00000000, %00000000
 	.byte (GET_OBJ_POS $0, $0), 'G'
 	.byte (GET_OBJ_POS $1, $4), '^'
 	.byte (GET_OBJ_POS $1, $0), 'Q'
@@ -36,9 +36,9 @@ MAP_11_1:
 	.byte OBJMAP_END
 
 MAP_11_2:
-	.byte $bd							; GROUND b, c(not d)
-	.byte %10000000, %00000000			; BLOCK 13
-	.byte 'G'
+	.byte $dd
+	.byte 'B'
+	.byte %00000000, %10000000
 	.byte (GET_OBJ_POS $0, $7), 'Q'
 	.byte (GET_OBJ_POS $0, $6), 'Q'
 	.byte (GET_OBJ_POS $0, $5), 'Q'

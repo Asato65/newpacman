@@ -242,9 +242,9 @@ Current file: pacman.asm
 000036r 2  FF FF        	.addr $ffff
 000038r 2               
 000038r 2               MAP_11_1:
-000038r 2  DD           	.byte $dd							; GROUND b, c(not d)
-000039r 2  80 00        	.byte %10000000, %00000000			; BLOCK 13
-00003Br 2  47           	.byte 'G'
+000038r 2  0E           	.byte $0e							; GROUND b, c(not d)
+000039r 2  42           	.byte 'B'
+00003Ar 2  00 00        	.byte %00000000, %00000000			; BLOCK 13
 00003Cr 2  C0 47        	.byte (GET_OBJ_POS $0, $0), 'G'
 00003Er 2  81 5E        	.byte (GET_OBJ_POS $1, $4), '^'
 000040r 2  C1 51        	.byte (GET_OBJ_POS $1, $0), 'Q'
@@ -269,9 +269,9 @@ Current file: pacman.asm
 000065r 2  FF           	.byte OBJMAP_END
 000066r 2               
 000066r 2               MAP_11_2:
-000066r 2  BD           	.byte $bd							; GROUND b, c(not d)
-000067r 2  80 00        	.byte %10000000, %00000000			; BLOCK 13
-000069r 2  47           	.byte 'G'
+000066r 2  DD           	.byte $dd							; GROUND b, c(not d)
+000067r 2  47           	.byte 'G'
+000068r 2  00 80        	.byte %00000000, %10000000			; BLOCK 13
 00006Ar 2  50 51        	.byte (GET_OBJ_POS $0, $7), 'Q'
 00006Cr 2  60 51        	.byte (GET_OBJ_POS $0, $6), 'Q'
 00006Er 2  70 51        	.byte (GET_OBJ_POS $0, $5), 'Q'
@@ -1559,6 +1559,8 @@ Current file: pacman.asm
 0003B6r 2               
 0003B6r 2               	; ------------------------------
 0003B6r 2               
+0003B6r 2               
+0003B6r 2               	; ----------- fill ground ----------
 0003B6r 2  A0 00        	ldy #0
 0003B8r 2               
 0003B8r 2  B1 rr        	lda (DrawMap::map_addr), y
@@ -1567,64 +1569,99 @@ Current file: pacman.asm
 0003BEr 2               
 0003BEr 2  B1 rr        	lda (DrawMap::map_addr), y
 0003C0r 2  4A 4A 4A 4A  	shr #4
-0003C4r 2  A8           	tay
-0003C5r 2  C4 rr        	cpy DrawMap::fill_ground_end
-0003C7r 2  F0 0A        	beq @NOLOOP
+0003C4r 2  AA           	tax
+0003C5r 2  E4 rr        	cpx DrawMap::fill_ground_end
+0003C7r 2  F0 0A        	beq @FILL_GROUND_LOOP_END
 0003C9r 2               
 0003C9r 2  A5 rr        	lda DrawMap::fill_ground_block
 0003CBr 2               
-0003CBr 2               @LOOP:
-0003CBr 2  99 3C 01     	sta FILL_BLOCKS, y
-0003CEr 2  C8           	iny
-0003CFr 2  C4 rr        	cpy DrawMap::fill_ground_end
-0003D1r 2  D0 F8        	bne @LOOP
-0003D3r 2               @NOLOOP:
+0003CBr 2               @FILL_GROUND_LOOP:
+0003CBr 2  9D 3C 01     	sta FILL_BLOCKS, x
+0003CEr 2  E8           	inx
+0003CFr 2  E4 rr        	cpx DrawMap::fill_ground_end
+0003D1r 2  D0 F8        	bne @FILL_GROUND_LOOP
+0003D3r 2               @FILL_GROUND_LOOP_END:
 0003D3r 2               
-0003D3r 2  A0 04        	ldy #4
-0003D5r 2  84 rr        	sty DrawMap::index
-0003D7r 2               	; ----------------------------------
-0003D7r 2               
-0003D7r 2  68           		pla
-0003D8r 2  A8           		tay
-0003D9r 2               
-0003D9r 2  60           		rts
-0003DAr 2               		; ------------------------------
-0003DAr 2               .endproc
-0003DAr 2               
-0003DAr 2               
-0003DAr 2               .endscope
-0003DAr 2               
-0003DAr 1               .include "main.asm"
-0003DAr 2               ;*------------------------------------------------------------------------------
-0003DAr 2               ; MAIN routine
-0003DAr 2               ;*------------------------------------------------------------------------------
-0003DAr 2               
-0003DAr 2               .code									; ----- code -----
-0003DAr 2               
-0003DAr 2               .proc _main
-0003DAr 2  A5 rr        		lda is_processing_main
-0003DCr 2  F0 FC        		beq _main
-0003DEr 2               
-0003DEr 2  20 rr rr     		jsr Joypad::_getJoyData
-0003E1r 2               
-0003E1r 2  A5 rr        		lda Joypad::joy1_pushstart
-0003E3r 2  29 80        		and #Joypad::BTN_A
-0003E5r 2  F0 06        		beq @NO_PUSHED_BTN_A
-0003E7r 2               
-0003E7r 2  20 rr rr     		jsr DrawMap::_updateOneLine
-0003EAr 2  20 rr rr     		jsr Subfunc::_preparePltData
-0003EDr 2               @NO_PUSHED_BTN_A:
-0003EDr 2               
-0003EDr 2               		; ----- End main -----
-0003EDr 2  A9 00        		lda #0
-0003EFr 2  85 rr        		sta is_processing_main
-0003F1r 2  4C rr rr     		jmp _main
-0003F4r 2               		; ------------------------------
-0003F4r 2               .endproc
-0003F4r 2               
-0003F4r 1               
-0003F4r 1               ; Use .org
-0003F4r 1               .org SPR_BUFF
+0003D3r 2               	; ------------ fill block ----------
+0003D3r 2  C8           	iny									; y = 1
+0003D4r 2  B1 rr        	lda (DrawMap::map_addr), y
+0003D6r 2  85 rr        	sta DrawMap::fill_block
+0003D8r 2               
+0003D8r 2  C8           	iny									; y = 2
+0003D9r 2  B1 rr        	lda (DrawMap::map_addr), y
+0003DBr 2  0A 0A 0A     	shl #3
+0003DEr 2  A2 00        	ldx #0
+0003E0r 2               @FILL_BLOCK_LOOP_UPPER:
+0003E0r 2  0A           	shl #1
+0003E1r 2  90 07        	bcc @NO_BLOCK1
+0003E3r 2  48           	pha
+0003E4r 2  A5 rr        	lda DrawMap::fill_block
+0003E6r 2  9D 3C 01     	sta FILL_BLOCKS, x
+0003E9r 2  68           	pla
+0003EAr 2               @NO_BLOCK1:
+0003EAr 2  E8           	inx
+0003EBr 2  E0 05        	cpx #$5
+0003EDr 2  90 F1        	bcc @FILL_BLOCK_LOOP_UPPER
+0003EFr 2               
+0003EFr 2  C8           	iny									; y = 3
+0003F0r 2  B1 rr        	lda (DrawMap::map_addr), y
+0003F2r 2               @FILL_BLOCK_LOOP_LOWER:
+0003F2r 2  0A           	shl #1
+0003F3r 2  90 07        	bcc @NO_BLOCK2
+0003F5r 2  48           	pha
+0003F6r 2  A5 rr        	lda DrawMap::fill_block
+0003F8r 2  9D 3C 01     	sta FILL_BLOCKS, x
+0003FBr 2  68           	pla
+0003FCr 2               @NO_BLOCK2:
+0003FCr 2  E8           	inx
+0003FDr 2  E0 0D        	cpx #$d
+0003FFr 2  90 F1        	bcc @FILL_BLOCK_LOOP_LOWER
+000401r 2               
+000401r 2  C8           	iny									; y = 4
+000402r 2  84 rr        	sty DrawMap::index
+000404r 2               	; ----------------------------------
+000404r 2               
+000404r 2  68           		pla
+000405r 2  A8           		tay
+000406r 2               
+000406r 2  60           		rts
+000407r 2               		; ------------------------------
+000407r 2               .endproc
+000407r 2               
+000407r 2               
+000407r 2               .endscope
+000407r 2               
+000407r 1               .include "main.asm"
+000407r 2               ;*------------------------------------------------------------------------------
+000407r 2               ; MAIN routine
+000407r 2               ;*------------------------------------------------------------------------------
+000407r 2               
+000407r 2               .code									; ----- code -----
+000407r 2               
+000407r 2               .proc _main
+000407r 2  A5 rr        		lda is_processing_main
+000409r 2  F0 FC        		beq _main
+00040Br 2               
+00040Br 2  20 rr rr     		jsr Joypad::_getJoyData
+00040Er 2               
+00040Er 2  A5 rr        		lda Joypad::joy1_pushstart
+000410r 2  29 80        		and #Joypad::BTN_A
+000412r 2  F0 06        		beq @NO_PUSHED_BTN_A
+000414r 2               
+000414r 2  20 rr rr     		jsr DrawMap::_updateOneLine
+000417r 2  20 rr rr     		jsr Subfunc::_preparePltData
+00041Ar 2               @NO_PUSHED_BTN_A:
+00041Ar 2               
+00041Ar 2               		; ----- End main -----
+00041Ar 2  A9 00        		lda #0
+00041Cr 2  85 rr        		sta is_processing_main
+00041Er 2  4C rr rr     		jmp _main
+000421r 2               		; ------------------------------
+000421r 2               .endproc
+000421r 2               
+000421r 1               
+000421r 1               ; Use .org
+000421r 1               .org SPR_BUFF
 000300  1  xx xx xx xx  		.tag SPR_TBL
 000304  1  xx xx xx xx  
 000308  1  xx xx xx xx  
