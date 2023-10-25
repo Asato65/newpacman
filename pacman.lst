@@ -1,4 +1,4 @@
-ca65 V2.19 - Git de30a57
+ca65 V2.19 - Git 6924d44
 Main file   : pacman.asm
 Current file: pacman.asm
 
@@ -242,9 +242,9 @@ Current file: pacman.asm
 000036r 2  FF FF        	.addr $ffff
 000038r 2               
 000038r 2               MAP_11_1:
-000038r 2  0E           	.byte $0e							; GROUND b, c(not d)
+000038r 2  0D           	.byte $0d
 000039r 2  42           	.byte 'B'
-00003Ar 2  00 00        	.byte %00000000, %00000000			; BLOCK 13
+00003Ar 2  00 00        	.byte %00000000, %00000000
 00003Cr 2  C0 47        	.byte (GET_OBJ_POS $0, $0), 'G'
 00003Er 2  81 5E        	.byte (GET_OBJ_POS $1, $4), '^'
 000040r 2  C1 51        	.byte (GET_OBJ_POS $1, $0), 'Q'
@@ -269,9 +269,9 @@ Current file: pacman.asm
 000065r 2  FF           	.byte OBJMAP_END
 000066r 2               
 000066r 2               MAP_11_2:
-000066r 2  DD           	.byte $dd							; GROUND b, c(not d)
-000067r 2  47           	.byte 'G'
-000068r 2  00 80        	.byte %00000000, %10000000			; BLOCK 13
+000066r 2  DD           	.byte $dd
+000067r 2  42           	.byte 'B'
+000068r 2  00 80        	.byte %00000000, %10000000
 00006Ar 2  50 51        	.byte (GET_OBJ_POS $0, $7), 'Q'
 00006Cr 2  60 51        	.byte (GET_OBJ_POS $0, $6), 'Q'
 00006Er 2  70 51        	.byte (GET_OBJ_POS $0, $5), 'Q'
