@@ -1,9 +1,9 @@
 ; ------------------------------------------------------------------------------
 ; Load array
 ; A = Arr[X][Y]
-; @PARAM	ADDR: Array Address
-; @PARAM	X Y: index (Access Arr[x][y])
-; @BREAK	tmp1
+; @PARAMS		ADDR: Array Address
+; @PARAMS		X Y: index (Access Arr[x][y])
+; @CLOBBERS		tmp1
 ; ------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -43,8 +43,8 @@
 ; This Macro only supports Immediate/Zeropage/Absolute addressing.
 ; Other addressing modes are not optimized for speed.
 ; Other addressing usage: add a, {$00, x} / add a, {($00), y}
-; @PARAM	arg1: register or Address
-; @PARAM	arg2
+; @PARAMS		arg1: register or Address
+; @PARAMS		arg2
 ; ------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -108,8 +108,8 @@
 ; ------------------------------------------------------------------------------
 ; Subtraction
 ; See macro add for comments
-; @PARAM	arg1: register or Address
-; @PARAM	arg2
+; @PARAMS		arg1: register or Address
+; @PARAMS		arg2
 ; ------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -162,7 +162,7 @@
 ;*------------------------------------------------------------------------------
 ; Light shift
 ; arg1 <<= c
-; @PARAM	c: default=#1
+; @PARAMS		c: default=#1
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -183,7 +183,7 @@
 ;*------------------------------------------------------------------------------
 ; Right shift
 ; arg1 >>= c
-; @PARAM	c: default=#1
+; @PARAMS		c: default=#1
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -205,7 +205,7 @@
 ; Arithmetic left shift
 ;! Deprecated (Not shortened)
 ; A >>= c
-; @PARAM	c: default=1
+; @PARAMS		c: default=1
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -230,7 +230,7 @@
 ;*------------------------------------------------------------------------------
 ; Arithmetic right shift
 ; A >>= c
-; @PARAM	c: default=1
+; @PARAMS		c: default=1
 ;
 ; To ASR a memory location
 ; (From http://wiki.nesdev.com/w/index.php/Synthetic_instructions#Arithmetic_shift_right)

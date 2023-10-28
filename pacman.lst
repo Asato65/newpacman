@@ -144,9 +144,9 @@ Current file: pacman.asm
 000000r 1               .include "./inc/defmacro.inc"
 000000r 2               ;*------------------------------------------------------------------------------
 000000r 2               ; Calcurate BG address
-000000r 2               ; @PARAM ptx: X coordinate
-000000r 2               ; @PARAM pty: Y coordinate
-000000r 2               ; @PARAM scn: Screen number
+000000r 2               ; @PARAMS ptx: X coordinate
+000000r 2               ; @PARAMS pty: Y coordinate
+000000r 2               ; @PARAMS scn: Screen number
 000000r 2               ;*------------------------------------------------------------------------------
 000000r 2               
 000000r 2               .define ADDR_BG (ptx, pty, scn)			$2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
@@ -154,8 +154,8 @@ Current file: pacman.asm
 000000r 2               
 000000r 2               ;*------------------------------------------------------------------------------
 000000r 2               ; Calcurate SPR address
-000000r 2               ; @PARAM spr_num: Sprite number (0~63)
-000000r 2               ; @PARAM member:
+000000r 2               ; @PARAMS spr_num: Sprite number (0~63)
+000000r 2               ; @PARAMS member:
 000000r 2               ; 	pty: PosiTion Y
 000000r 2               ; 	num: Tile(8*8) number
 000000r 2               ; 	att: Attribute (VertFlip|HorizonFlip|Prio|Unused(3)|PltNum(2))
@@ -177,8 +177,8 @@ Current file: pacman.asm
 000000r 2               
 000000r 2               ;*------------------------------------------------------------------------------
 000000r 2               ; Get obj position
-000000r 2               ; @PARAM	posX, posY
-000000r 2               ; @RETURN	$YX
+000000r 2               ; @PARAMS	posX, posY
+000000r 2               ; @RETURNS		$YX
 000000r 2               ;*------------------------------------------------------------------------------
 000000r 2               
 000000r 2               .define GET_OBJ_POS(posX, posY)		($c - (posY)) * $10 + (posX)
@@ -401,9 +401,9 @@ Current file: pacman.asm
 000020r 2               
 000020r 2               ;*------------------------------------------------------------------------------
 000020r 2               ; Get Joypad data (including prev and newly pushed btn)
-000020r 2               ; @PARAM	None
-000020r 2               ; @BREAK	A
-000020r 2               ; @RETURN	None
+000020r 2               ; @PARAMS	None
+000020r 2               ; @CLOBBERS		A
+000020r 2               ; @RETURNS		None
 000020r 2               ;*------------------------------------------------------------------------------
 000020r 2               
 000020r 2               .code									; ----- code -----
@@ -447,9 +447,9 @@ Current file: pacman.asm
 00013Cr 2               
 00013Cr 2               ;*------------------------------------------------------------------------------
 00013Cr 2               ; Read controller
-00013Cr 2               ; @PARAM	None
-00013Cr 2               ; @BREAK	A
-00013Cr 2               ; @RETURN	None
+00013Cr 2               ; @PARAMS	None
+00013Cr 2               ; @CLOBBERS		A
+00013Cr 2               ; @RETURNS		None
 00013Cr 2               ;*------------------------------------------------------------------------------
 00013Cr 2               
 00013Cr 2               .code									; ----- code -----
@@ -483,9 +483,9 @@ Current file: pacman.asm
 00015Cr 2               ; ------------------------------------------------------------------------------
 00015Cr 2               ; Load array
 00015Cr 2               ; A = Arr[X][Y]
-00015Cr 2               ; @PARAM	ADDR: Array Address
-00015Cr 2               ; @PARAM	X Y: index (Access Arr[x][y])
-00015Cr 2               ; @BREAK	tmp1
+00015Cr 2               ; @PARAMS	ADDR: Array Address
+00015Cr 2               ; @PARAMS	X Y: index (Access Arr[x][y])
+00015Cr 2               ; @CLOBBERS		tmp1
 00015Cr 2               ; ------------------------------------------------------------------------------
 00015Cr 2               
 00015Cr 2               .code									; ----- code -----
@@ -525,8 +525,8 @@ Current file: pacman.asm
 00015Cr 2               ; This Macro only supports Immediate/Zeropage/Absolute addressing.
 00015Cr 2               ; Other addressing modes are not optimized for speed.
 00015Cr 2               ; Other addressing usage: add a, {$00, x} / add a, {($00), y}
-00015Cr 2               ; @PARAM	arg1: register or Address
-00015Cr 2               ; @PARAM	arg2
+00015Cr 2               ; @PARAMS	arg1: register or Address
+00015Cr 2               ; @PARAMS	arg2
 00015Cr 2               ; ------------------------------------------------------------------------------
 00015Cr 2               
 00015Cr 2               .code									; ----- code -----
@@ -590,8 +590,8 @@ Current file: pacman.asm
 00015Cr 2               ; ------------------------------------------------------------------------------
 00015Cr 2               ; Subtraction
 00015Cr 2               ; See macro add for comments
-00015Cr 2               ; @PARAM	arg1: register or Address
-00015Cr 2               ; @PARAM	arg2
+00015Cr 2               ; @PARAMS	arg1: register or Address
+00015Cr 2               ; @PARAMS	arg2
 00015Cr 2               ; ------------------------------------------------------------------------------
 00015Cr 2               
 00015Cr 2               .code									; ----- code -----
@@ -644,7 +644,7 @@ Current file: pacman.asm
 00015Cr 2               ;*------------------------------------------------------------------------------
 00015Cr 2               ; Light shift
 00015Cr 2               ; arg1 <<= c
-00015Cr 2               ; @PARAM	c: default=#1
+00015Cr 2               ; @PARAMS	c: default=#1
 00015Cr 2               ;*------------------------------------------------------------------------------
 00015Cr 2               
 00015Cr 2               .code									; ----- code -----
@@ -665,7 +665,7 @@ Current file: pacman.asm
 00015Cr 2               ;*------------------------------------------------------------------------------
 00015Cr 2               ; Right shift
 00015Cr 2               ; arg1 >>= c
-00015Cr 2               ; @PARAM	c: default=#1
+00015Cr 2               ; @PARAMS	c: default=#1
 00015Cr 2               ;*------------------------------------------------------------------------------
 00015Cr 2               
 00015Cr 2               .code									; ----- code -----
@@ -687,7 +687,7 @@ Current file: pacman.asm
 00015Cr 2               ; Arithmetic left shift
 00015Cr 2               ;! Deprecated (Not shortened)
 00015Cr 2               ; A >>= c
-00015Cr 2               ; @PARAM	c: default=1
+00015Cr 2               ; @PARAMS	c: default=1
 00015Cr 2               ;*------------------------------------------------------------------------------
 00015Cr 2               
 00015Cr 2               .code									; ----- code -----
@@ -712,7 +712,7 @@ Current file: pacman.asm
 00015Cr 2               ;*------------------------------------------------------------------------------
 00015Cr 2               ; Arithmetic right shift
 00015Cr 2               ; A >>= c
-00015Cr 2               ; @PARAM	c: default=1
+00015Cr 2               ; @PARAMS	c: default=1
 00015Cr 2               ;
 00015Cr 2               ; To ASR a memory location
 00015Cr 2               ; (From http://wiki.nesdev.com/w/index.php/Synthetic_instructions#Arithmetic_shift_right)
@@ -781,9 +781,9 @@ Current file: pacman.asm
 00015Cr 2               
 00015Cr 2               ;*------------------------------------------------------------------------------
 00015Cr 2               ; Restore PPU setting
-00015Cr 2               ; @PARAM	None
-00015Cr 2               ; @BREAK	A
-00015Cr 2               ; @RETURN	None
+00015Cr 2               ; @PARAMS	None
+00015Cr 2               ; @CLOBBERS		A
+00015Cr 2               ; @RETURNS		None
 00015Cr 2               ;*------------------------------------------------------------------------------
 00015Cr 2               
 00015Cr 2               .code									; ----- code -----
@@ -802,9 +802,9 @@ Current file: pacman.asm
 000167r 2               ;*------------------------------------------------------------------------------
 000167r 2               ; Set scroll position
 000167r 2               ; Use during NMI or executing raster scroll.
-000167r 2               ; @PARAM	None
-000167r 2               ; @BREAK	A
-000167r 2               ; @RETURN	None
+000167r 2               ; @PARAMS	None
+000167r 2               ; @CLOBBERS		A
+000167r 2               ; @RETURNS		None
 000167r 2               ;*------------------------------------------------------------------------------
 000167r 2               
 000167r 2               .code									; ----- code -----
@@ -828,9 +828,9 @@ Current file: pacman.asm
 00017Br 2               
 00017Br 2               ;*------------------------------------------------------------------------------
 00017Br 2               ; Wait starting vblank
-00017Br 2               ; @PARAM	None
-00017Br 2               ; @BREAK	None
-00017Br 2               ; @RETURN	Non
+00017Br 2               ; @PARAMS	None
+00017Br 2               ; @CLOBBERS		None
+00017Br 2               ; @RETURNS		Non
 00017Br 2               ;*------------------------------------------------------------------------------
 00017Br 2               
 00017Br 2               .code									; ----- code -----
@@ -845,9 +845,9 @@ Current file: pacman.asm
 000181r 2               
 000181r 2               ;*------------------------------------------------------------------------------
 000181r 2               ; Disp status text
-000181r 2               ; @PARAM	None
-000181r 2               ; @BREAK	A X Y
-000181r 2               ; @RETURN	None
+000181r 2               ; @PARAMS	None
+000181r 2               ; @CLOBBERS		A X Y
+000181r 2               ; @RETURNS		None
 000181r 2               ;*------------------------------------------------------------------------------
 000181r 2               
 000181r 2               .code									; ----- code -----
@@ -882,9 +882,9 @@ Current file: pacman.asm
 00001Fr 2               
 00001Fr 2               ;*------------------------------------------------------------------------------
 00001Fr 2               ; Prepare plt data
-00001Fr 2               ; @PARAM	None
-00001Fr 2               ; @BREAK	A X Y
-00001Fr 2               ; @RETURN	None
+00001Fr 2               ; @PARAMS	None
+00001Fr 2               ; @CLOBBERS		A X Y
+00001Fr 2               ; @RETURNS		None
 00001Fr 2               ;*------------------------------------------------------------------------------
 00001Fr 2               
 00001Fr 2               .proc _preparePltData
@@ -898,9 +898,9 @@ Current file: pacman.asm
 000020r 2               ;*------------------------------------------------------------------------------
 000020r 2               ; bg_buffを読み取り，指定アドレスに書き込んでカウンタをインクリメント
 000020r 2               ; Read PPU update data & store to PPU
-000020r 2               ; @PARAM	ADDR: Forwarding address
-000020r 2               ; @BREAK	A X
-000020r 2               ; @RETURN	None
+000020r 2               ; @PARAMS	ADDR: Forwarding address
+000020r 2               ; @CLOBBERS		A X
+000020r 2               ; @RETURNS		None
 000020r 2               ;*------------------------------------------------------------------------------
 000020r 2               
 000020r 2               .code									; ----- code -----
@@ -924,7 +924,7 @@ Current file: pacman.asm
 000196r 2               
 000196r 2               ;*------------------------------------------------------------------------------
 000196r 2               ; NMI (Interrupt)
-000196r 2               ; @BREAK X Y (When end main process.)
+000196r 2               ; @CLOBBERS	 X Y (When end main process.)
 000196r 2               ; To shorten the clock, put the buffer data on the stack
 000196r 2               ; 	(Shorten clock by buff data length)
 000196r 2               ; 	pla -> 3 clc
@@ -1258,9 +1258,9 @@ Current file: pacman.asm
 000030r 2               
 000030r 2               ;*------------------------------------------------------------------------------
 000030r 2               ; Transfar obj data (8*8) to BG map buff($04XX/$05XX)
-000030r 2               ; @PARAM	X: Block ID
-000030r 2               ; @BREAK	A X Y
-000030r 2               ; @RETURN	None
+000030r 2               ; @PARAMS	X: Block ID
+000030r 2               ; @CLOBBERS		A X Y
+000030r 2               ; @RETURNS		None
 000030r 2               ;*------------------------------------------------------------------------------
 000030r 2               
 000030r 2               .macro trfToBgMapBuf
@@ -1453,9 +1453,9 @@ Current file: pacman.asm
 000030r 2               
 000030r 2               ;*------------------------------------------------------------------------------
 000030r 2               ; Update one row
-000030r 2               ; @PARAM	None
-000030r 2               ; @BREAK	A X Y tmp1 addr_tmp1 addr_tmp2
-000030r 2               ; @RETURN	None
+000030r 2               ; @PARAMS	None
+000030r 2               ; @CLOBBERS		A X Y tmp1 addr_tmp1 addr_tmp2
+000030r 2               ; @RETURNS		None
 000030r 2               /* main label
 000030r 2               	@START:
 000030r 2               	@GET_POS_AND_OBJ_LOOP:
@@ -1666,9 +1666,9 @@ Current file: pacman.asm
 000395r 2               
 000395r 2               ;*------------------------------------------------------------------------------
 000395r 2               ; Set addr of stages
-000395r 2               ; @PARAM	Y: stage number
-000395r 2               ; @BREAK	A Y
-000395r 2               ; @RETURN	None (A = addr Hi)
+000395r 2               ; @PARAMS	Y: stage number
+000395r 2               ; @CLOBBERS		A Y
+000395r 2               ; @RETURNS		None (A = addr Hi)
 000395r 2               ;*------------------------------------------------------------------------------
 000395r 2               
 000395r 2               .code									; ----- code -----
@@ -1690,9 +1690,9 @@ Current file: pacman.asm
 0003A3r 2               
 0003A3r 2               ;*------------------------------------------------------------------------------
 0003A3r 2               ; Set addr of maps
-0003A3r 2               ; @PARAM	Y: map index
-0003A3r 2               ; @BREAK	A Y
-0003A3r 2               ; @RETURN	None
+0003A3r 2               ; @PARAMS	Y: map index
+0003A3r 2               ; @CLOBBERS		A Y
+0003A3r 2               ; @RETURNS		None
 0003A3r 2               ;*------------------------------------------------------------------------------
 0003A3r 2               
 0003A3r 2               .code									; ----- code -----

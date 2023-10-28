@@ -19,9 +19,9 @@ fill_ground_start		: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Transfar obj data (8*8) to BG map buff($04XX/$05XX)
-; @PARAM	X: Block ID
-; @BREAK	A X Y
-; @RETURN	None
+; @PARAMS		X: Block ID
+; @CLOBBERS		A X Y
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .macro trfToBgMapBuf
@@ -214,9 +214,9 @@ fill_ground_start		: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Update one row
-; @PARAM	None
-; @BREAK	A X Y tmp1 addr_tmp1 addr_tmp2
-; @RETURN	None
+; @PARAMS		None
+; @CLOBBERS		A X Y tmp1 addr_tmp1 addr_tmp2
+; @RETURNS		None
 /* main label
 	@START:
 	@GET_POS_AND_OBJ_LOOP:
@@ -418,9 +418,9 @@ fill_ground_start		: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Set addr of stages
-; @PARAM	Y: stage number
-; @BREAK	A Y
-; @RETURN	None (A = addr Hi)
+; @PARAMS		Y: stage number
+; @CLOBBERS		A Y
+; @RETURNS		None (A = addr Hi)
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -442,9 +442,9 @@ fill_ground_start		: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Set addr of maps
-; @PARAM	Y: map index
-; @BREAK	A Y
-; @RETURN	None
+; @PARAMS		Y: map index
+; @CLOBBERS		A Y
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----

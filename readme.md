@@ -1,5 +1,3 @@
-# MY NES PROGRAM 4
-
 ## Rule
 
 ### Naming convention
@@ -15,9 +13,9 @@
 ```
 ;*------------------------------------------------------------------------------
 ; Function description
-; @PARAM	posX: character position X
-; @BREAK	A X tmp1 (<- register, temporary memory)
-; @RETURN	None
+; @PARAMS		posX: character position X
+; @CLOBBERS		A X tmp1 (<- register, temporary memory)
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .scope HelloWorld						; This program is located in the "hello_world.asm".

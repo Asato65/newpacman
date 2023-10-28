@@ -1,8 +1,8 @@
 ;*------------------------------------------------------------------------------
 ; Calcurate BG address
-; @PARAM ptx: X coordinate
-; @PARAM pty: Y coordinate
-; @PARAM scn: Screen number
+; @PARAMS	 ptx: X coordinate
+; @PARAMS	 pty: Y coordinate
+; @PARAMS	 scn: Screen number
 ;*------------------------------------------------------------------------------
 
 .define ADDR_BG (ptx, pty, scn)			$2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
@@ -10,8 +10,8 @@
 
 ;*------------------------------------------------------------------------------
 ; Calcurate SPR address
-; @PARAM spr_num: Sprite number (0~63)
-; @PARAM member:
+; @PARAMS	 spr_num: Sprite number (0~63)
+; @PARAMS	 member:
 ; 	pty: PosiTion Y
 ; 	num: Tile(8*8) number
 ; 	att: Attribute (VertFlip|HorizonFlip|Prio|Unused(3)|PltNum(2))
@@ -33,8 +33,8 @@
 
 ;*------------------------------------------------------------------------------
 ; Get obj position
-; @PARAM	posX, posY
-; @RETURN	$YX
+; @PARAMS		posX, posY
+; @RETURNS		$YX
 ;*------------------------------------------------------------------------------
 
 .define GET_OBJ_POS(posX, posY)		($c - (posY)) * $10 + (posX)

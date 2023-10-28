@@ -20,9 +20,9 @@ joy2_pushstart			: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Get Joypad data (including prev and newly pushed btn)
-; @PARAM	None
-; @BREAK	A
-; @RETURN	None
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -66,9 +66,9 @@ joy2_pushstart			: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Read controller
-; @PARAM	None
-; @BREAK	A
-; @RETURN	None
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----

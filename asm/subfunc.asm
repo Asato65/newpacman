@@ -2,9 +2,9 @@
 
 ;*------------------------------------------------------------------------------
 ; Restore PPU setting
-; @PARAM	None
-; @BREAK	A
-; @RETURN	None
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -23,9 +23,9 @@
 ;*------------------------------------------------------------------------------
 ; Set scroll position
 ; Use during NMI or executing raster scroll.
-; @PARAM	None
-; @BREAK	A
-; @RETURN	None
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -49,9 +49,9 @@
 
 ;*------------------------------------------------------------------------------
 ; Wait starting vblank
-; @PARAM	None
-; @BREAK	None
-; @RETURN	Non
+; @PARAMS		None
+; @CLOBBERS		None
+; @RETURNS		Non
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -66,9 +66,9 @@
 
 ;*------------------------------------------------------------------------------
 ; Disp status text
-; @PARAM	None
-; @BREAK	A X Y
-; @RETURN	None
+; @PARAMS		None
+; @CLOBBERS		A X Y
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -101,9 +101,9 @@
 
 ;*------------------------------------------------------------------------------
 ; Prepare plt data
-; @PARAM	None
-; @BREAK	A X Y
-; @RETURN	None
+; @PARAMS		None
+; @CLOBBERS		A X Y
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .proc _preparePltData

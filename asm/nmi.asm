@@ -1,9 +1,9 @@
 ;*------------------------------------------------------------------------------
 ; bg_buffを読み取り，指定アドレスに書き込んでカウンタをインクリメント
 ; Read PPU update data & store to PPU
-; @PARAM	ADDR: Forwarding address
-; @BREAK	A X
-; @RETURN	None
+; @PARAMS		ADDR: Forwarding address
+; @CLOBBERS		A X
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
@@ -27,7 +27,7 @@
 
 ;*------------------------------------------------------------------------------
 ; NMI (Interrupt)
-; @BREAK X Y (When end main process.)
+; @CLOBBERS	 X Y (When end main process.)
 ; To shorten the clock, put the buffer data on the stack
 ; 	(Shorten clock by buff data length)
 ; 	pla -> 3 clc
