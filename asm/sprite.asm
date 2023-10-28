@@ -29,7 +29,6 @@
 	lda spr_buff+1, x					; pos Y
 	sta tmp2
 
-
 	tya
 	shl #2
 	tay
@@ -106,33 +105,6 @@
 	add #8
 	sta CHR_BUFF
 
-
-	/*
-	txa
-	shl #1
-	tax
-
-	lda CHR_ATTR, x
-
-	lda SPR_ID, x
-	sta CHR_BUFF, y
-	lda SPR_ATTR, x
-
-	inx
-	lda SPR_ID, x
-	add y, #4
-	sta CHR_BUFF, y
-
-	inx
-	lda SPR_ID, x
-	add y, #4
-	sta CHR_BUFF, y
-
-	inx
-	lda SPR_ID, x
-	add y, #4
-	sta CHR_BUFF, y
-	*/
 
 	rts
 	; ------------------------------

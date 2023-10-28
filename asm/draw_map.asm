@@ -14,6 +14,7 @@ fill_lower				: .byte 0
 fill_ground_block		: .byte 0
 fill_block				: .byte 0
 fill_ground_end			: .byte 0
+fill_ground_start		: .byte 0
 
 
 ;*------------------------------------------------------------------------------
@@ -33,21 +34,21 @@ fill_ground_end			: .byte 0
 
 		ldy #0
 		lda (addr_tmp2), y
-		sta BG_MAP_BUFF+0, x
+		sta bg_map_buff+0, x
 
 		iny
 		lda (addr_tmp2), y
-		sta BG_MAP_BUFF+($0d*2), x
+		sta bg_map_buff+($0d*2), x
 
 		inx
 
 		iny
 		lda (addr_tmp2), y
-		sta BG_MAP_BUFF+0, x
+		sta bg_map_buff+0, x
 
 		iny
 		lda (addr_tmp2), y
-		sta BG_MAP_BUFF+($0d*2), x
+		sta bg_map_buff+($0d*2), x
 
 		inx
 
@@ -77,6 +78,7 @@ fill_ground_end			: .byte 0
 	lda addr_tmp2+LO
 	and #BYT_LO
 	sta addr_tmp2+LO
+
 	txa
 	pha
 	tya
@@ -84,7 +86,7 @@ fill_ground_end			: .byte 0
 	ldx #0
 	ldy #0
 @LOOP:
-	lda FILL_BLOCKS, y
+	lda fill_block_arr, y
 	sta (addr_tmp2, x)
 	lda addr_tmp2+LO
 	add #$10
@@ -97,6 +99,53 @@ fill_ground_end			: .byte 0
 	tay
 	pla
 	tax
+.endmacro
+
+
+.macro fillGround
+	ldy #0
+
+	lda (DrawMap::map_addr), y
+	and #BYT_LO
+	sta DrawMap::fill_ground_end
+
+	lda (DrawMap::map_addr), y
+	shr #4
+	sta DrawMap::fill_ground_start
+
+
+	lda #0
+	tax
+@FILL_SKY_LOOP1:
+	cpx DrawMap::fill_ground_start
+	bcs @FILL_SKY_LOOP1_END
+	sta fill_block_arr, x
+	inx
+	cpx #$d
+	bcc @FILL_SKY_LOOP1
+	bcs @END_FILL_GROUND
+@FILL_SKY_LOOP1_END:
+
+	lda DrawMap::fill_ground_block
+@FILL_GROUND_LOOP:
+	cpx DrawMap::fill_ground_end
+	bcs @FILL_GROUND_LOOP_END
+	sta fill_block_arr, x
+	inx
+	cpx #$d
+	bcc @FILL_GROUND_LOOP
+	bcs @END_FILL_GROUND
+@FILL_GROUND_LOOP_END:
+
+	lda #0
+@FILL_SKY_LOOP2:
+	sta fill_block_arr, x
+	inx
+	cpx #$d
+	bcc @FILL_SKY_LOOP2
+
+@END_FILL_GROUND:
+
 .endmacro
 
 
@@ -307,9 +356,9 @@ fill_ground_end			: .byte 0
 		shl #2
 @BLOCK2:
 @ADD_LEFT_BLOCK_PLT:
-		ora BG_PLT_BUFF, y
+		ora bg_plt_buff, y
 @STORE_TO_PLT_BUFF:
-		sta BG_PLT_BUFF, y
+		sta bg_plt_buff, y
 
 		pla
 		ldy tmp2
@@ -341,14 +390,13 @@ fill_ground_end			: .byte 0
 
 .proc _setStageAddr
 		tya
-		shl
+		shl #1
 		tay
 
-		lda STAGE_ARR, y
-		sta DrawMap::map_arr_addr
-
-		lda STAGE_ARR+1, y
-		sta DrawMap::map_arr_addr+1
+		lda STAGE_ARR+LO, y
+		sta DrawMap::map_arr_addr+LO
+		lda STAGE_ARR+HI, y
+		sta DrawMap::map_arr_addr+HI
 
 		rts
 		; ------------------------------
@@ -366,55 +414,34 @@ fill_ground_end			: .byte 0
 
 .proc _setMapAddr
 		tya
-		shl
+		shl #1
 		tay
 		pha								; push y
 
 		lda (DrawMap::map_arr_addr), y
-		sta DrawMap::map_addr
-
+		sta DrawMap::map_addr+LO
 		iny
 		lda (DrawMap::map_arr_addr), y
-		sta DrawMap::map_addr+1
+		sta DrawMap::map_addr+HI
 
-	; ffコードをこの関数の返値にして，この関数の外でマップ終了を判定しているが
-	; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
-	; 直接@END_OF_STAGEにジャンプしてもOKなはずだが（マップ終了判定でジャンプするラベル）
-	; procを使っているため今は無理
-	cmp #ENDCODE
-	bne @NO_EXIT
-	pla
-	tay
-	lda #ENDCODE
-	rts
+		; ffコードをこの関数の返値にして，この関数の外でマップ終了を判定しているが
+		; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
+		; 直接@END_OF_STAGEにジャンプしてもOKなはずだが（マップ終了判定でジャンプするラベル）
+		; procを使っているため今は無理
+		cmp #ENDCODE
+		bne @NO_EXIT
+		pla
+		tay
+		lda #ENDCODE
+		rts
+		; ------------------------------
 @NO_EXIT:
 
-	; ------------------------------
+	fillGround
 
-
-	; ----------- fill ground ----------
-	ldy #0
-
-	lda (DrawMap::map_addr), y
-	and #%0000_1111
-	sta DrawMap::fill_ground_end
-
-	lda (DrawMap::map_addr), y
-	shr #4
-	tax
-	cpx DrawMap::fill_ground_end
-	beq @FILL_GROUND_LOOP_END
-
-	lda DrawMap::fill_ground_block
-
-@FILL_GROUND_LOOP:
-	sta FILL_BLOCKS, x
-	inx
-	cpx DrawMap::fill_ground_end
-	bne @FILL_GROUND_LOOP
-@FILL_GROUND_LOOP_END:
 
 	; ------------ fill block ----------
+	ldy #0
 	iny									; y = 1
 	lda (DrawMap::map_addr), y
 	sta DrawMap::fill_block
@@ -428,7 +455,7 @@ fill_ground_end			: .byte 0
 	bcc @NO_BLOCK1
 	pha
 	lda DrawMap::fill_block
-	sta FILL_BLOCKS, x
+	sta fill_block_arr, x
 	pla
 @NO_BLOCK1:
 	inx
@@ -442,7 +469,7 @@ fill_ground_end			: .byte 0
 	bcc @NO_BLOCK2
 	pha
 	lda DrawMap::fill_block
-	sta FILL_BLOCKS, x
+	sta fill_block_arr, x
 	pla
 @NO_BLOCK2:
 	inx

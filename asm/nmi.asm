@@ -1,5 +1,5 @@
 ;*------------------------------------------------------------------------------
-; BG_BUFFを読み取り，指定アドレスに書き込んでカウンタをインクリメント
+; bg_buffを読み取り，指定アドレスに書き込んでカウンタをインクリメント
 ; Read PPU update data & store to PPU
 ; @PARAM	ADDR: Forwarding address
 ; @BREAK	A X
@@ -9,7 +9,7 @@
 .code									; ----- code -----
 
 .macro tfrDataToPPU ADDR
-	lda BG_BUFF, x
+	lda bg_buff, x
 	sta ADDR
 	inx
 .endmacro
@@ -56,7 +56,7 @@
 	add tmp1
 	sta PPU_ADDR
 
-	lda BG_PLT_BUFF, x
+	lda bg_plt_buff, x
 	sta PPU_DATA
 	lda tmp1
 	add #8
@@ -78,7 +78,7 @@
 
 		ldx #0
 @STORE_MAP_LOOP:
-		lda BG_MAP_BUFF, x
+		lda bg_map_buff, x
 		sta PPU_DATA
 		inx
 		cpx #$1a
@@ -93,7 +93,7 @@
 
 		ldx #0
 @STORE_MAP_LOOP2:
-		lda BG_MAP_BUFF+$1a, x
+		lda bg_map_buff+$1a, x
 		sta PPU_DATA
 		inx
 		cpx #$1a
@@ -103,7 +103,7 @@
 		cmp bg_buff_pointer
 		beq @STORE_CHR
 		tax
-		lda BG_BUFF, x
+		lda bg_buff, x
 @SET_MODE:
 		and #%00000001					; Get flag
 		shl #2							; Move flag to Bit2
@@ -115,14 +115,14 @@
 		sta PPU_CTRL1					; Not use restorePPUSet()
 @SET_ADDR:
 		inx								; Not do inx when go to @EXIT
-		lda BG_BUFF, x
+		lda bg_buff, x
 		sta PPU_ADDR
 		inx
-		lda BG_BUFF, x
+		lda bg_buff, x
 		sta PPU_ADDR
 		inx
 @STORE_DATA:
-		lda BG_BUFF, x
+		lda bg_buff, x
 		tay
 		cmp #$fe
 		bcs @SET_MODE					; no inx

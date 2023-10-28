@@ -54,10 +54,10 @@ Current file: pacman.asm
 000000r 1               .include "./inc/const_addr.inc"
 000000r 2               ZP					= $00
 000000r 2               ; Unused $0200
-000000r 2               BG_MAP_BUFF			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
-000000r 2               BG_PLT_BUFF			= $0134				; size = 8
-000000r 2               FILL_BLOCKS			= $013c				; size = 13 ($d)
-000000r 2               BG_BUFF				= $0149
+000000r 2               bg_map_buff			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
+000000r 2               bg_plt_buff			= $0134				; size = 8
+000000r 2               fill_block_arr		= $013c				; size = 13 ($d)
+000000r 2               bg_buff				= $0149
 000000r 2               SPR_BUFF			= $0300
 000000r 2               MAP1				= $0400
 000000r 2               MAP2				= $0500
@@ -242,12 +242,12 @@ Current file: pacman.asm
 000036r 2  FF FF        	.addr $ffff
 000038r 2               
 000038r 2               MAP_11_1:
-000038r 2  0D           	.byte $0d
+000038r 2  BD           	.byte $bd
 000039r 2  42           	.byte 'B'
-00003Ar 2  00 00        	.byte %00000000, %00000000
+00003Ar 2  1E 00        	.byte %00011110, %00000000
 00003Cr 2  C0 47        	.byte (GET_OBJ_POS $0, $0), 'G'
 00003Er 2  81 5E        	.byte (GET_OBJ_POS $1, $4), '^'
-000040r 2  C1 51        	.byte (GET_OBJ_POS $1, $0), 'Q'
+000040r 2  71 51        	.byte (GET_OBJ_POS $1, $5), 'Q'
 000042r 2  95 51        	.byte (GET_OBJ_POS $5, $3), 'Q'
 000044r 2  FE           	.byte OBJMAP_NEXT
 000045r 2  70 51        	.byte (GET_OBJ_POS $0, $5), 'Q'
@@ -269,9 +269,9 @@ Current file: pacman.asm
 000065r 2  FF           	.byte OBJMAP_END
 000066r 2               
 000066r 2               MAP_11_2:
-000066r 2  DD           	.byte $dd
+000066r 2  BD           	.byte $bd
 000067r 2  42           	.byte 'B'
-000068r 2  00 80        	.byte %00000000, %10000000
+000068r 2  00 00        	.byte %00000000, %00000000
 00006Ar 2  50 51        	.byte (GET_OBJ_POS $0, $7), 'Q'
 00006Cr 2  60 51        	.byte (GET_OBJ_POS $0, $6), 'Q'
 00006Er 2  70 51        	.byte (GET_OBJ_POS $0, $5), 'Q'
@@ -858,7 +858,7 @@ Current file: pacman.asm
 000185r 2               @STORE_PPU_DATA_LOOP:
 000185r 2  BD rr rr     		lda @TEXT, x
 000188r 2  F0 07        		beq @END_STORE
-00018Ar 2  9D 49 01     		sta BG_BUFF, x
+00018Ar 2  9D 49 01     		sta bg_buff, x
 00018Dr 2  E8           		inx
 00018Er 2  88           		dey
 00018Fr 2  D0 F4        		bne @STORE_PPU_DATA_LOOP
@@ -896,7 +896,7 @@ Current file: pacman.asm
 000020r 2               
 000020r 1               .include "./asm/nmi.asm"
 000020r 2               ;*------------------------------------------------------------------------------
-000020r 2               ; BG_BUFFを読み取り，指定アドレスに書き込んでカウンタをインクリメント
+000020r 2               ; bg_buffを読み取り，指定アドレスに書き込んでカウンタをインクリメント
 000020r 2               ; Read PPU update data & store to PPU
 000020r 2               ; @PARAM	ADDR: Forwarding address
 000020r 2               ; @BREAK	A X
@@ -906,7 +906,7 @@ Current file: pacman.asm
 000020r 2               .code									; ----- code -----
 000196r 2               
 000196r 2               .macro tfrDataToPPU ADDR
-000196r 2               	lda BG_BUFF, x
+000196r 2               	lda bg_buff, x
 000196r 2               	sta ADDR
 000196r 2               	inx
 000196r 2               .endmacro
@@ -953,7 +953,7 @@ Current file: pacman.asm
 0001ADr 2  18 65 rr     	add tmp1
 0001B0r 2  8D 06 20     	sta PPU_ADDR
 0001B3r 2               
-0001B3r 2  BD 34 01     	lda BG_PLT_BUFF, x
+0001B3r 2  BD 34 01     	lda bg_plt_buff, x
 0001B6r 2  8D 07 20     	sta PPU_DATA
 0001B9r 2  A5 rr        	lda tmp1
 0001BBr 2  18 69 08     	add #8
@@ -975,7 +975,7 @@ Current file: pacman.asm
 0001D8r 2               
 0001D8r 2  A2 00        		ldx #0
 0001DAr 2               @STORE_MAP_LOOP:
-0001DAr 2  BD 00 01     		lda BG_MAP_BUFF, x
+0001DAr 2  BD 00 01     		lda bg_map_buff, x
 0001DDr 2  8D 07 20     		sta PPU_DATA
 0001E0r 2  E8           		inx
 0001E1r 2  E0 1A        		cpx #$1a
@@ -990,7 +990,7 @@ Current file: pacman.asm
 0001F0r 2               
 0001F0r 2  A2 00        		ldx #0
 0001F2r 2               @STORE_MAP_LOOP2:
-0001F2r 2  BD 1A 01     		lda BG_MAP_BUFF+$1a, x
+0001F2r 2  BD 1A 01     		lda bg_map_buff+$1a, x
 0001F5r 2  8D 07 20     		sta PPU_DATA
 0001F8r 2  E8           		inx
 0001F9r 2  E0 1A        		cpx #$1a
@@ -1000,7 +1000,7 @@ Current file: pacman.asm
 0001FFr 2  C5 rr        		cmp bg_buff_pointer
 000201r 2  F0 35        		beq @STORE_CHR
 000203r 2  AA           		tax
-000204r 2  BD 49 01     		lda BG_BUFF, x
+000204r 2  BD 49 01     		lda bg_buff, x
 000207r 2               @SET_MODE:
 000207r 2  29 01        		and #%00000001					; Get flag
 000209r 2  0A 0A        		shl #2							; Move flag to Bit2
@@ -1012,14 +1012,14 @@ Current file: pacman.asm
 000215r 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
 000218r 2               @SET_ADDR:
 000218r 2  E8           		inx								; Not do inx when go to @EXIT
-000219r 2  BD 49 01     		lda BG_BUFF, x
+000219r 2  BD 49 01     		lda bg_buff, x
 00021Cr 2  8D 06 20     		sta PPU_ADDR
 00021Fr 2  E8           		inx
-000220r 2  BD 49 01     		lda BG_BUFF, x
+000220r 2  BD 49 01     		lda bg_buff, x
 000223r 2  8D 06 20     		sta PPU_ADDR
 000226r 2  E8           		inx
 000227r 2               @STORE_DATA:
-000227r 2  BD 49 01     		lda BG_BUFF, x
+000227r 2  BD 49 01     		lda bg_buff, x
 00022Ar 2  A8           		tay
 00022Br 2  C9 FE        		cmp #$fe
 00022Dr 2  B0 D8        		bcs @SET_MODE					; no inx
@@ -1173,135 +1173,184 @@ Current file: pacman.asm
 00002Cr 2  00           fill_ground_block		: .byte 0
 00002Dr 2  00           fill_block				: .byte 0
 00002Er 2  00           fill_ground_end			: .byte 0
-00002Fr 2               
-00002Fr 2               
-00002Fr 2               ;*------------------------------------------------------------------------------
-00002Fr 2               ; Transfar obj data (8*8) to BG map buff($04XX/$05XX)
-00002Fr 2               ; @PARAM	X: Block ID
-00002Fr 2               ; @BREAK	A X Y
-00002Fr 2               ; @RETURN	None
-00002Fr 2               ;*------------------------------------------------------------------------------
-00002Fr 2               
-00002Fr 2               .macro trfToBgMapBuf
-00002Fr 2               		lda BROCK_ID_ARR+LO, x
-00002Fr 2               		sta addr_tmp2+LO
-00002Fr 2               		lda BROCK_ID_ARR+HI, x
-00002Fr 2               		sta addr_tmp2+HI
-00002Fr 2               
-00002Fr 2               		ldx bg_map_buff_index
-00002Fr 2               
-00002Fr 2               		ldy #0
-00002Fr 2               		lda (addr_tmp2), y
-00002Fr 2               		sta BG_MAP_BUFF+0, x
-00002Fr 2               
-00002Fr 2               		iny
-00002Fr 2               		lda (addr_tmp2), y
-00002Fr 2               		sta BG_MAP_BUFF+($0d*2), x
-00002Fr 2               
-00002Fr 2               		inx
-00002Fr 2               
-00002Fr 2               		iny
-00002Fr 2               		lda (addr_tmp2), y
-00002Fr 2               		sta BG_MAP_BUFF+0, x
-00002Fr 2               
-00002Fr 2               		iny
-00002Fr 2               		lda (addr_tmp2), y
-00002Fr 2               		sta BG_MAP_BUFF+($0d*2), x
-00002Fr 2               
-00002Fr 2               		inx
-00002Fr 2               
-00002Fr 2               		stx bg_map_buff_index
-00002Fr 2               .endmacro
-00002Fr 2               
-00002Fr 2               
-00002Fr 2               .macro incRowCounter
-00002Fr 2               		ldy DrawMap::row_counter
-00002Fr 2               		iny
-00002Fr 2               		cpy #$10
-00002Fr 2               		bne @NO_OVF_ROW_CNT
-00002Fr 2               		ldy #0
-00002Fr 2               		inc DrawMap::map_buff_num
-00002Fr 2               @NO_OVF_ROW_CNT:
-00002Fr 2               		sty DrawMap::row_counter
-00002Fr 2               .endmacro
-00002Fr 2               
-00002Fr 2               
-00002Fr 2               .macro initIndex
-00002Fr 2               		ldy #NEGATIVE 1
-00002Fr 2               		sty DrawMap::index
-00002Fr 2               .endmacro
-00002Fr 2               
-00002Fr 2               
-00002Fr 2               .macro fillBlocks
-00002Fr 2               	lda addr_tmp2+LO
-00002Fr 2               	and #BYT_LO
-00002Fr 2               	sta addr_tmp2+LO
-00002Fr 2               	txa
-00002Fr 2               	pha
-00002Fr 2               	tya
-00002Fr 2               	pha
-00002Fr 2               	ldx #0
-00002Fr 2               	ldy #0
-00002Fr 2               @LOOP:
-00002Fr 2               	lda FILL_BLOCKS, y
-00002Fr 2               	sta (addr_tmp2, x)
-00002Fr 2               	lda addr_tmp2+LO
-00002Fr 2               	add #$10
-00002Fr 2               	sta addr_tmp2+LO
-00002Fr 2               	iny
-00002Fr 2               	cpy #$d
-00002Fr 2               	bne @LOOP
-00002Fr 2               
-00002Fr 2               	pla
-00002Fr 2               	tay
-00002Fr 2               	pla
-00002Fr 2               	tax
-00002Fr 2               .endmacro
-00002Fr 2               
-00002Fr 2               
-00002Fr 2               .macro loadNextMap
-00002Fr 2               		inc DrawMap::map_arr_num
-00002Fr 2               		ldy DrawMap::map_arr_num		; Y = ++map_arr_num
-00002Fr 2               		jsr _setMapAddr
-00002Fr 2               .endmacro
-00002Fr 2               
-00002Fr 2               
-00002Fr 2               .macro setPpuBgAddr
-00002Fr 2               		lda #0
-00002Fr 2               		sta tmp1						; Start using tmp1
-00002Fr 2               
-00002Fr 2               		lda addr_tmp1+LO
-00002Fr 2               		add #$40
-00002Fr 2               		shl #1
-00002Fr 2               		rol tmp1
-00002Fr 2               		sta ppu_bg_addr+LO
-00002Fr 2               
-00002Fr 2               		lda addr_tmp1+HI				; 4 or 5
-00002Fr 2               		and #BIT0
-00002Fr 2               		shl #2							; 0 or 4
-00002Fr 2               		ora #$20						; $20 or $24
-00002Fr 2               		ora tmp1						; End using tmp1
-00002Fr 2               		sta ppu_bg_addr+HI
-00002Fr 2               .endmacro
-00002Fr 2               
-00002Fr 2               
-00002Fr 2               ;*------------------------------------------------------------------------------
-00002Fr 2               ; Update one row
-00002Fr 2               ; @PARAM	None
-00002Fr 2               ; @BREAK	A X Y tmp1 addr_tmp1 addr_tmp2
-00002Fr 2               ; @RETURN	None
-00002Fr 2               /* main label
-00002Fr 2               	@START:
-00002Fr 2               	@GET_POS_AND_OBJ_LOOP:
-00002Fr 2               	@END_OF_MAP:						-> goto nextlabel (@LOAD_NEXT_MAP)
-00002Fr 2               	@LOAD_NEXT_MAP:						-> goto @GET_POS_AND_OBJ_LOOP
-00002Fr 2               	@END_OF_STAGE:						-> goto nextlabel (@PREPARE_BG_MAP_BUF)
-00002Fr 2               	@PREPARE_BG_MAP_BUF:
-00002Fr 2               	@STORE_BG_MAP_BUF_LOOP:
-00002Fr 2               */
-00002Fr 2               ;*------------------------------------------------------------------------------
-00002Fr 2               
-00002Fr 2               .code									; ----- code -----
+00002Fr 2  00           fill_ground_start		: .byte 0
+000030r 2               
+000030r 2               
+000030r 2               ;*------------------------------------------------------------------------------
+000030r 2               ; Transfar obj data (8*8) to BG map buff($04XX/$05XX)
+000030r 2               ; @PARAM	X: Block ID
+000030r 2               ; @BREAK	A X Y
+000030r 2               ; @RETURN	None
+000030r 2               ;*------------------------------------------------------------------------------
+000030r 2               
+000030r 2               .macro trfToBgMapBuf
+000030r 2               		lda BROCK_ID_ARR+LO, x
+000030r 2               		sta addr_tmp2+LO
+000030r 2               		lda BROCK_ID_ARR+HI, x
+000030r 2               		sta addr_tmp2+HI
+000030r 2               
+000030r 2               		ldx bg_map_buff_index
+000030r 2               
+000030r 2               		ldy #0
+000030r 2               		lda (addr_tmp2), y
+000030r 2               		sta bg_map_buff+0, x
+000030r 2               
+000030r 2               		iny
+000030r 2               		lda (addr_tmp2), y
+000030r 2               		sta bg_map_buff+($0d*2), x
+000030r 2               
+000030r 2               		inx
+000030r 2               
+000030r 2               		iny
+000030r 2               		lda (addr_tmp2), y
+000030r 2               		sta bg_map_buff+0, x
+000030r 2               
+000030r 2               		iny
+000030r 2               		lda (addr_tmp2), y
+000030r 2               		sta bg_map_buff+($0d*2), x
+000030r 2               
+000030r 2               		inx
+000030r 2               
+000030r 2               		stx bg_map_buff_index
+000030r 2               .endmacro
+000030r 2               
+000030r 2               
+000030r 2               .macro incRowCounter
+000030r 2               		ldy DrawMap::row_counter
+000030r 2               		iny
+000030r 2               		cpy #$10
+000030r 2               		bne @NO_OVF_ROW_CNT
+000030r 2               		ldy #0
+000030r 2               		inc DrawMap::map_buff_num
+000030r 2               @NO_OVF_ROW_CNT:
+000030r 2               		sty DrawMap::row_counter
+000030r 2               .endmacro
+000030r 2               
+000030r 2               
+000030r 2               .macro initIndex
+000030r 2               		ldy #NEGATIVE 1
+000030r 2               		sty DrawMap::index
+000030r 2               .endmacro
+000030r 2               
+000030r 2               
+000030r 2               .macro fillBlocks
+000030r 2               	lda addr_tmp2+LO
+000030r 2               	and #BYT_LO
+000030r 2               	sta addr_tmp2+LO
+000030r 2               
+000030r 2               	txa
+000030r 2               	pha
+000030r 2               	tya
+000030r 2               	pha
+000030r 2               	ldx #0
+000030r 2               	ldy #0
+000030r 2               @LOOP:
+000030r 2               	lda fill_block_arr, y
+000030r 2               	sta (addr_tmp2, x)
+000030r 2               	lda addr_tmp2+LO
+000030r 2               	add #$10
+000030r 2               	sta addr_tmp2+LO
+000030r 2               	iny
+000030r 2               	cpy #$d
+000030r 2               	bne @LOOP
+000030r 2               
+000030r 2               	pla
+000030r 2               	tay
+000030r 2               	pla
+000030r 2               	tax
+000030r 2               .endmacro
+000030r 2               
+000030r 2               
+000030r 2               .macro fillGround
+000030r 2               	ldy #0
+000030r 2               
+000030r 2               	lda (DrawMap::map_addr), y
+000030r 2               	and #BYT_LO
+000030r 2               	sta DrawMap::fill_ground_end
+000030r 2               
+000030r 2               	lda (DrawMap::map_addr), y
+000030r 2               	shr #4
+000030r 2               	sta DrawMap::fill_ground_start
+000030r 2               
+000030r 2               
+000030r 2               	lda #0
+000030r 2               	tax
+000030r 2               @FILL_SKY_LOOP1:
+000030r 2               	cpx DrawMap::fill_ground_start
+000030r 2               	bcs @FILL_SKY_LOOP1_END
+000030r 2               	sta fill_block_arr, x
+000030r 2               	inx
+000030r 2               	cpx #$d
+000030r 2               	bcc @FILL_SKY_LOOP1
+000030r 2               	bcs @END_FILL_GROUND
+000030r 2               @FILL_SKY_LOOP1_END:
+000030r 2               
+000030r 2               	lda DrawMap::fill_ground_block
+000030r 2               @FILL_GROUND_LOOP:
+000030r 2               	cpx DrawMap::fill_ground_end
+000030r 2               	bcs @FILL_GROUND_LOOP_END
+000030r 2               	sta fill_block_arr, x
+000030r 2               	inx
+000030r 2               	cpx #$d
+000030r 2               	bcc @FILL_GROUND_LOOP
+000030r 2               	bcs @END_FILL_GROUND
+000030r 2               @FILL_GROUND_LOOP_END:
+000030r 2               
+000030r 2               	lda #0
+000030r 2               @FILL_SKY_LOOP2:
+000030r 2               	sta fill_block_arr, x
+000030r 2               	inx
+000030r 2               	cpx #$d
+000030r 2               	bcc @FILL_SKY_LOOP2
+000030r 2               
+000030r 2               @END_FILL_GROUND:
+000030r 2               
+000030r 2               .endmacro
+000030r 2               
+000030r 2               
+000030r 2               .macro loadNextMap
+000030r 2               		inc DrawMap::map_arr_num
+000030r 2               		ldy DrawMap::map_arr_num		; Y = ++map_arr_num
+000030r 2               		jsr _setMapAddr
+000030r 2               .endmacro
+000030r 2               
+000030r 2               
+000030r 2               .macro setPpuBgAddr
+000030r 2               		lda #0
+000030r 2               		sta tmp1						; Start using tmp1
+000030r 2               
+000030r 2               		lda addr_tmp1+LO
+000030r 2               		add #$40
+000030r 2               		shl #1
+000030r 2               		rol tmp1
+000030r 2               		sta ppu_bg_addr+LO
+000030r 2               
+000030r 2               		lda addr_tmp1+HI				; 4 or 5
+000030r 2               		and #BIT0
+000030r 2               		shl #2							; 0 or 4
+000030r 2               		ora #$20						; $20 or $24
+000030r 2               		ora tmp1						; End using tmp1
+000030r 2               		sta ppu_bg_addr+HI
+000030r 2               .endmacro
+000030r 2               
+000030r 2               
+000030r 2               ;*------------------------------------------------------------------------------
+000030r 2               ; Update one row
+000030r 2               ; @PARAM	None
+000030r 2               ; @BREAK	A X Y tmp1 addr_tmp1 addr_tmp2
+000030r 2               ; @RETURN	None
+000030r 2               /* main label
+000030r 2               	@START:
+000030r 2               	@GET_POS_AND_OBJ_LOOP:
+000030r 2               	@END_OF_MAP:						-> goto nextlabel (@LOAD_NEXT_MAP)
+000030r 2               	@LOAD_NEXT_MAP:						-> goto @GET_POS_AND_OBJ_LOOP
+000030r 2               	@END_OF_STAGE:						-> goto nextlabel (@PREPARE_BG_MAP_BUF)
+000030r 2               	@PREPARE_BG_MAP_BUF:
+000030r 2               	@STORE_BG_MAP_BUF_LOOP:
+000030r 2               */
+000030r 2               ;*------------------------------------------------------------------------------
+000030r 2               
+000030r 2               .code									; ----- code -----
 000250r 2               
 000250r 2               .proc _updateOneLine
 000250r 2  A5 rr        		lda DrawMap::isend_draw_stage
@@ -1473,9 +1522,9 @@ Current file: pacman.asm
 000350r 2  0A 0A        		shl #2
 000352r 2               @BLOCK2:
 000352r 2               @ADD_LEFT_BLOCK_PLT:
-000352r 2  19 34 01     		ora BG_PLT_BUFF, y
+000352r 2  19 34 01     		ora bg_plt_buff, y
 000355r 2               @STORE_TO_PLT_BUFF:
-000355r 2  99 34 01     		sta BG_PLT_BUFF, y
+000355r 2  99 34 01     		sta bg_plt_buff, y
 000358r 2               
 000358r 2  68           		pla
 000359r 2  A4 rr        		ldy tmp2
@@ -1509,14 +1558,13 @@ Current file: pacman.asm
 000392r 2               
 000392r 2               .proc _setStageAddr
 000392r 2  98           		tya
-000393r 2  0A           		shl
+000393r 2  0A           		shl #1
 000394r 2  A8           		tay
 000395r 2               
-000395r 2  B9 rr rr     		lda STAGE_ARR, y
-000398r 2  85 rr        		sta DrawMap::map_arr_addr
-00039Ar 2               
-00039Ar 2  B9 rr rr     		lda STAGE_ARR+1, y
-00039Dr 2  85 rr        		sta DrawMap::map_arr_addr+1
+000395r 2  B9 rr rr     		lda STAGE_ARR+LO, y
+000398r 2  85 rr        		sta DrawMap::map_arr_addr+LO
+00039Ar 2  B9 rr rr     		lda STAGE_ARR+HI, y
+00039Dr 2  85 rr        		sta DrawMap::map_arr_addr+HI
 00039Fr 2               
 00039Fr 2  60           		rts
 0003A0r 2               		; ------------------------------
@@ -1534,134 +1582,115 @@ Current file: pacman.asm
 0003A0r 2               
 0003A0r 2               .proc _setMapAddr
 0003A0r 2  98           		tya
-0003A1r 2  0A           		shl
+0003A1r 2  0A           		shl #1
 0003A2r 2  A8           		tay
 0003A3r 2  48           		pha								; push y
 0003A4r 2               
 0003A4r 2  B1 rr        		lda (DrawMap::map_arr_addr), y
-0003A6r 2  85 rr        		sta DrawMap::map_addr
-0003A8r 2               
+0003A6r 2  85 rr        		sta DrawMap::map_addr+LO
 0003A8r 2  C8           		iny
 0003A9r 2  B1 rr        		lda (DrawMap::map_arr_addr), y
-0003ABr 2  85 rr        		sta DrawMap::map_addr+1
+0003ABr 2  85 rr        		sta DrawMap::map_addr+HI
 0003ADr 2               
-0003ADr 2               	; ffコードをこの関数の返値にして，この関数の外でマップ終了を判定しているが
-0003ADr 2               	; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
-0003ADr 2               	; 直接@END_OF_STAGEにジャンプしてもOKなはずだが（マップ終了判定でジャンプするラベル）
-0003ADr 2               	; procを使っているため今は無理
-0003ADr 2  C9 FF        	cmp #ENDCODE
-0003AFr 2  D0 05        	bne @NO_EXIT
-0003B1r 2  68           	pla
-0003B2r 2  A8           	tay
-0003B3r 2  A9 FF        	lda #ENDCODE
-0003B5r 2  60           	rts
+0003ADr 2               		; ffコードをこの関数の返値にして，この関数の外でマップ終了を判定しているが
+0003ADr 2               		; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
+0003ADr 2               		; 直接@END_OF_STAGEにジャンプしてもOKなはずだが（マップ終了判定でジャンプするラベル）
+0003ADr 2               		; procを使っているため今は無理
+0003ADr 2  C9 FF        		cmp #ENDCODE
+0003AFr 2  D0 05        		bne @NO_EXIT
+0003B1r 2  68           		pla
+0003B2r 2  A8           		tay
+0003B3r 2  A9 FF        		lda #ENDCODE
+0003B5r 2  60           		rts
+0003B6r 2               		; ------------------------------
 0003B6r 2               @NO_EXIT:
 0003B6r 2               
-0003B6r 2               	; ------------------------------
-0003B6r 2               
-0003B6r 2               
-0003B6r 2               	; ----------- fill ground ----------
-0003B6r 2  A0 00        	ldy #0
-0003B8r 2               
-0003B8r 2  B1 rr        	lda (DrawMap::map_addr), y
-0003BAr 2  29 0F        	and #%0000_1111
-0003BCr 2  85 rr        	sta DrawMap::fill_ground_end
-0003BEr 2               
-0003BEr 2  B1 rr        	lda (DrawMap::map_addr), y
-0003C0r 2  4A 4A 4A 4A  	shr #4
-0003C4r 2  AA           	tax
-0003C5r 2  E4 rr        	cpx DrawMap::fill_ground_end
-0003C7r 2  F0 0A        	beq @FILL_GROUND_LOOP_END
-0003C9r 2               
-0003C9r 2  A5 rr        	lda DrawMap::fill_ground_block
-0003CBr 2               
-0003CBr 2               @FILL_GROUND_LOOP:
-0003CBr 2  9D 3C 01     	sta FILL_BLOCKS, x
-0003CEr 2  E8           	inx
-0003CFr 2  E4 rr        	cpx DrawMap::fill_ground_end
-0003D1r 2  D0 F8        	bne @FILL_GROUND_LOOP
-0003D3r 2               @FILL_GROUND_LOOP_END:
-0003D3r 2               
-0003D3r 2               	; ------------ fill block ----------
-0003D3r 2  C8           	iny									; y = 1
-0003D4r 2  B1 rr        	lda (DrawMap::map_addr), y
-0003D6r 2  85 rr        	sta DrawMap::fill_block
-0003D8r 2               
-0003D8r 2  C8           	iny									; y = 2
-0003D9r 2  B1 rr        	lda (DrawMap::map_addr), y
-0003DBr 2  0A 0A 0A     	shl #3
-0003DEr 2  A2 00        	ldx #0
-0003E0r 2               @FILL_BLOCK_LOOP_UPPER:
-0003E0r 2  0A           	shl #1
-0003E1r 2  90 07        	bcc @NO_BLOCK1
-0003E3r 2  48           	pha
-0003E4r 2  A5 rr        	lda DrawMap::fill_block
-0003E6r 2  9D 3C 01     	sta FILL_BLOCKS, x
-0003E9r 2  68           	pla
-0003EAr 2               @NO_BLOCK1:
-0003EAr 2  E8           	inx
-0003EBr 2  E0 05        	cpx #$5
-0003EDr 2  90 F1        	bcc @FILL_BLOCK_LOOP_UPPER
-0003EFr 2               
-0003EFr 2  C8           	iny									; y = 3
-0003F0r 2  B1 rr        	lda (DrawMap::map_addr), y
-0003F2r 2               @FILL_BLOCK_LOOP_LOWER:
-0003F2r 2  0A           	shl #1
-0003F3r 2  90 07        	bcc @NO_BLOCK2
-0003F5r 2  48           	pha
-0003F6r 2  A5 rr        	lda DrawMap::fill_block
-0003F8r 2  9D 3C 01     	sta FILL_BLOCKS, x
-0003FBr 2  68           	pla
-0003FCr 2               @NO_BLOCK2:
-0003FCr 2  E8           	inx
-0003FDr 2  E0 0D        	cpx #$d
-0003FFr 2  90 F1        	bcc @FILL_BLOCK_LOOP_LOWER
-000401r 2               
-000401r 2  C8           	iny									; y = 4
-000402r 2  84 rr        	sty DrawMap::index
-000404r 2               	; ----------------------------------
-000404r 2               
-000404r 2  68           		pla
-000405r 2  A8           		tay
-000406r 2               
-000406r 2  60           		rts
-000407r 2               		; ------------------------------
-000407r 2               .endproc
-000407r 2               
-000407r 2               
-000407r 2               .endscope
-000407r 2               
-000407r 1               .include "main.asm"
-000407r 2               ;*------------------------------------------------------------------------------
-000407r 2               ; MAIN routine
-000407r 2               ;*------------------------------------------------------------------------------
-000407r 2               
-000407r 2               .code									; ----- code -----
-000407r 2               
-000407r 2               .proc _main
-000407r 2  A5 rr        		lda is_processing_main
-000409r 2  F0 FC        		beq _main
-00040Br 2               
-00040Br 2  20 rr rr     		jsr Joypad::_getJoyData
-00040Er 2               
-00040Er 2  A5 rr        		lda Joypad::joy1_pushstart
-000410r 2  29 80        		and #Joypad::BTN_A
-000412r 2  F0 06        		beq @NO_PUSHED_BTN_A
-000414r 2               
-000414r 2  20 rr rr     		jsr DrawMap::_updateOneLine
-000417r 2  20 rr rr     		jsr Subfunc::_preparePltData
-00041Ar 2               @NO_PUSHED_BTN_A:
-00041Ar 2               
-00041Ar 2               		; ----- End main -----
-00041Ar 2  A9 00        		lda #0
-00041Cr 2  85 rr        		sta is_processing_main
-00041Er 2  4C rr rr     		jmp _main
-000421r 2               		; ------------------------------
-000421r 2               .endproc
+0003B6r 2  A0 00 B1 rr  	fillGround
+0003BAr 2  29 0F 85 rr  
+0003BEr 2  B1 rr 4A 4A  
+0003F1r 2               
+0003F1r 2               
+0003F1r 2               	; ------------ fill block ----------
+0003F1r 2  A0 00        	ldy #0
+0003F3r 2  C8           	iny									; y = 1
+0003F4r 2  B1 rr        	lda (DrawMap::map_addr), y
+0003F6r 2  85 rr        	sta DrawMap::fill_block
+0003F8r 2               
+0003F8r 2  C8           	iny									; y = 2
+0003F9r 2  B1 rr        	lda (DrawMap::map_addr), y
+0003FBr 2  0A 0A 0A     	shl #3
+0003FEr 2  A2 00        	ldx #0
+000400r 2               @FILL_BLOCK_LOOP_UPPER:
+000400r 2  0A           	shl #1
+000401r 2  90 07        	bcc @NO_BLOCK1
+000403r 2  48           	pha
+000404r 2  A5 rr        	lda DrawMap::fill_block
+000406r 2  9D 3C 01     	sta fill_block_arr, x
+000409r 2  68           	pla
+00040Ar 2               @NO_BLOCK1:
+00040Ar 2  E8           	inx
+00040Br 2  E0 05        	cpx #$5
+00040Dr 2  90 F1        	bcc @FILL_BLOCK_LOOP_UPPER
+00040Fr 2               
+00040Fr 2  C8           	iny									; y = 3
+000410r 2  B1 rr        	lda (DrawMap::map_addr), y
+000412r 2               @FILL_BLOCK_LOOP_LOWER:
+000412r 2  0A           	shl #1
+000413r 2  90 07        	bcc @NO_BLOCK2
+000415r 2  48           	pha
+000416r 2  A5 rr        	lda DrawMap::fill_block
+000418r 2  9D 3C 01     	sta fill_block_arr, x
+00041Br 2  68           	pla
+00041Cr 2               @NO_BLOCK2:
+00041Cr 2  E8           	inx
+00041Dr 2  E0 0D        	cpx #$d
+00041Fr 2  90 F1        	bcc @FILL_BLOCK_LOOP_LOWER
 000421r 2               
-000421r 1               
-000421r 1               ; Use .org
-000421r 1               .org SPR_BUFF
+000421r 2  C8           	iny									; y = 4
+000422r 2  84 rr        	sty DrawMap::index
+000424r 2               	; ----------------------------------
+000424r 2               
+000424r 2  68           		pla
+000425r 2  A8           		tay
+000426r 2               
+000426r 2  60           		rts
+000427r 2               		; ------------------------------
+000427r 2               .endproc
+000427r 2               
+000427r 2               
+000427r 2               .endscope
+000427r 2               
+000427r 1               .include "main.asm"
+000427r 2               ;*------------------------------------------------------------------------------
+000427r 2               ; MAIN routine
+000427r 2               ;*------------------------------------------------------------------------------
+000427r 2               
+000427r 2               .code									; ----- code -----
+000427r 2               
+000427r 2               .proc _main
+000427r 2  A5 rr        		lda is_processing_main
+000429r 2  F0 FC        		beq _main
+00042Br 2               
+00042Br 2  20 rr rr     		jsr Joypad::_getJoyData
+00042Er 2               
+00042Er 2  A5 rr        		lda Joypad::joy1_pushstart
+000430r 2  29 80        		and #Joypad::BTN_A
+000432r 2  F0 06        		beq @NO_PUSHED_BTN_A
+000434r 2               
+000434r 2  20 rr rr     		jsr DrawMap::_updateOneLine
+000437r 2  20 rr rr     		jsr Subfunc::_preparePltData
+00043Ar 2               @NO_PUSHED_BTN_A:
+00043Ar 2               
+00043Ar 2               		; ----- End main -----
+00043Ar 2  A9 00        		lda #0
+00043Cr 2  85 rr        		sta is_processing_main
+00043Er 2  4C rr rr     		jmp _main
+000441r 2               		; ------------------------------
+000441r 2               .endproc
+000441r 2               
+000441r 1               
+000441r 1               ; Use .org
+000441r 1               .org SPR_BUFF
 000300  1  xx xx xx xx  		.tag SPR_TBL
 000304  1  xx xx xx xx  
 000308  1  xx xx xx xx  

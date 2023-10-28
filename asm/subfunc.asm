@@ -79,7 +79,7 @@
 @STORE_PPU_DATA_LOOP:
 		lda @TEXT, x
 		beq @END_STORE
-		sta BG_BUFF, x
+		sta bg_buff, x
 		inx
 		dey
 		bne @STORE_PPU_DATA_LOOP
