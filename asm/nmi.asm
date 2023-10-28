@@ -37,15 +37,15 @@
 .code									; ----- code -----
 
 .proc _nmi
-		pha								; If main processing has not finished, tmp_rgstA may be in use
+		pha
 		inc nmi_cnt
 		lda is_processing_main
 		beq @NMI_MAIN
 		pla
+		jsr Subfunc::_setScroll
 		rti	; --------------------------
 
 @NMI_MAIN:
-
 	ldx #0
 	stx tmp1
 @PLT_STORE_LOOP:
@@ -71,9 +71,9 @@
 		sta PPU_CTRL1					; Not use restorePPUSet()
 
 		; line 1
-		lda ppu_bg_addr+1				; hi
+		lda ppu_bg_addr+HI
 		sta PPU_ADDR
-		lda ppu_bg_addr+0				; lo
+		lda ppu_bg_addr+LO
 		sta PPU_ADDR
 
 		ldx #0
@@ -85,9 +85,9 @@
 		bne @STORE_MAP_LOOP
 
 		; line 2
-		lda ppu_bg_addr+1				; hi
+		lda ppu_bg_addr+HI
 		sta PPU_ADDR
-		ldx ppu_bg_addr+0				; lo (increment)
+		ldx ppu_bg_addr+LO
 		inx
 		stx PPU_ADDR
 
@@ -153,13 +153,13 @@
 @STORE_CHR:
 		lda #0
 		sta OAM_ADDR
-		lda #$03
+		lda #>SPR_BUFF
 		sta OAM_DMA
 
 @EXIT:
 		lda #1
 		sta is_processing_main
-		shr
+		shr #1
 		sta bg_buff_pointer				; A = 0
 		inc frm_cnt
 		jsr Subfunc::_setScroll

@@ -1,14 +1,23 @@
 .code									; ----- code -----
+.macro wait
+lda nmi_cnt
+:
+		cmp nmi_cnt
+		beq :-
+.endmacro
 
 .macro init
 		sei								; Ban IRQ
 		cld								; Ban BCD
+		ldx #$40
+		stx JOYPAD2
 		ldx #$ff
 		txs
-		inx
+		inx								; X = 0
 		stx PPU_CTRL1
 		stx PPU_CTRL2
 		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
+		stx SOUND_CHANNEL
 
 		/*
 		A & $2002 -> set Z(zero flag)
@@ -18,14 +27,11 @@
 		*/
 		bit $2002
 
-		jsr Subfunc::_waitVblank					; 1st time
+		jsr Subfunc::_waitVblank		; 1st time
 
 		; It takes about 30,000 cycles for the PPU to stabilize.
 
-		lda #$20
-		sta PPU_ADDR
-		txa								; X = A = 0
-		sta PPU_ADDR
+		txa
 @CLR_MEM:
 		sta $00, x
 		sta $0100, x
@@ -37,8 +43,29 @@
 		inx
 		bne @CLR_MEM
 
-		; CLEAR $2000~27ff
+		lda #$ff
+@CLR_CHR_MEM:
+		sta $0300, x
+		inx
+		bne @CLR_CHR_MEM
+
+		lda #1
+		sta is_processing_main
+
+		jsr Subfunc::_waitVblank		; 2nd time
+
+
+		lda #%00010000					; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
+		sta ppu_ctrl1_cpy
+		jsr Subfunc::_restorePPUSet
+
+		; CLEAR VRAM
+		lda #$20
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 		ldy #8
+		tax
 @CLR_VRAM:
 		sta PPU_DATA
 		inx
@@ -46,26 +73,21 @@
 		dey
 		bne @CLR_VRAM
 
-		lda #$ff
-@CLR_CHR_MEM:
-		sta $0300, x
-		inx
-		bne @CLR_CHR_MEM
+		jsr Subfunc::_waitVblank
 
-		; Store initial value
-		lda #%10010000					; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000|
-		sta ppu_ctrl1_cpy
-		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
-		sta ppu_ctrl2_cpy
+		tfrPlt
 
-		jsr Subfunc::_waitVblank		; 2nd time
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
+		lda #$0f
+		sta PPU_DATA
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
-		tfrPlt 0
-
-		lda #0
-		sta OAM_ADDR
-		lda #$03
-		sta OAM_DMA
 
 	lda #$ff
 	sta DrawMap::row_counter
@@ -81,10 +103,68 @@
 	jsr DrawMap::_setStageAddr
 	jsr DrawMap::_setMapAddr
 
-		; Screen On
-		jsr Subfunc::_restorePPUSet
+
+		lda ppu_ctrl1_cpy
+		ora #%10000000
+		sta ppu_ctrl1_cpy
+		jsr Subfunc::_restorePPUSet		; NMI ON
+
+		jsr Subfunc::_dispStatus
+
+		lda #0
+		sta is_processing_main
+:
+		lda is_processing_main
+		beq :-
+
+		lda #0
+		sta OAM_ADDR
+		lda #>SPR_BUFF
+		sta OAM_DMA
+
+		lda #0
+		sta is_processing_main
+:
+		lda is_processing_main
+		beq :-
+		lda #0
+		sta is_processing_main
+:
+		lda is_processing_main
+		beq :-
+		lda #0
+		sta is_processing_main
+:
+		lda is_processing_main
+		beq :-
+		lda #0
+		sta is_processing_main
+:
+		lda is_processing_main
+		beq :-
+		lda #0
+		sta is_processing_main
+:
+		lda is_processing_main
+		beq :-
+		lda #0
+		sta is_processing_main
+:
+		lda is_processing_main
+		beq :-
+
+
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
+		lda #$22
+		sta PPU_DATA
+
 		jsr Subfunc::_setScroll
 
-		jsr Subfunc::_waitVblank
-		jsr Subfunc::_dispStatus
+		lda #%00011110					; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+		sta ppu_ctrl2_cpy
+		jsr Subfunc::_restorePPUSet		; NMI ON
+
 .endmacro

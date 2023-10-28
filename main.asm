@@ -18,6 +18,7 @@
 		jsr Subfunc::_preparePltData
 @NO_PUSHED_BTN_A:
 
+
 		; ----- End main -----
 		lda #0
 		sta is_processing_main

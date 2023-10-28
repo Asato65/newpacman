@@ -259,7 +259,7 @@
 
 
 
-.macro tfrPlt n
+.macro tfrPlt
 		; Transfar pallete
 		lda #>PLT_TABLE_ADDR
 		sta PPU_ADDR
