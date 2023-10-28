@@ -102,7 +102,7 @@ fill_ground_start		: .byte 0
 .endmacro
 
 
-.macro fillGround
+.macro ramFillGround
 	ldy #0
 
 	lda (DrawMap::map_addr), y
@@ -146,6 +146,43 @@ fill_ground_start		: .byte 0
 
 @END_FILL_GROUND:
 
+.endmacro
+
+
+.macro ramFillBlocks
+	ldy #1
+	lda (DrawMap::map_addr), y
+	sta DrawMap::fill_block
+
+	iny
+	lda (DrawMap::map_addr), y
+	shl #3
+	ldx #0
+@FILL_BLOCK_LOOP_UPPER:
+	shl #1
+	bcc @NO_BLOCK1
+	pha
+	lda DrawMap::fill_block
+	sta fill_block_arr, x
+	pla
+@NO_BLOCK1:
+	inx
+	cpx #$5
+	bcc @FILL_BLOCK_LOOP_UPPER
+
+	iny
+	lda (DrawMap::map_addr), y
+@FILL_BLOCK_LOOP_LOWER:
+	shl #1
+	bcc @NO_BLOCK2
+	pha
+	lda DrawMap::fill_block
+	sta fill_block_arr, x
+	pla
+@NO_BLOCK2:
+	inx
+	cpx #$d
+	bcc @FILL_BLOCK_LOOP_LOWER
 .endmacro
 
 
@@ -435,50 +472,13 @@ fill_ground_start		: .byte 0
 		lda #ENDCODE
 		rts
 		; ------------------------------
+
 @NO_EXIT:
+		ramFillGround
+		ramFillBlocks
 
-	fillGround
-
-
-	; ------------ fill block ----------
-	ldy #0
-	iny									; y = 1
-	lda (DrawMap::map_addr), y
-	sta DrawMap::fill_block
-
-	iny									; y = 2
-	lda (DrawMap::map_addr), y
-	shl #3
-	ldx #0
-@FILL_BLOCK_LOOP_UPPER:
-	shl #1
-	bcc @NO_BLOCK1
-	pha
-	lda DrawMap::fill_block
-	sta fill_block_arr, x
-	pla
-@NO_BLOCK1:
-	inx
-	cpx #$5
-	bcc @FILL_BLOCK_LOOP_UPPER
-
-	iny									; y = 3
-	lda (DrawMap::map_addr), y
-@FILL_BLOCK_LOOP_LOWER:
-	shl #1
-	bcc @NO_BLOCK2
-	pha
-	lda DrawMap::fill_block
-	sta fill_block_arr, x
-	pla
-@NO_BLOCK2:
-	inx
-	cpx #$d
-	bcc @FILL_BLOCK_LOOP_LOWER
-
-	iny									; y = 4
-	sty DrawMap::index
-	; ----------------------------------
+		ldy #4								; マクロ後inyでもy = 4
+		sty DrawMap::index
 
 		pla
 		tay

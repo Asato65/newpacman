@@ -1,4 +1,4 @@
-ca65 V2.19 - Git 6924d44
+ca65 V2.19 - Git de30a57
 Main file   : pacman.asm
 Current file: pacman.asm
 
@@ -1072,7 +1072,7 @@ Current file: pacman.asm
 000250r 2               		cld								; Ban BCD
 000250r 2               		ldx #$ff
 000250r 2               		txs
-000250r 2               		inx
+000250r 2               		inx								; X = 0
 000250r 2               		stx PPU_CTRL1
 000250r 2               		stx PPU_CTRL2
 000250r 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
@@ -1089,10 +1089,7 @@ Current file: pacman.asm
 000250r 2               
 000250r 2               		; It takes about 30,000 cycles for the PPU to stabilize.
 000250r 2               
-000250r 2               		lda #$20
-000250r 2               		sta PPU_ADDR
-000250r 2               		txa								; X = A = 0
-000250r 2               		sta PPU_ADDR
+000250r 2               		txa
 000250r 2               @CLR_MEM:
 000250r 2               		sta $00, x
 000250r 2               		sta $0100, x
@@ -1103,15 +1100,6 @@ Current file: pacman.asm
 000250r 2               		sta $0700, x
 000250r 2               		inx
 000250r 2               		bne @CLR_MEM
-000250r 2               
-000250r 2               		; CLEAR $2000~27ff
-000250r 2               		ldy #8
-000250r 2               @CLR_VRAM:
-000250r 2               		sta PPU_DATA
-000250r 2               		inx
-000250r 2               		bne @CLR_VRAM
-000250r 2               		dey
-000250r 2               		bne @CLR_VRAM
 000250r 2               
 000250r 2               		lda #$ff
 000250r 2               @CLR_CHR_MEM:
@@ -1127,7 +1115,25 @@ Current file: pacman.asm
 000250r 2               
 000250r 2               		jsr Subfunc::_waitVblank		; 2nd time
 000250r 2               
+000250r 2               		jsr Subfunc::_waitVblank		; 2nd time
+000250r 2               
 000250r 2               		tfrPlt 0
+000250r 2               
+000250r 2               		lda #$20
+000250r 2               		sta PPU_ADDR
+000250r 2               		lda #0
+000250r 2               		sta PPU_ADDR
+000250r 2               		; CLEAR $2000~27ff
+000250r 2               		ldy #8
+000250r 2               		tax
+000250r 2               @CLR_VRAM:
+000250r 2               		sta PPU_DATA
+000250r 2               		inx
+000250r 2               		bne @CLR_VRAM
+000250r 2               		dey
+000250r 2               		bne @CLR_VRAM
+000250r 2               
+000250r 2               		jsr Subfunc::_waitVblank		; 2nd time
 000250r 2               
 000250r 2               		lda #0
 000250r 2               		sta OAM_ADDR
@@ -1149,10 +1155,9 @@ Current file: pacman.asm
 000250r 2               	jsr DrawMap::_setMapAddr
 000250r 2               
 000250r 2               		; Screen On
-000250r 2               		jsr Subfunc::_restorePPUSet
+000250r 2               		jsr Subfunc::_restorePPUSet		; NMI ON
 000250r 2               		jsr Subfunc::_setScroll
 000250r 2               
-000250r 2               		jsr Subfunc::_waitVblank
 000250r 2               		jsr Subfunc::_dispStatus
 000250r 2               .endmacro
 000250r 2               
@@ -1261,7 +1266,7 @@ Current file: pacman.asm
 000030r 2               .endmacro
 000030r 2               
 000030r 2               
-000030r 2               .macro fillGround
+000030r 2               .macro ramFillGround
 000030r 2               	ldy #0
 000030r 2               
 000030r 2               	lda (DrawMap::map_addr), y
@@ -1305,6 +1310,43 @@ Current file: pacman.asm
 000030r 2               
 000030r 2               @END_FILL_GROUND:
 000030r 2               
+000030r 2               .endmacro
+000030r 2               
+000030r 2               
+000030r 2               .macro ramFillBlocks
+000030r 2               	ldy #1
+000030r 2               	lda (DrawMap::map_addr), y
+000030r 2               	sta DrawMap::fill_block
+000030r 2               
+000030r 2               	iny
+000030r 2               	lda (DrawMap::map_addr), y
+000030r 2               	shl #3
+000030r 2               	ldx #0
+000030r 2               @FILL_BLOCK_LOOP_UPPER:
+000030r 2               	shl #1
+000030r 2               	bcc @NO_BLOCK1
+000030r 2               	pha
+000030r 2               	lda DrawMap::fill_block
+000030r 2               	sta fill_block_arr, x
+000030r 2               	pla
+000030r 2               @NO_BLOCK1:
+000030r 2               	inx
+000030r 2               	cpx #$5
+000030r 2               	bcc @FILL_BLOCK_LOOP_UPPER
+000030r 2               
+000030r 2               	iny
+000030r 2               	lda (DrawMap::map_addr), y
+000030r 2               @FILL_BLOCK_LOOP_LOWER:
+000030r 2               	shl #1
+000030r 2               	bcc @NO_BLOCK2
+000030r 2               	pha
+000030r 2               	lda DrawMap::fill_block
+000030r 2               	sta fill_block_arr, x
+000030r 2               	pla
+000030r 2               @NO_BLOCK2:
+000030r 2               	inx
+000030r 2               	cpx #$d
+000030r 2               	bcc @FILL_BLOCK_LOOP_LOWER
 000030r 2               .endmacro
 000030r 2               
 000030r 2               
@@ -1603,52 +1645,17 @@ Current file: pacman.asm
 0003B3r 2  A9 FF        		lda #ENDCODE
 0003B5r 2  60           		rts
 0003B6r 2               		; ------------------------------
-0003B6r 2               @NO_EXIT:
 0003B6r 2               
-0003B6r 2  A0 00 B1 rr  	fillGround
+0003B6r 2               @NO_EXIT:
+0003B6r 2  A0 00 B1 rr  		ramFillGround
 0003BAr 2  29 0F 85 rr  
 0003BEr 2  B1 rr 4A 4A  
-0003F1r 2               
-0003F1r 2               
-0003F1r 2               	; ------------ fill block ----------
-0003F1r 2  A0 00        	ldy #0
-0003F3r 2  C8           	iny									; y = 1
-0003F4r 2  B1 rr        	lda (DrawMap::map_addr), y
-0003F6r 2  85 rr        	sta DrawMap::fill_block
-0003F8r 2               
-0003F8r 2  C8           	iny									; y = 2
-0003F9r 2  B1 rr        	lda (DrawMap::map_addr), y
-0003FBr 2  0A 0A 0A     	shl #3
-0003FEr 2  A2 00        	ldx #0
-000400r 2               @FILL_BLOCK_LOOP_UPPER:
-000400r 2  0A           	shl #1
-000401r 2  90 07        	bcc @NO_BLOCK1
-000403r 2  48           	pha
-000404r 2  A5 rr        	lda DrawMap::fill_block
-000406r 2  9D 3C 01     	sta fill_block_arr, x
-000409r 2  68           	pla
-00040Ar 2               @NO_BLOCK1:
-00040Ar 2  E8           	inx
-00040Br 2  E0 05        	cpx #$5
-00040Dr 2  90 F1        	bcc @FILL_BLOCK_LOOP_UPPER
-00040Fr 2               
-00040Fr 2  C8           	iny									; y = 3
-000410r 2  B1 rr        	lda (DrawMap::map_addr), y
-000412r 2               @FILL_BLOCK_LOOP_LOWER:
-000412r 2  0A           	shl #1
-000413r 2  90 07        	bcc @NO_BLOCK2
-000415r 2  48           	pha
-000416r 2  A5 rr        	lda DrawMap::fill_block
-000418r 2  9D 3C 01     	sta fill_block_arr, x
-00041Br 2  68           	pla
-00041Cr 2               @NO_BLOCK2:
-00041Cr 2  E8           	inx
-00041Dr 2  E0 0D        	cpx #$d
-00041Fr 2  90 F1        	bcc @FILL_BLOCK_LOOP_LOWER
-000421r 2               
-000421r 2  C8           	iny									; y = 4
-000422r 2  84 rr        	sty DrawMap::index
-000424r 2               	; ----------------------------------
+0003F1r 2  A0 01 B1 rr  		ramFillBlocks
+0003F5r 2  85 rr C8 B1  
+0003F9r 2  rr 0A 0A 0A  
+000420r 2               
+000420r 2  A0 04        		ldy #4								; マクロ後inyでもy = 4
+000422r 2  84 rr        		sty DrawMap::index
 000424r 2               
 000424r 2  68           		pla
 000425r 2  A8           		tay
@@ -1704,28 +1711,28 @@ Current file: pacman.asm
 008000  1  78 D8 A2 FF  		init
 008004  1  9A E8 8E 00  
 008008  1  20 8E 01 20  
-0080C1  1               
-0080C1  1  A9 01        		lda #1
-0080C3  1  85 rr        		sta is_processing_main
-0080C5  1               
-0080C5  1  4C rr rr     		jmp _main
-0080C8  1               		; ------------------------------
-0080C8  1               .endproc
-0080C8  1               
-0080C8  1               
-0080C8  1               .proc _irq
-0080C8  1  40           		rti
-0080C9  1               .endproc
-0080C9  1               
-0080C9  1               
-0080C9  1               .segment "CHARS"
-0080C9  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
-0080CD  1  1C 24 26 66  
-0080D1  1  00 00 00 00  
-00A0C9  1               
-00A0C9  1               
-00A0C9  1               .segment "VECINFO"
-00A0C9  1  rr rr        		.addr _nmi
-00A0CB  1  00 80        		.addr _reset
-00A0CD  1  C8 80        		.addr _irq
-00A0CD  1               
+0080C7  1               
+0080C7  1  A9 01        		lda #1
+0080C9  1  85 rr        		sta is_processing_main
+0080CB  1               
+0080CB  1  4C rr rr     		jmp _main
+0080CE  1               		; ------------------------------
+0080CE  1               .endproc
+0080CE  1               
+0080CE  1               
+0080CE  1               .proc _irq
+0080CE  1  40           		rti
+0080CF  1               .endproc
+0080CF  1               
+0080CF  1               
+0080CF  1               .segment "CHARS"
+0080CF  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
+0080D3  1  1C 24 26 66  
+0080D7  1  00 00 00 00  
+00A0CF  1               
+00A0CF  1               
+00A0CF  1               .segment "VECINFO"
+00A0CF  1  rr rr        		.addr _nmi
+00A0D1  1  00 80        		.addr _reset
+00A0D3  1  CE 80        		.addr _irq
+00A0D3  1               
