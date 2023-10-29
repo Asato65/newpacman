@@ -21,7 +21,15 @@
 	sprid, attr, posx
 	; ARG: A = sprite id
 	; ARG: Y = BUFF index
-	shl #1
+	/*
+	MEMO:
+	spr_buffの構成: 4bytes
+		posX, Y
+		sprID
+		velocity (HI: X, LO: Y)
+		(player: acceleration)
+	*/
+	shl #2
 	tax
 
 	lda spr_buff, x						; pos X

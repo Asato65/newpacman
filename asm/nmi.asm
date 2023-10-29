@@ -46,24 +46,27 @@
 		rti	; --------------------------
 
 @NMI_MAIN:
-	ldx #0
-	stx tmp1
+		ldx #0
+		stx tmp1
 @PLT_STORE_LOOP:
-	lda plt_addr+1
-	sta PPU_ADDR
-	lda plt_addr+0
-	add #8
-	add tmp1
-	sta PPU_ADDR
+		lda plt_addr+1
+		sta PPU_ADDR
 
-	lda bg_plt_buff, x
-	sta PPU_DATA
-	lda tmp1
-	add #8
-	sta tmp1
-	inx
-	cpx #7
-	bcc @PLT_STORE_LOOP
+		lda plt_addr+0
+		add #8
+		add tmp1
+		sta PPU_ADDR
+
+		lda bg_plt_buff, x
+		sta PPU_DATA
+
+		lda tmp1
+		add #8
+		sta tmp1
+
+		inx
+		cpx #7
+		bcc @PLT_STORE_LOOP
 
 		lda ppu_ctrl1_cpy
 		ora #%0000_0100					; Vertical mode
@@ -153,7 +156,7 @@
 @STORE_CHR:
 		lda #0
 		sta OAM_ADDR
-		lda #>SPR_BUFF
+		lda #>CHR_BUFF
 		sta OAM_DMA
 
 @EXIT:

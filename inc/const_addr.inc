@@ -4,7 +4,7 @@ bg_map_buff			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
 bg_plt_buff			= $0134				; size = 8
 fill_block_arr		= $013c				; size = 13 ($d)
 bg_buff				= $0149
-SPR_BUFF			= $0300
+CHR_BUFF			= $0300
 MAP1				= $0400
 MAP2				= $0500
 USER_MEM			= $0700

@@ -94,6 +94,7 @@
 	; test(load map 1 of world 1-1)
 	ldy #0
 	jsr DrawMap::_setStageAddr
+	ldy #0
 	jsr DrawMap::_setMapAddr
 
 

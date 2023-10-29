@@ -36,7 +36,7 @@
 .include "main.asm"
 
 ; Use .org
-.org SPR_BUFF
+.org CHR_BUFF
 		.tag SPR_TBL
 
 

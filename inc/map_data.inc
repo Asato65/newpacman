@@ -2,53 +2,74 @@
 
 STAGE_ARR:
 	.addr MAP_ARR_11
+	.addr MAP_ARR_12
 
 MAP_ARR_11:
 	.addr MAP_11_1
 	.addr MAP_11_2
 	.addr $ffff
 
+MAP_ARR_12:
+	.addr MAP_12_1
+	.addr $ffff
+
 MAP_11_1:
 	.byte $bd
 	.byte 'B'
 	.byte %00000000, %00000000
-	.byte (GET_OBJ_POS $1, $3), 'B'
-	.byte (GET_OBJ_POS $1, $4), '^'
-	.byte (GET_OBJ_POS $1, $5), 'Q'
-	.byte (GET_OBJ_POS $5, $3), 'Q'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $5), 'Q'
-	.byte (GET_OBJ_POS $1, $5), 'Q'
-	.byte (GET_OBJ_POS $2, $5), 'Q'
-	.byte (GET_OBJ_POS $3, $5), 'Q'
-	.byte (GET_OBJ_POS $4, $5), 'Q'
-	.byte (GET_OBJ_POS $5, $5), 'Q'
-	.byte (GET_OBJ_POS $6, $5), 'Q'
-	.byte (GET_OBJ_POS $7, $5), 'Q'
-	.byte (GET_OBJ_POS $8, $5), 'Q'
+	.byte (GET_OBJ_POS $0, $3), 'B'
+	.byte (GET_OBJ_POS $8, $5), 'B'
+	.byte (GET_OBJ_POS $9, $8), 'B'
 	.byte (GET_OBJ_POS $9, $5), 'Q'
-	.byte (GET_OBJ_POS $a, $5), 'Q'
+	.byte (GET_OBJ_POS $a, $8), 'Q'
+	.byte (GET_OBJ_POS $a, $5), 'B'
+	.byte (GET_OBJ_POS $b, $8), 'B'
 	.byte (GET_OBJ_POS $b, $5), 'Q'
-	.byte (GET_OBJ_POS $c, $5), 'Q'
-	.byte (GET_OBJ_POS $d, $5), 'Q'
-	.byte (GET_OBJ_POS $e, $5), 'Q'
-	.byte (GET_OBJ_POS $f, $5), 'Q'
+	.byte (GET_OBJ_POS $c, $5), 'B'
+	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $0, $0), 0
+	.byte (GET_OBJ_POS $0, $1), 0
+	.byte (GET_OBJ_POS $1, $0), 0
+	.byte (GET_OBJ_POS $1, $1), 0
+	.byte (GET_OBJ_POS $2, $5), 'B'
 	.byte OBJMAP_END
 
 MAP_11_2:
 	.byte $bd
 	.byte 'B'
 	.byte %00000000, %00000000
-	.byte (GET_OBJ_POS $0, $7), 'Q'
-	.byte (GET_OBJ_POS $0, $6), 'Q'
 	.byte (GET_OBJ_POS $0, $5), 'Q'
-	.byte (GET_OBJ_POS $1, $7), 'Q'
-	.byte (GET_OBJ_POS $1, $6), 'Q'
+	.byte (GET_OBJ_POS $0, $6), 'Q'
+	.byte (GET_OBJ_POS $0, $7), 'B'
 	.byte (GET_OBJ_POS $1, $5), 'Q'
+	.byte (GET_OBJ_POS $1, $6), 'Q'
+	.byte (GET_OBJ_POS $1, $7), 'Q'
 	.byte (GET_OBJ_POS $2, $5), 'Q'
 	.byte (GET_OBJ_POS $3, $5), 'Q'
 	.byte OBJMAP_END
 
+MAP_12_1:
+	.byte $bd
+	.byte 'B'
+	.byte %00010000, %00000000
+	.byte (GET_OBJ_POS $0, $2), 'B'
+	.byte (GET_OBJ_POS $0, $3), 'B'
+	.byte (GET_OBJ_POS $0, $4), 'B'
+	.byte (GET_OBJ_POS $0, $5), 'B'
+	.byte (GET_OBJ_POS $0, $6), 'B'
+	.byte (GET_OBJ_POS $0, $7), 'B'
+	.byte (GET_OBJ_POS $0, $8), 'B'
+	.byte (GET_OBJ_POS $0, $9), 'B'
+	.byte (GET_OBJ_POS $0, $a), 'B'
+	.byte (GET_OBJ_POS $0, $b), 'B'
+	.byte (GET_OBJ_POS $0, $c), 'B'
+	.byte (GET_OBJ_POS $1, $c), 0
+	.byte (GET_OBJ_POS $2, $c), 0
+	.byte (GET_OBJ_POS $3, $c), 0
+	.byte (GET_OBJ_POS $4, $c), 0
+	.byte (GET_OBJ_POS $5, $c), 0
+	.byte (GET_OBJ_POS $f, $0), 'G'
+	.byte OBJMAP_END
 
 
 BROCK_ID_ARR:

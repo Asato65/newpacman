@@ -18,7 +18,7 @@
 ; 	ptx: PosiTion X
 ;*------------------------------------------------------------------------------
 
-.define ADDR_SPR(spr_num, member)		SPR_BUFF + ((spr_num)*4) + SPR_STRUCT::member
+.define ADDR_SPR(spr_num, member)		CHR_BUFF + ((spr_num)*4) + SPR_STRUCT::member
 
 
 ;*------------------------------------------------------------------------------
