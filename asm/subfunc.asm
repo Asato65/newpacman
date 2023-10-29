@@ -111,4 +111,23 @@
 .endproc
 
 
+;*------------------------------------------------------------------------------
+; Sleep for one frame
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None (A = 1)
+;*------------------------------------------------------------------------------
+
+.proc _sleepOneFrame
+		lda #0
+		sta is_processing_main
+:
+		lda is_processing_main
+		beq :-
+
+		rts
+		; ------------------------------
+.endproc
+
+
 .endscope
