@@ -126,8 +126,13 @@ fill_ground_start		: .byte 0
 		sty DrawMap::isend_draw_stage
 
 @PREPARE_BG_MAP_BUF:
-		lda row_counter
+		lda DrawMap::row_counter
 		sta addr_tmp1+LO				; PosY = 0
+
+		lda DrawMap::map_buff_num
+		and #BIT0
+		ora #4
+		sta addr_tmp1+HI
 
 		setPpuBgAddr
 
@@ -155,7 +160,7 @@ fill_ground_start		: .byte 0
 		; prepare plt data -------------
 		sty tmp2						; (save counter) += $10
 		ldy tmp1						; (save counter) += 1
-		pha
+		pha								; push
 		and #BIT5|BIT4
 		tax								; X: plt num(bit4-5) : tmp (Start using)
 		lda DrawMap::row_counter
@@ -204,7 +209,7 @@ fill_ground_start		: .byte 0
 @STORE_TO_PLT_BUFF:
 		sta bg_plt_buff, y
 
-		pla
+		pla								; pull
 		ldy tmp2
 
 		and #BIT5|BIT4|BIT3|BIT2|BIT1|BIT0

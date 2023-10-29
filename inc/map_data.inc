@@ -11,8 +11,8 @@ MAP_ARR_11:
 MAP_11_1:
 	.byte $bd
 	.byte 'B'
-	.byte %00011110, %00000000
-	.byte (GET_OBJ_POS $0, $0), 'G'
+	.byte %00000000, %00000000
+	.byte (GET_OBJ_POS $1, $3), 'B'
 	.byte (GET_OBJ_POS $1, $4), '^'
 	.byte (GET_OBJ_POS $1, $5), 'Q'
 	.byte (GET_OBJ_POS $5, $3), 'Q'
