@@ -34,6 +34,8 @@ is_processing_main		: .byte 0
 
 plt_addr				: .addr 0
 
+is_updated_map			: .byte 0
+
 
 .segment "USER_MEM"
 

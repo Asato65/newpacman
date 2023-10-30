@@ -279,17 +279,17 @@
 		cpx #$3*8
 		bcc :--
 
-	lda #$23
-	sta PPU_ADDR
-	lda #$c0
-	sta PPU_ADDR
-	lda #$ff
-	sta PPU_DATA
-	sta PPU_DATA
-	sta PPU_DATA
-	sta PPU_DATA
-	sta PPU_DATA
-	sta PPU_DATA
-	sta PPU_DATA
-	sta PPU_DATA
+		lda #$23
+		sta PPU_ADDR
+		lda #$c0
+		sta PPU_ADDR
+		lda #$ff
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
 .endmacro

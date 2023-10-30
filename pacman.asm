@@ -29,11 +29,11 @@
 
 .include "./asm/joypad.asm"
 .include "./asm/macro.asm"
-.include "./asm/subfunc.asm"
+.include "./asm/subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
 .include "./asm/draw_map.asm"
 .include "./asm/nmi.asm"
 .include "./asm/init.asm"
-.include "./asm/routine.asm"
+.include "./asm/func.asm"				; いくつかのファイルのインクルードが必要な関数群
 .include "main.asm"
 
 ; Use .org

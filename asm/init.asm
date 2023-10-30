@@ -41,12 +41,13 @@
 		bne @CLR_CHR_MEM
 
 		; Zero sprite
-		lda #$20
+		lda #$10-2-1
 		sta CHR_BUFF+0
-		lda #$75
+		lda #$ff
 		sta CHR_BUFF+1
-		lda #0
+		lda #%0000_0010
 		sta CHR_BUFF+2
+		lda #$0f
 		sta CHR_BUFF+3
 
 		jsr Subfunc::_waitVblank		; 2nd time
@@ -85,6 +86,7 @@
 		sta PPU_ADDR
 		lda #$0f
 		sta PPU_DATA
+		; 画面OFF中は最後に指定したアドレスの色が背景になる（指定なし→3f01の色が使用される）
 		lda #$3f
 		sta PPU_ADDR
 		lda #$00
@@ -96,19 +98,17 @@
 	lda #1
 	sta scroll_amount
 
-
 		jsr Subfunc::_dispStatus
+
+		lda #0
+		sta is_updated_map
 
 		lda ppu_ctrl1_cpy
 		ora #%10000000
 		sta ppu_ctrl1_cpy
 		jsr Subfunc::_restorePPUSet		; NMI ON
 
-		lda #0
-		sta is_processing_main
-
-
-		jsr Subfunc::_sleepOneFrame		; draw disp status & DMA
+		jsr Subfunc::_sleepOneFrame		; draw disp status
 
 		ldy #0
 		jsr DrawMap::_changeStage

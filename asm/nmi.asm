@@ -46,6 +46,8 @@
 		rti	; --------------------------
 
 @NMI_MAIN:
+		lda is_updated_map
+		beq @PRINT
 		ldx #0
 		stx tmp1
 @PLT_STORE_LOOP:
@@ -102,6 +104,7 @@
 		cpx #$1a
 		bne @STORE_MAP_LOOP2
 
+@PRINT:
 		lda #0
 		cmp bg_buff_pointer
 		beq @STORE_CHR
@@ -162,10 +165,10 @@
 @EXIT:
 		lda #1
 		sta is_processing_main
-		shr #1
-		sta bg_buff_pointer				; A = 0
+		shr #1							; A = 0
+		sta bg_buff_pointer
+		sta is_updated_map
 		inc frm_cnt
-		jsr Subfunc::_setScroll
 		pla
 		rti	; --------------------------
 .endproc

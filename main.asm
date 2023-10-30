@@ -5,10 +5,40 @@
 .code									; ----- code -----
 
 .proc _main
+		; --- Wait Finishing Vblank ----
 		lda is_processing_main
 		beq _main
 
+		lda ppu_ctrl1_cpy
+		and #%1111_1110
+		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない
+
+		lda #0
+		sta PPU_SCROLL
+		sta PPU_SCROLL
+
+@WAIT_FINISH_VBLANK:
+		bit PPU_STATUS
+		bvs @WAIT_FINISH_VBLANK
+
+		; ------ Before Zero Bomb ------
+
 		jsr Joypad::_getJoyData
+
+		; --------- Zero Bomb ----------
+
+@WAIT_ZERO_BOMB:
+		bit PPU_STATUS
+		bvc @WAIT_ZERO_BOMB
+
+		ldy #20							; 10ぐらいまで乱れる，余裕もって20に
+:
+		dey
+		bne :-
+
+		jsr Subfunc::_setScroll
+
+		; ------ After Zero Bomb -------
 
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_A

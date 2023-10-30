@@ -44,6 +44,9 @@ fill_ground_start		: .byte 0
 		; ------------------------------
 
 @START:
+		lda #1
+		sta is_updated_map
+
 		incRowCounter
 
 		lda DrawMap::map_buff_num
@@ -303,71 +306,83 @@ fill_ground_start		: .byte 0
 ;*------------------------------------------------------------------------------
 ; Change stage
 ; @PARAMS		Y: Stage number
-; @CLOBBERS		
+; @CLOBBERS		A Y
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .proc _changeStage
-	jsr Subfunc::_sleepOneFrame
+		lda #0
+		sta is_updated_map
+		jsr Subfunc::_sleepOneFrame
 
-	; Change bg color (black)
-	lda #$3f
-	sta PPU_ADDR
-	lda #$00
-	sta PPU_ADDR
-	lda #$0f
-	sta PPU_DATA
-	lda #$3f
-	sta PPU_ADDR
-	lda #$00
-	sta PPU_ADDR
+		; Change bg color (black)
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
+		lda #$0f
+		sta PPU_DATA
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
-	lda #$ff
-	sta DrawMap::row_counter
+		lda #$ff
+		sta DrawMap::row_counter
 
-	lda #0
-	sta DrawMap::index
-	sta main_disp
-	sta DrawMap::cnt_map_next			; count ff
-	sta DrawMap::map_buff_num
-	sta DrawMap::isend_draw_stage
-	sta DrawMap::map_arr_num
-	sta scroll_x
-	sta ppu_ctrl2_cpy
-	sta PPU_CTRL2
+		lda #0
+		sta DrawMap::index
+		sta main_disp
+		sta DrawMap::cnt_map_next		; count ff
+		sta DrawMap::map_buff_num
+		sta DrawMap::isend_draw_stage
+		sta DrawMap::map_arr_num
+		sta scroll_x
+		sta ppu_ctrl2_cpy
+		sta PPU_CTRL2
 
-	lda #'G'
-	sta DrawMap::fill_ground_block
+		lda #'G'
+		sta DrawMap::fill_ground_block
 
-	jsr DrawMap::_setStageAddr
-	ldy #0
-	jsr DrawMap::_setMapAddr
+		jsr DrawMap::_setStageAddr
+		ldy #0
+		jsr DrawMap::_setMapAddr
 
-	lda #$18
+		lda #$18
 @DISP_LOOP:
-	pha
-	jsr DrawMap::_updateOneLine
-	jsr Subfunc::_sleepOneFrame
-	pla
-	sub #1
-	bne @DISP_LOOP
+		pha
+		lda #1
+		sta is_updated_map
+		jsr DrawMap::_updateOneLine
+		jsr Subfunc::_sleepOneFrame
+		pla
+		sub #1
+		bne @DISP_LOOP
 
-	; Restore bg color
-	lda #$3f
-	sta PPU_ADDR
-	lda #$00
-	sta PPU_ADDR
-	lda #$22
-	sta PPU_DATA
+		; Restore bg color
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
+		lda #$22
+		sta PPU_DATA
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
-	jsr Subfunc::_sleepOneFrame
+		jsr Subfunc::_setScroll
 
-	lda #%00011110
-	sta ppu_ctrl2_cpy
-	jsr Subfunc::_restorePPUSet			; Display ON
+		lda #0
+		sta is_updated_map
+		jsr Subfunc::_sleepOneFrame
 
-	rts
-	; ------------------------------
+		lda #%00011110
+		sta ppu_ctrl2_cpy
+		jsr Subfunc::_restorePPUSet		; Display ON
+
+		rts
+		; ------------------------------
 
 .endproc
 

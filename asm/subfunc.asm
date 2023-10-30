@@ -21,7 +21,7 @@
 
 
 ;*------------------------------------------------------------------------------
-; Set scroll position
+; Set scroll position & change disp
 ; Use during NMI or executing raster scroll.
 ; @PARAMS		None
 ; @CLOBBERS		A
@@ -36,11 +36,11 @@
 		lda #0
 		sta PPU_SCROLL
 
-	lda ppu_ctrl1_cpy
-	and #%1111_1100
-	ora main_disp
-	sta ppu_ctrl1_cpy
-	sta PPU_CTRL1
+		lda ppu_ctrl1_cpy
+		and #%1111_1110
+		ora main_disp
+		sta ppu_ctrl1_cpy
+		sta PPU_CTRL1
 
 		rts
 		; ------------------------------
@@ -51,7 +51,7 @@
 ; Wait starting vblank
 ; @PARAMS		None
 ; @CLOBBERS		None
-; @RETURNS		Non
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
