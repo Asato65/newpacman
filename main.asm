@@ -28,7 +28,7 @@
 		beq @NO_PUSHED_BTN_R
 
 		lda #2
-		jsr Subfunc::_scroll
+		jsr Func::_scroll
 
 @NO_PUSHED_BTN_R:
 

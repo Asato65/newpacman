@@ -30,9 +30,10 @@
 .include "./asm/joypad.asm"
 .include "./asm/macro.asm"
 .include "./asm/subfunc.asm"
+.include "./asm/draw_map.asm"
 .include "./asm/nmi.asm"
 .include "./asm/init.asm"
-.include "./asm/draw_map.asm"
+.include "./asm/routine.asm"
 .include "main.asm"
 
 ; Use .org

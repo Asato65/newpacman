@@ -366,6 +366,9 @@ fill_ground_start		: .byte 0
 	sta ppu_ctrl2_cpy
 	jsr Subfunc::_restorePPUSet			; Display ON
 
+	rts
+	; ------------------------------
+
 .endproc
 
 

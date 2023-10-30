@@ -78,17 +78,17 @@
 
 		tfrPlt
 
-	; Change bg color (black)
-	lda #$3f
-	sta PPU_ADDR
-	lda #$00
-	sta PPU_ADDR
-	lda #$0f
-	sta PPU_DATA
-	lda #$3f
-	sta PPU_ADDR
-	lda #$00
-	sta PPU_ADDR
+		; Change bg color (black)
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
+		lda #$0f
+		sta PPU_DATA
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
 	lda #'G'
 	sta DrawMap::fill_ground_block

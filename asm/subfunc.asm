@@ -117,24 +117,4 @@
 .endproc
 
 
-;*------------------------------------------------------------------------------
-; Scroll
-; @PARAMS		A: amount of scroll
-; @CLOBBERS		A
-; @RETURNS		None
-;*------------------------------------------------------------------------------
-
-.proc _scroll
-		add scroll_x
-		sta scroll_x
-		bcc :+
-		lda main_disp
-		eor #%0000_0001
-		sta main_disp
-:
-		rts
-		; ------------------------------
-.endproc
-
-
 .endscope
