@@ -16,6 +16,21 @@
 
 		jsr DrawMap::_updateOneLine
 @NO_PUSHED_BTN_A:
+		lda Joypad::joy1
+		and #Joypad::BTN_B
+		beq @NO_PUSHED_BTN_B
+
+		ldy #1
+		jsr DrawMap::_changeStage
+@NO_PUSHED_BTN_B:
+		lda Joypad::joy1
+		and #Joypad::BTN_R
+		beq @NO_PUSHED_BTN_R
+
+		lda #2
+		jsr Subfunc::_scroll
+
+@NO_PUSHED_BTN_R:
 
 
 		; ----- End main -----

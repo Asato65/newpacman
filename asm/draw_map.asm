@@ -22,7 +22,7 @@ fill_ground_start		: .byte 0
 ;*------------------------------------------------------------------------------
 ; Update one row
 ; @PARAMS		None
-; @CLOBBERS		A X Y tmp1 addr_tmp1 addr_tmp2
+; @CLOBBERS		A X Y tmp1 tmp2 addr_tmp1 addr_tmp2
 ; @RETURNS		None
 /* main label
 	@START:
@@ -52,7 +52,7 @@ fill_ground_start		: .byte 0
 		sta addr_tmp2+HI
 
 		lda DrawMap::row_counter
-		sta addr_tmp2
+		sta addr_tmp2+LO
 
 		fillBlocks
 
@@ -297,6 +297,75 @@ fill_ground_start		: .byte 0
 
 		rts
 		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; Change stage
+; @PARAMS		Y: Stage number
+; @CLOBBERS		
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.proc _changeStage
+	jsr Subfunc::_sleepOneFrame
+
+	; Change bg color (black)
+	lda #$3f
+	sta PPU_ADDR
+	lda #$00
+	sta PPU_ADDR
+	lda #$0f
+	sta PPU_DATA
+	lda #$3f
+	sta PPU_ADDR
+	lda #$00
+	sta PPU_ADDR
+
+	lda #$ff
+	sta DrawMap::row_counter
+
+	lda #0
+	sta DrawMap::index
+	sta main_disp
+	sta DrawMap::cnt_map_next			; count ff
+	sta DrawMap::map_buff_num
+	sta DrawMap::isend_draw_stage
+	sta DrawMap::map_arr_num
+	sta scroll_x
+	sta ppu_ctrl2_cpy
+	sta PPU_CTRL2
+
+	lda #'G'
+	sta DrawMap::fill_ground_block
+
+	jsr DrawMap::_setStageAddr
+	ldy #0
+	jsr DrawMap::_setMapAddr
+
+	lda #$18
+@DISP_LOOP:
+	pha
+	jsr DrawMap::_updateOneLine
+	jsr Subfunc::_sleepOneFrame
+	pla
+	sub #1
+	bne @DISP_LOOP
+
+	; Restore bg color
+	lda #$3f
+	sta PPU_ADDR
+	lda #$00
+	sta PPU_ADDR
+	lda #$22
+	sta PPU_DATA
+
+	jsr Subfunc::_sleepOneFrame
+
+	lda #%00011110
+	sta ppu_ctrl2_cpy
+	jsr Subfunc::_restorePPUSet			; Display ON
+
 .endproc
 
 

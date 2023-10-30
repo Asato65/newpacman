@@ -40,6 +40,15 @@
 		inx
 		bne @CLR_CHR_MEM
 
+		; Zero sprite
+		lda #$20
+		sta CHR_BUFF+0
+		lda #$75
+		sta CHR_BUFF+1
+		lda #0
+		sta CHR_BUFF+2
+		sta CHR_BUFF+3
+
 		jsr Subfunc::_waitVblank		; 2nd time
 
 		; ------- PPU stabilizes -------
@@ -81,21 +90,8 @@
 	lda #$00
 	sta PPU_ADDR
 
-	; Map setting
-	lda #$ff
-	sta DrawMap::row_counter
-
-	and #0
-	sta DrawMap::index
-
 	lda #'G'
 	sta DrawMap::fill_ground_block
-
-	; test(load map 1 of world 1-1)
-	ldy #0
-	jsr DrawMap::_setStageAddr
-	ldy #0
-	jsr DrawMap::_setMapAddr
 
 
 		jsr Subfunc::_dispStatus
@@ -110,21 +106,8 @@
 
 
 		jsr Subfunc::_sleepOneFrame		; draw disp status & DMA
-		jsr Subfunc::_sleepOneFrame		; ここで1Fかせぐと画面の乱れなし
 
-
-	; Restore bg color
-	lda #$3f
-	sta PPU_ADDR
-	lda #$00
-	sta PPU_ADDR
-	lda #$22
-	sta PPU_DATA
-
-		jsr Subfunc::_setScroll
-
-		lda #%00011110
-		sta ppu_ctrl2_cpy
-		jsr Subfunc::_restorePPUSet		; Display ON
+		ldy #0
+		jsr DrawMap::_changeStage
 
 .endmacro

@@ -26,6 +26,8 @@ ppu_ctrl2_cpy			: .byte 0		; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE
 scroll_x				: .byte 0
 scroll_y				: .byte 0
 
+main_disp				: .byte 0
+
 nmi_cnt					: .byte 0
 frm_cnt					: .byte 0
 is_processing_main		: .byte 0

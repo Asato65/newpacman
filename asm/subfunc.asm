@@ -36,9 +36,9 @@
 		lda scroll_y
 		sta PPU_SCROLL
 
-	; TODO: きちんとスクロール実装したらメインスクリーンの切り替え実装
 	lda ppu_ctrl1_cpy
 	and #%1111_1100
+	ora main_disp
 	sta ppu_ctrl1_cpy
 	sta PPU_CTRL1
 
@@ -85,7 +85,6 @@
 		bne @STORE_PPU_DATA_LOOP
 @END_STORE:
 		stx bg_buff_pointer
-		stx $80
 		rts
 		; ------------------------------
 
@@ -113,6 +112,26 @@
 		lda is_processing_main
 		beq :-
 
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; Scroll
+; @PARAMS		A: amount of scroll
+; @CLOBBERS		A
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.proc _scroll
+		add scroll_x
+		sta scroll_x
+		bcc :+
+		lda main_disp
+		eor #%0000_0001
+		sta main_disp
+:
 		rts
 		; ------------------------------
 .endproc
