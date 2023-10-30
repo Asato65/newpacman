@@ -93,6 +93,9 @@
 	lda #'G'
 	sta DrawMap::fill_ground_block
 
+	lda #1
+	sta scroll_amount
+
 
 		jsr Subfunc::_dispStatus
 

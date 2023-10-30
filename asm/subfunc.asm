@@ -33,7 +33,7 @@
 .proc _setScroll
 		lda scroll_x
 		sta PPU_SCROLL
-		lda scroll_y
+		lda #0
 		sta PPU_SCROLL
 
 	lda ppu_ctrl1_cpy

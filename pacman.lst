@@ -127,7 +127,7 @@ Current file: pacman.asm
 000012r 2  00           ppu_ctrl2_cpy			: .byte 0		; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 000013r 2               
 000013r 2  00           scroll_x				: .byte 0
-000014r 2  00           scroll_y				: .byte 0
+000014r 2  00           scroll_amount			: .byte 0
 000015r 2               
 000015r 2  00           main_disp				: .byte 0
 000016r 2               
@@ -862,7 +862,7 @@ Current file: pacman.asm
 0001BCr 2               .proc _setScroll
 0001BCr 2  A5 rr        		lda scroll_x
 0001BEr 2  8D 05 20     		sta PPU_SCROLL
-0001C1r 2  A5 rr        		lda scroll_y
+0001C1r 2  A9 00        		lda #0
 0001C3r 2  8D 05 20     		sta PPU_SCROLL
 0001C6r 2               
 0001C6r 2  A5 rr        	lda ppu_ctrl1_cpy
@@ -1870,6 +1870,9 @@ Current file: pacman.asm
 0004E9r 2               	lda #'G'
 0004E9r 2               	sta DrawMap::fill_ground_block
 0004E9r 2               
+0004E9r 2               	lda #1
+0004E9r 2               	sta scroll_amount
+0004E9r 2               
 0004E9r 2               
 0004E9r 2               		jsr Subfunc::_dispStatus
 0004E9r 2               
@@ -1900,80 +1903,94 @@ Current file: pacman.asm
 0004E9r 2               ;*------------------------------------------------------------------------------
 0004E9r 2               
 0004E9r 2               .proc _scroll
-0004E9r 2  18 65 rr     		add scroll_x
-0004ECr 2  08           		php
+0004E9r 2  A5 rr        		lda scroll_x
+0004EBr 2  29 F0        		and #BYT_HI
 0004EDr 2  85 rr        		sta tmp1
+0004EFr 2               
 0004EFr 2  A5 rr        		lda scroll_x
-0004F1r 2  29 F0        		and #BYT_HI
-0004F3r 2  85 rr        		sta scroll_x					; tmp
-0004F5r 2  A5 rr        		lda tmp1
-0004F7r 2  29 F0        		and #BYT_HI
-0004F9r 2  C5 rr        		cmp scroll_x
-0004FBr 2  F0 05        		beq :+
-0004FDr 2  E6 80        		inc $80
-0004FFr 2  20 rr rr     		jsr DrawMap::_updateOneLine
+0004F1r 2  18 65 rr     		add scroll_amount
+0004F4r 2  85 rr        		sta scroll_x
+0004F6r 2  29 F0        		and #BYT_HI						; Not clobber carry
+0004F8r 2  85 rr        		sta tmp2
+0004FAr 2               
+0004FAr 2  90 06        		bcc :+
+0004FCr 2  A5 rr        		lda main_disp
+0004FEr 2  49 01        		eor #%0000_0001
+000500r 2  85 rr        		sta main_disp
 000502r 2               :
+000502r 2               
 000502r 2  A5 rr        		lda tmp1
-000504r 2  85 rr        		sta scroll_x
-000506r 2  28           		plp
-000507r 2  90 06        		bcc :+
-000509r 2  A5 rr        		lda main_disp
-00050Br 2  49 01        		eor #%0000_0001
-00050Dr 2  85 rr        		sta main_disp
-00050Fr 2               :
-00050Fr 2  60           		rts
-000510r 2               		; ------------------------------
-000510r 2               .endproc
+000504r 2  C5 rr        		cmp tmp2
+000506r 2  F0 03        		beq :+
+000508r 2  20 rr rr     		jsr DrawMap::_updateOneLine
+00050Br 2               :
+00050Br 2               
+00050Br 2  60           		rts
+00050Cr 2               		; ------------------------------
+00050Cr 2               .endproc
+00050Cr 2               
+00050Cr 2               
+00050Cr 2               .endscope
+00050Cr 2               
+00050Cr 1               .include "main.asm"
+00050Cr 2               ;*------------------------------------------------------------------------------
+00050Cr 2               ; MAIN routine
+00050Cr 2               ;*------------------------------------------------------------------------------
+00050Cr 2               
+00050Cr 2               .code									; ----- code -----
+00050Cr 2               
+00050Cr 2               .proc _main
+00050Cr 2  A5 rr        		lda is_processing_main
+00050Er 2  F0 FC        		beq _main
 000510r 2               
-000510r 2               
-000510r 2               .endscope
-000510r 2               
-000510r 1               .include "main.asm"
-000510r 2               ;*------------------------------------------------------------------------------
-000510r 2               ; MAIN routine
-000510r 2               ;*------------------------------------------------------------------------------
-000510r 2               
-000510r 2               .code									; ----- code -----
-000510r 2               
-000510r 2               .proc _main
-000510r 2  A5 rr        		lda is_processing_main
-000512r 2  F0 FC        		beq _main
-000514r 2               
-000514r 2  20 rr rr     		jsr Joypad::_getJoyData
-000517r 2               
-000517r 2  A5 rr        		lda Joypad::joy1_pushstart
-000519r 2  29 80        		and #Joypad::BTN_A
-00051Br 2  F0 03        		beq @NO_PUSHED_BTN_A
-00051Dr 2               
-00051Dr 2  20 rr rr     		jsr DrawMap::_updateOneLine
-000520r 2               @NO_PUSHED_BTN_A:
-000520r 2  A5 rr        		lda Joypad::joy1
-000522r 2  29 40        		and #Joypad::BTN_B
-000524r 2  F0 05        		beq @NO_PUSHED_BTN_B
-000526r 2               
-000526r 2  A0 01        		ldy #1
-000528r 2  20 rr rr     		jsr DrawMap::_changeStage
-00052Br 2               @NO_PUSHED_BTN_B:
-00052Br 2  A5 rr        		lda Joypad::joy1
-00052Dr 2  29 01        		and #Joypad::BTN_R
-00052Fr 2  F0 05        		beq @NO_PUSHED_BTN_R
-000531r 2               
-000531r 2  A9 02        		lda #2
-000533r 2  20 rr rr     		jsr Func::_scroll
+000510r 2  20 rr rr     		jsr Joypad::_getJoyData
+000513r 2               
+000513r 2  A5 rr        		lda Joypad::joy1_pushstart
+000515r 2  29 80        		and #Joypad::BTN_A
+000517r 2  F0 03        		beq @NO_PUSHED_BTN_A
+000519r 2               
+000519r 2  20 rr rr     		jsr DrawMap::_updateOneLine
+00051Cr 2               @NO_PUSHED_BTN_A:
+00051Cr 2  A5 rr        		lda Joypad::joy1
+00051Er 2  29 40        		and #Joypad::BTN_B
+000520r 2  F0 05        		beq @NO_PUSHED_BTN_B
+000522r 2               
+000522r 2  A0 01        		ldy #1
+000524r 2  20 rr rr     		jsr DrawMap::_changeStage
+000527r 2               @NO_PUSHED_BTN_B:
+000527r 2  A5 rr        		lda Joypad::joy1
+000529r 2  29 01        		and #Joypad::BTN_R
+00052Br 2  F0 03        		beq @NO_PUSHED_BTN_R
+00052Dr 2               
+00052Dr 2  20 rr rr     		jsr Func::_scroll
+000530r 2               
+000530r 2               @NO_PUSHED_BTN_R:
+000530r 2  A5 rr        		lda Joypad::joy1_pushstart
+000532r 2  29 08        		and #Joypad::BTN_U
+000534r 2  F0 02        		beq @NO_PUSHED_BTN_U
 000536r 2               
-000536r 2               @NO_PUSHED_BTN_R:
-000536r 2               
-000536r 2               
-000536r 2               		; ----- End main -----
-000536r 2  A9 00        		lda #0
-000538r 2  85 rr        		sta is_processing_main
-00053Ar 2  4C rr rr     		jmp _main
-00053Dr 2               		; ------------------------------
-00053Dr 2               .endproc
-00053Dr 2               
-00053Dr 1               
-00053Dr 1               ; Use .org
-00053Dr 1               .org CHR_BUFF
+000536r 2  E6 rr        		inc scroll_amount
+000538r 2               
+000538r 2               @NO_PUSHED_BTN_U:
+000538r 2  A5 rr        		lda Joypad::joy1_pushstart
+00053Ar 2  29 04        		and #Joypad::BTN_D
+00053Cr 2  F0 02        		beq @NO_PUSHED_BTN_D
+00053Er 2               
+00053Er 2  C6 rr        		dec scroll_amount
+000540r 2               
+000540r 2               @NO_PUSHED_BTN_D:
+000540r 2               
+000540r 2               
+000540r 2               		; ----- End main -----
+000540r 2  A9 00        		lda #0
+000542r 2  85 rr        		sta is_processing_main
+000544r 2  4C rr rr     		jmp _main
+000547r 2               		; ------------------------------
+000547r 2               .endproc
+000547r 2               
+000547r 1               
+000547r 1               ; Use .org
+000547r 1               .org CHR_BUFF
 000300  1  xx xx xx xx  		.tag SPR_TBL
 000304  1  xx xx xx xx  
 000308  1  xx xx xx xx  
@@ -1987,28 +2004,28 @@ Current file: pacman.asm
 008000  1  78 D8 A2 40  		init
 008004  1  8E 17 40 A2  
 008008  1  FF 9A E8 8E  
-0080EB  1               
-0080EB  1  A9 01        		lda #1
-0080ED  1  85 rr        		sta is_processing_main
 0080EF  1               
-0080EF  1  4C rr rr     		jmp _main
-0080F2  1               		; ------------------------------
-0080F2  1               .endproc
-0080F2  1               
-0080F2  1               
-0080F2  1               .proc _irq
-0080F2  1  40           		rti
-0080F3  1               .endproc
+0080EF  1  A9 01        		lda #1
+0080F1  1  85 rr        		sta is_processing_main
 0080F3  1               
-0080F3  1               
-0080F3  1               .segment "CHARS"
-0080F3  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
-0080F7  1  1C 24 26 66  
-0080FB  1  00 00 00 00  
-00A0F3  1               
-00A0F3  1               
-00A0F3  1               .segment "VECINFO"
-00A0F3  1  rr rr        		.addr _nmi
-00A0F5  1  00 80        		.addr _reset
-00A0F7  1  F2 80        		.addr _irq
+0080F3  1  4C rr rr     		jmp _main
+0080F6  1               		; ------------------------------
+0080F6  1               .endproc
+0080F6  1               
+0080F6  1               
+0080F6  1               .proc _irq
+0080F6  1  40           		rti
+0080F7  1               .endproc
+0080F7  1               
+0080F7  1               
+0080F7  1               .segment "CHARS"
+0080F7  1  03 0F 1F 1F  		.incbin "spr_bg.chr"
+0080FB  1  1C 24 26 66  
+0080FF  1  00 00 00 00  
 00A0F7  1               
+00A0F7  1               
+00A0F7  1               .segment "VECINFO"
+00A0F7  1  rr rr        		.addr _nmi
+00A0F9  1  00 80        		.addr _reset
+00A0FB  1  F6 80        		.addr _irq
+00A0FB  1               

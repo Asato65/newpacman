@@ -27,10 +27,23 @@
 		and #Joypad::BTN_R
 		beq @NO_PUSHED_BTN_R
 
-		lda #2
 		jsr Func::_scroll
 
 @NO_PUSHED_BTN_R:
+		lda Joypad::joy1_pushstart
+		and #Joypad::BTN_U
+		beq @NO_PUSHED_BTN_U
+
+		inc scroll_amount
+
+@NO_PUSHED_BTN_U:
+		lda Joypad::joy1_pushstart
+		and #Joypad::BTN_D
+		beq @NO_PUSHED_BTN_D
+
+		dec scroll_amount
+
+@NO_PUSHED_BTN_D:
 
 
 		; ----- End main -----
