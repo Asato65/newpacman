@@ -100,6 +100,15 @@
 
 		jsr Subfunc::_dispStatus
 
+	; sprite
+	lda #$20
+	sta spr_posX_arr+0
+	lda #$c0-1
+	sta spr_posY_arr+0
+	ldx #0
+	ldy #1
+	jsr Sprite::_tfrToChrBuff
+
 		lda #0
 		sta is_updated_map
 

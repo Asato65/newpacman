@@ -37,7 +37,13 @@ plt_addr				: .addr 0
 is_updated_map			: .byte 0
 
 
-.segment "USER_MEM"
+.segment "BUFF_MEM"
+
+
+spr_posX_arr			: .res 11
+spr_posY_arr			: .res 11
+spr_id_arr				: .res 11		; id = 0: no spr
+spr_velocity_arr		: .res 11
 
 
 .code

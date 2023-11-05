@@ -31,18 +31,18 @@
 .include "./asm/macro.asm"
 .include "./asm/subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
 .include "./asm/draw_map.asm"
+.include "./asm/sprite.asm"
 .include "./asm/nmi.asm"
 .include "./asm/init.asm"
 .include "./asm/func.asm"				; いくつかのファイルのインクルードが必要な関数群
 .include "main.asm"
 
-; Use .org
-.org CHR_BUFF
+
+.segment "DMA_MEM"
 		.tag SPR_TBL
 
 
 .code									; ----- code -----
-.org $8000
 .segment "STARTUP"
 
 .proc _reset
