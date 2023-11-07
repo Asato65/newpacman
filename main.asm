@@ -40,6 +40,15 @@
 
 		; ------ After Zero Bomb -------
 
+	; chr move
+	lda #1
+	sta Sprite::move_dx
+	lda #0								; spr id
+	jsr Sprite::_moveSprite
+	; ldx #0								; spr id
+	; ldy #1
+	; jsr Sprite::_tfrToChrBuff
+
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_A
 		beq @NO_PUSHED_BTN_A

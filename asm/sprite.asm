@@ -40,8 +40,13 @@ CHR_ID:
 
 .scope Sprite
 
+.ZeroPage
+
 move_dx		: .byte 0
 move_dy		: .byte 0
+
+
+.code									; ----- code -----
 
 .proc _moveSprite
 	; ARG: A = sprite id
