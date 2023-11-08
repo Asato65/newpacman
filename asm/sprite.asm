@@ -48,15 +48,51 @@ move_dy		: .byte 0
 
 .code									; ----- code -----
 
-.proc _moveSprite
-	; ARG: A = sprite id
-	shl #1
-	tax
+;*------------------------------------------------------------------------------
+; Move sprite
+; @PARAMS		X: sprite id
+; @CLOBBERS		A Y
+; @RETURNS		None
+;*------------------------------------------------------------------------------
 
+.proc _moveSprite
 	lda spr_posX_arr, x
 	add move_dx
+	cmp #$f0
+	bcc :+
+	ldy move_dx
+	cpy #$80
+	bcc :+
+	; posX < 0 && move_dx < 0
+	lda #0
+:
+
+	; スクロールロック時の処理
+	ldy is_scroll_locked
+	bne @STORE_POSX
+
+	cmp #PLAYER_MAX_POSX
+	bcs @MOVE_SCROLL
+
+@STORE_POSX:
+	cmp #($100-(PLAYER_WIDTH+PLAYER_PADDING))
+	bcc @STOP_MOVE
+	beq @STOP_MOVE
+
+	lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
+@STOP_MOVE:
+	sta spr_posX_arr, x
+	jmp @MOVE_Y
+	; ------------------------------
+
+@MOVE_SCROLL:
+	sub #PLAYER_MAX_POSX
+	sta scroll_amount
+
+	lda #PLAYER_MAX_POSX
 	sta spr_posX_arr, x
 
+@MOVE_Y:
 	lda spr_posY_arr, x
 	add move_dy
 	sta spr_posY_arr, x

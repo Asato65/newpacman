@@ -95,15 +95,15 @@
 	lda #'G'
 	sta DrawMap::fill_ground_block
 
-	lda #1
-	sta scroll_amount
+	lda #0
+	sta is_scroll_locked
 
 		jsr Subfunc::_dispStatus
 
 	; sprite
 	lda #$20
 	sta spr_posX_arr+0
-	lda #$c0-1
+	lda #$c0
 	sta spr_posY_arr+0
 	ldx #0
 	ldy #1

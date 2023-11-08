@@ -26,3 +26,7 @@ HI										= 1
 
 INIT									= 0
 
+PLAYER_WIDTH							= $c
+PLAYER_PADDING							= $2
+
+PLAYER_MAX_POSX							= $70				; マリオの行ける最大X座標（スクロールロックが無いとき）

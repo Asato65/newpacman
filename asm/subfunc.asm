@@ -31,6 +31,9 @@
 .code									; ----- code -----
 
 .proc _setScroll
+		; lda is_scroll_locked
+		; bne @EXIT
+
 		lda scroll_x
 		sta PPU_SCROLL
 		lda #0
@@ -42,6 +45,7 @@
 		sta ppu_ctrl1_cpy
 		sta PPU_CTRL1
 
+@EXIT:
 		rts
 		; ------------------------------
 .endproc

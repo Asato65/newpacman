@@ -8,6 +8,9 @@
 ;*------------------------------------------------------------------------------
 
 .proc _scroll
+		lda is_scroll_locked
+		bne @SKIP_UPDATE_LINE
+
 		lda scroll_x
 		and #BYT_HI
 		sta tmp1

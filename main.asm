@@ -41,20 +41,22 @@
 		; ------ After Zero Bomb -------
 
 	; chr move
-	lda #1
-	sta Sprite::move_dx
-	lda #0								; spr id
+	ldx #0								; spr id
 	jsr Sprite::_moveSprite
-	; ldx #0								; spr id
-	; ldy #1
-	; jsr Sprite::_tfrToChrBuff
+	ldx #0								; spr id
+	ldy #1
+	jsr Sprite::_tfrToChrBuff
 
+	jsr Func::_scroll
+
+		; A
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_A
 		beq @NO_PUSHED_BTN_A
 
 		jsr DrawMap::_updateOneLine
 @NO_PUSHED_BTN_A:
+		; B
 		lda Joypad::joy1
 		and #Joypad::BTN_B
 		beq @NO_PUSHED_BTN_B
@@ -62,27 +64,29 @@
 		ldy #1
 		jsr DrawMap::_changeStage
 @NO_PUSHED_BTN_B:
-		lda Joypad::joy1
-		and #Joypad::BTN_R
-		beq @NO_PUSHED_BTN_R
-
-		jsr Func::_scroll
-
-@NO_PUSHED_BTN_R:
+		; U
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_U
 		beq @NO_PUSHED_BTN_U
 
-		inc scroll_amount
-
+		inc Sprite::move_dx
 @NO_PUSHED_BTN_U:
+		; D
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_D
 		beq @NO_PUSHED_BTN_D
 
-		dec scroll_amount
-
+		dec Sprite::move_dx
 @NO_PUSHED_BTN_D:
+		; L
+		lda Joypad::joy1_pushstart
+		and #Joypad::BTN_L
+		beq @NO_PUSHED_BTN_L
+
+		lda is_scroll_locked
+		eor #1
+		sta is_scroll_locked
+@NO_PUSHED_BTN_L:
 
 
 		; ----- End main -----

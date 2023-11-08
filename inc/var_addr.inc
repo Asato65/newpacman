@@ -36,6 +36,8 @@ plt_addr				: .addr 0
 
 is_updated_map			: .byte 0
 
+is_scroll_locked		: .byte 0
+
 
 .segment "BUFF_MEM"
 
