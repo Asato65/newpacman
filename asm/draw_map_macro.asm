@@ -85,7 +85,7 @@
 		.local @LOOP
 
 		lda addr_tmp2+LO
-		and #BYT_LO
+		and #BYT_GET_LO
 		sta addr_tmp2+LO
 
 		ldx #0
@@ -122,7 +122,7 @@
 		ldy #0
 
 		lda (DrawMap::map_addr), y
-		and #BYT_LO
+		and #BYT_GET_LO
 		sta DrawMap::fill_ground_end
 
 		lda (DrawMap::map_addr), y

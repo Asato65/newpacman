@@ -324,6 +324,7 @@ move_dy		: .byte 0
 	; ------------------------------
 
 @ACCELERATE_RIGHT:
+	; AMOUNT_INC_SPD_R[]のindex決定
 	ldx #0
 	lda Joypad::joy1
 	and #Joypad::BTN_B
@@ -331,29 +332,33 @@ move_dy		: .byte 0
 	inx
 :
 	lda AMOUNT_INC_SPD_R, x
-	add spr_float_velocity_x_arr+$0
+	add spr_float_velocity_x_arr+$0		; 加速度をプラス
 	cmp MAX_SPD_R, x
 	bmi :+
 	inx
 	sec
-	sbc AMOUNT_INC_SPD_R, x
+	sbc AMOUNT_INC_SPD_R, x				; 足した加速度よりも大きな加速度で引く（加速度が負に）
 :
 	sta spr_float_velocity_x_arr+$0
-	pha
+	add spr_velocity_x_decimal_part_arr+$0
+	sta tmp1
+	and #BYT_GET_LO
+	sta spr_velocity_x_decimal_part_arr+$0
+	lda tmp1
 	cmp #0
 	bpl :+
-	shr #4
+	shr #4								; 加速度が負のとき（左に進んでて，右に入力がある場合）
 	ora #%11110000
 	bne :++
 :
-	shr #4
+	shr #4								; 加速度が正のとき
 :
 	sta spr_velocity_x_arr+$0
-	pla
+	lda tmp1
 	cmp #$10
 	bpl :+
 	cmp #$08
-	bmi :+
+	bmi :+								; $09-$0fのときに速度を1足す
 	inc spr_velocity_x_arr+$0
 :
 	rts

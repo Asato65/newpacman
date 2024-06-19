@@ -73,7 +73,7 @@ fill_ground_start		: .byte 0
 		beq @END_OF_MAP
 
 		; Check if it can be updated
-		and #BYT_LO
+		and #BYT_GET_LO
 		cmp DrawMap::row_counter
 		bne @GET_POS_AND_OBJ_LOOP_EXIT
 

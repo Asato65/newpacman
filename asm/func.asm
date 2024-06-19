@@ -12,13 +12,13 @@
 		bne @SKIP_UPDATE_LINE
 
 		lda scroll_x
-		and #BYT_HI
+		and #BYT_GET_HI
 		sta tmp1
 
 		lda scroll_x
 		add scroll_amount
 		sta scroll_x
-		and #BYT_HI						; Not clobber carry
+		and #BYT_GET_HI						; Not clobber carry
 		sta tmp2
 
 		bcc @SKIP_CHANGE_DISP

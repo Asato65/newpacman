@@ -51,6 +51,7 @@ spr_velocity_x_arr					: .res 6
 spr_final_velocity_x_arr			: .res 6
 spr_float_velocity_x_arr			: .res 6
 spr_last_float_velocity_x_arr		: .res 6
+spr_velocity_x_decimal_part_arr		: .res 6		; 小数部分
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
 
