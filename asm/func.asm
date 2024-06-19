@@ -1,7 +1,7 @@
 .scope Func
 
 ;*------------------------------------------------------------------------------
-; Scroll
+; スクロール
 ; @PARAMS		A: amount of scroll
 ; @CLOBBERS		A, tmp1, tmp2
 ; @RETURNS		None

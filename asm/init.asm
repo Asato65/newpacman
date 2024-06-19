@@ -105,17 +105,17 @@
 	sta spr_posX_arr+0
 	lda #$c0
 	sta spr_posY_arr+0
-	ldx #0
-	ldy #1
+	ldx #PLAYER_SPR_ID					; spr id
+	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
 	jsr Sprite::_tfrToChrBuff
 
 		lda #0
 		sta is_updated_map
 
-		lda ppu_ctrl1_cpy
+		lda ppu_ctrl1_cpy				; NMI ON
 		ora #%10000000
 		sta ppu_ctrl1_cpy
-		jsr Subfunc::_restorePPUSet		; NMI ON
+		jsr Subfunc::_restorePPUSet
 
 		jsr Subfunc::_sleepOneFrame		; draw disp status
 

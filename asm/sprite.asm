@@ -28,13 +28,31 @@
 
 
 CHR_ATTR:
-		.byte %0000_0000
-		.byte %0000_0000
-		.byte %0000_0000
-		.byte %0100_0000
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
 
 CHR_ID:
-		.byte $3a, $37, $4f, $4f
+		.byte $3a, $37, $4f, $4f		; standing
+		.byte $32, $33, $34, $35		; walk1
+		.byte $36, $37, $38, $39		; walk2
+		.byte $3a, $37, $3b, $3c		; walk3, falling
+		.byte $32, $41, $42, $43		; jumping
+
+
+MAX_SPD_L:
+		.byte $e8, $d8
+
+MAX_SPD_R:
+		.byte $18, $28
+
+AMOUNT_INC_SPD_L:
+		.byte $ff, $fe, $fd
+
+AMOUNT_INC_SPD_R:
+		.byte $01, $02, $03
 
 
 
@@ -51,16 +69,21 @@ move_dy		: .byte 0
 ;*------------------------------------------------------------------------------
 ; Move sprite
 ; @PARAMS		X: sprite id
-; @CLOBBERS		A Y
+; @CLOBBERS		A Y tmp1
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
-
 .proc _moveSprite
-	lda spr_posX_arr, x
-	add move_dx
+	dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
+	lda spr_velocity_x_arr, x
+	sta spr_final_velocity_x_arr, x
+	bne :+
+	sta scroll_amount
+:
+	clc
+	adc spr_posX_arr, x
 	cmp #$f0
 	bcc :+
-	ldy move_dx
+	ldy spr_velocity_x_arr, x
 	cpy #$80
 	bcc :+
 	; posX < 0 && move_dx < 0
@@ -81,6 +104,11 @@ move_dy		: .byte 0
 
 	lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
 @STOP_MOVE:
+	sta tmp1
+	lda spr_posX_arr, x
+	sub tmp1
+	sta spr_final_velocity_x_arr, x
+	lda tmp1
 	sta spr_posX_arr, x
 	jmp @MOVE_Y
 	; ------------------------------
@@ -94,7 +122,7 @@ move_dy		: .byte 0
 
 @MOVE_Y:
 	lda spr_posY_arr, x
-	add move_dy
+	add Sprite::move_dy
 	sta spr_posY_arr, x
 
 	rts
@@ -102,10 +130,13 @@ move_dy		: .byte 0
 .endproc
 
 
+;*------------------------------------------------------------------------------
+; transfar to chr buff
+; @PARAMS		X: sprite id, Y = BUFF index
+; @CLOBBERS		A X Y
+; @RETURNS		None
+;*------------------------------------------------------------------------------
 .proc _tfrToChrBuff
-	; posy, sprid, attr, posx
-	; ARG: X = sprite id (MAX 11)
-	; ARG: Y = BUFF index
 	/*
 	MEMO:
 	sprite
@@ -115,6 +146,11 @@ move_dy		: .byte 0
 		(player: acceleration)
 	*/
 
+	cpx #0								; sprid=0 -> スプライトなし
+	beq @EXIT
+	dex									; spridを0～に変更
+
+	iny									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
 	tya
 	shl #2
 	tay
@@ -184,8 +220,162 @@ move_dy		: .byte 0
 	add #8
 	sta CHR_BUFF+$f, y
 
+@EXIT:
 	rts
 	; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; player physics
+; @CLOBBERS		A X
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+.proc _playerPhysics
+	lda #0
+	sta spr_velocity_x_arr+$0
+	lda Joypad::joy1
+	and #Joypad::BTN_L
+	bne @ACCELERATE_LEFT
+	lda Joypad::joy1
+	and #Joypad::BTN_R
+	beq @DEC_ACCELERATION
+	jmp @ACCELERATE_RIGHT
+@DEC_ACCELERATION:
+	lda spr_float_velocity_x_arr+$0
+	beq @EXIT1
+	; 減速
+	lda spr_float_velocity_x_arr+$0
+	bmi @INC_SPEED
+@DEC_SPEED:
+	; 右向きに進んでいるときの減速
+	ldx spr_float_velocity_x_arr+$0
+	dex
+	stx spr_float_velocity_x_arr+$0
+	txa
+	shr #4
+	sta spr_velocity_x_arr+$0
+	cpx #$10
+	bpl @EXIT1
+	cpx #$08
+	bmi @EXIT1
+	ldx spr_velocity_x_arr+$0
+	beq @EXIT1
+	dex
+	stx spr_velocity_x_arr+$0
+	jmp @EXIT1
+@INC_SPEED:
+	; 左向きに進んでいるときの減速
+	ldx spr_float_velocity_x_arr+$0
+	inx
+	stx spr_float_velocity_x_arr+$0
+	txa
+	shr #4
+	beq :+
+	ora #%11110000						; 上位4ビットを埋める（負の数にする）
+:
+	sta spr_velocity_x_arr+$0
+	cpx #$f0
+	bmi @EXIT1
+	cpx #$f8
+	bpl @EXIT1
+	ldx spr_velocity_x_arr+$0
+	beq @EXIT1
+	inx
+	stx spr_velocity_x_arr+$0
+@EXIT1:
+	rts
+	; ------------------------------
+@ACCELERATE_LEFT:
+	; 左向きに加速度を上昇させる
+	ldx #0
+	lda Joypad::joy1
+	and #Joypad::BTN_B
+	beq :+
+	inx
+:
+	lda AMOUNT_INC_SPD_L, x
+	add spr_float_velocity_x_arr+$0
+	cmp MAX_SPD_L, x
+	bpl :+
+	inx
+	sec
+	sbc AMOUNT_INC_SPD_L, x
+:
+	sta spr_float_velocity_x_arr+$0
+	pha
+	cmp #0
+	bpl :+
+	shr #4
+	ora #%11110000						; 上位4ビットを埋める（負の数にする）
+	bne :++
+:
+	shr #4
+:
+	sta spr_velocity_x_arr+$0
+	pla
+	cmp #$f0
+	bmi :+
+	cmp #$f8
+	bpl :+
+	dec spr_velocity_x_arr+$0
+:
+	rts
+	; ------------------------------
+
+@ACCELERATE_RIGHT:
+	ldx #0
+	lda Joypad::joy1
+	and #Joypad::BTN_B
+	beq :+
+	inx
+:
+	lda AMOUNT_INC_SPD_R, x
+	add spr_float_velocity_x_arr+$0
+	cmp MAX_SPD_R, x
+	bmi :+
+	inx
+	sec
+	sbc AMOUNT_INC_SPD_R, x
+:
+	sta spr_float_velocity_x_arr+$0
+	pha
+	cmp #0
+	bpl :+
+	shr #4
+	ora #%11110000
+	bne :++
+:
+	shr #4
+:
+	sta spr_velocity_x_arr+$0
+	pla
+	cmp #$10
+	bpl :+
+	cmp #$08
+	bmi :+
+	inc spr_velocity_x_arr+$0
+:
+	rts
+	; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; sprite animate
+; @PARAMS		X: sprite id
+; @CLOBBERS		A X
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+.proc _sprAnimate
+	cpx #0
+	beq :+
+	rts
+	; ------------------------------
+:
+	dex
+	lda spr_velocity_x_arr, x
+
 .endproc
 
 .endscope

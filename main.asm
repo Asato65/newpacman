@@ -1,19 +1,21 @@
 ;*------------------------------------------------------------------------------
-; MAIN routine
+; メインルーチン
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
 
 .proc _main
-		; --- Wait Finishing Vblank ----
+		; -------- Vblank終了待ち --------
 		lda is_processing_main
 		beq _main
 
-		lda ppu_ctrl1_cpy
-		and #%1111_1110
-		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない
+		; ----------- 0爆弾前 -----------
 
-		lda #0
+		lda ppu_ctrl1_cpy				; ステータス表示の為$2000の画面を表示
+		and #%1111_1100
+		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない -> ??? 分かったら書き換えておいて
+
+		lda #0							; ステータス表示の為リセット
 		sta PPU_SCROLL
 		sta PPU_SCROLL
 
@@ -21,11 +23,7 @@
 		bit PPU_STATUS
 		bvs @WAIT_FINISH_VBLANK
 
-		; ------ Before Zero Bomb ------
-
 		jsr Joypad::_getJoyData
-
-		; --------- Zero Bomb ----------
 
 @WAIT_ZERO_BOMB:
 		bit PPU_STATUS
@@ -38,55 +36,57 @@
 
 		jsr Subfunc::_setScroll
 
-		; ------ After Zero Bomb -------
+		; ----------- 0爆弾後 -----------
+
+	; 前回の最終速度をコピー
+	ldx #0
+:
+	lda spr_float_velocity_x_arr, x
+	sta spr_last_float_velocity_x_arr, x
+	inx
+	cpx #6
+	bne :-
 
 	; chr move
-	ldx #0								; spr id
+	ldx #PLAYER_SPR_ID					; spr id
 	jsr Sprite::_moveSprite
-	ldx #0								; spr id
-	ldy #1
+	ldx #PLAYER_SPR_ID					; spr id
+	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
 	jsr Sprite::_tfrToChrBuff
 
 	jsr Func::_scroll
 
-		; A
+		; Aボタン
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_A
 		beq @NO_PUSHED_BTN_A
 
-		jsr DrawMap::_updateOneLine
+		; jsr DrawMap::_updateOneLine
 @NO_PUSHED_BTN_A:
-		; B
+		; Bボタン
 		lda Joypad::joy1
 		and #Joypad::BTN_B
 		beq @NO_PUSHED_BTN_B
 
-		ldy #1
-		jsr DrawMap::_changeStage
+		; ldy #1
+		; jsr DrawMap::_changeStage
 @NO_PUSHED_BTN_B:
-		; U
+		; ↑ボタン
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_U
 		beq @NO_PUSHED_BTN_U
 
 		inc Sprite::move_dx
 @NO_PUSHED_BTN_U:
-		; D
+		; ↓ボタン
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_D
 		beq @NO_PUSHED_BTN_D
 
 		dec Sprite::move_dx
 @NO_PUSHED_BTN_D:
-		; L
-		lda Joypad::joy1_pushstart
-		and #Joypad::BTN_L
-		beq @NO_PUSHED_BTN_L
 
-		lda is_scroll_locked
-		eor #1
-		sta is_scroll_locked
-@NO_PUSHED_BTN_L:
+		jsr Sprite::_playerPhysics
 
 
 		; ----- End main -----

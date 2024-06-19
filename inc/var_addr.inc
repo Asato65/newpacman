@@ -38,14 +38,21 @@ is_updated_map			: .byte 0
 
 is_scroll_locked		: .byte 0
 
+is_jumping				: .byte 0
+
 
 .segment "BUFF_MEM"
 
 
-spr_posX_arr			: .res 11
-spr_posY_arr			: .res 11
-spr_id_arr				: .res 11		; id = 0: no spr
-spr_velocity_arr		: .res 11
+spr_posX_arr						: .res 6
+spr_posY_arr						: .res 6
+spr_id_arr							: .res 6		; id = 0: no spr
+spr_velocity_x_arr					: .res 6
+spr_final_velocity_x_arr			: .res 6
+spr_float_velocity_x_arr			: .res 6
+spr_last_float_velocity_x_arr		: .res 6
+spr_anime_timer						: .res 6
+spr_anime_num						: .res 6
 
 
 .code

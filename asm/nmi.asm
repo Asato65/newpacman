@@ -115,7 +115,7 @@
 		shl #2							; Move flag to Bit2
 		sta tmp1						; Start using tmp1
 		lda ppu_ctrl1_cpy
-		and #%11111011					; Mask direction flag
+		and #%11111011					; Mask direction flag(Horizontal(+1)/Vertical(+32))
 		ora tmp1						; End using tmp1
 		sta ppu_ctrl1_cpy
 		sta PPU_CTRL1					; Not use restorePPUSet()
