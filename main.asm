@@ -70,17 +70,17 @@
 		and #Joypad::BTN_U
 		beq @NO_PUSHED_BTN_U
 
-		inc Sprite::move_dx
 @NO_PUSHED_BTN_U:
 		; ↓ボタン
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_D
 		beq @NO_PUSHED_BTN_D
 
-		dec Sprite::move_dx
 @NO_PUSHED_BTN_D:
 
-		jsr Player::_physics
+		jsr Player::_physicsX
+		jsr Player::_jumpCheck
+		jsr Player::_moveProcess
 		jsr Player::_animate
 
 

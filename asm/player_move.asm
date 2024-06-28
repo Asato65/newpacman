@@ -1,12 +1,39 @@
 .scope Player							; スコープ名注意！
 
+DOWN_SPEED_LIMIT = $04		; 落下の最高速度
+; 加速度の増加値
+VER_FORCE_DECIMAL_PART_DATA:
+		.byte $20, $20, $1e, $28, $28
+; 降下時の加速度
+VER_FALL_FORCE_DATA:
+		.byte $70, $70, $60, $90, $90
+; 初速度(v0)
+INITIAL_VER_SPEED_DATA:
+		.byte $fc, $fc, $fc, $fb, $fb
+; 初期加速度(a)
+INITIAL_VER_FORCE_DATA:
+		.byte $00, $00, $00, $00, $00
+
+.ZeroPage
+is_fly: 					.byte 0		; 空中にいるか
+is_jumping:					.byte 0		; ジャンプ中か
+posY_origin:				.byte 0		; ジャンプ開始時の位置
+ver_speed:					.byte 0		; 速度
+ver_force_decimal_part:		.byte 0		; 現在の加速度
+ver_force_fall:				.byte 0		; 降下時の加速度
+ver_speed_decimal_part:		.byte 0		; 加速度の増加値
+ver_pos_decimal_part:		.byte 0		; 累積計算での補正値
+ver_pos_fix_val:			.byte 0		; 補正値
+
+.code
+
 ;*------------------------------------------------------------------------------
 ; player physics
 ; @PARAMS		None
 ; @CLOBBERS		A X
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
-.proc _physics
+.proc _physicsX
 		lda #0								; 初期化
 		sta spr_velocity_x_arr+$0
 
@@ -78,12 +105,12 @@
 :
 		sta spr_float_velocity_x_arr+$0
 		sta tmp1
-		lda spr_velocity_x_decimal_part_arr+$0
+		lda spr_decimal_part_velocity_x_arr+$0
 		ora #%1111_0000
 		add tmp1
 		sta tmp1
 		and #BYT_GET_LO
-		sta spr_velocity_x_decimal_part_arr+$0
+		sta spr_decimal_part_velocity_x_arr+$0
 		lda tmp1
 		cmp #0
 		bpl :+
@@ -134,10 +161,10 @@
 		sbc AMOUNT_INC_SPD_R, x
 :
 		sta spr_float_velocity_x_arr+$0
-		add spr_velocity_x_decimal_part_arr+$0
+		add spr_decimal_part_velocity_x_arr+$0
 		sta tmp1
 		and #BYT_GET_LO
-		sta spr_velocity_x_decimal_part_arr+$0
+		sta spr_decimal_part_velocity_x_arr+$0
 		lda tmp1
 		cmp #0
 		bpl :+
@@ -181,6 +208,13 @@
 ;*------------------------------------------------------------------------------
 
 .proc _animate
+	lda Player::is_jumping
+	beq :+
+	lda #4
+	sta spr_anime_num
+	rts
+	; ------------------------------
+:
 		lda spr_float_velocity_x_arr+$0
 		bne :+
 		lda #0
@@ -264,6 +298,124 @@
 	rts
 	; ------------------------------
 
+.endproc
+
+
+.proc _jumpCheck
+	lda Joypad::joy1
+	and #Joypad::BTN_A
+	bne @SKIP1
+	; 初めてAボタンが押されてないとき終了
+	rts
+	; ------------------------------
+@SKIP1:
+	lda Player::is_fly
+	bne @SKIP2
+	; 地面にいるときジャンプ開始準備
+	jsr Player::_prepareJumping
+@SKIP2:
+	rts
+	; ------------------------------
+.endproc
+
+
+.proc _prepareJumping
+	ldx #1
+	stx Player::is_fly
+	stx Player::is_jumping
+	dex
+	stx spr_decimal_part_velocity_y_arr+$0
+	lda spr_posY_arr+$0
+	sta Player::posY_origin
+
+	; Xレジスタ = 0
+	lda spr_velocity_x_arr+$0
+	bpl :+
+	cnn									; X方向のスピードの絶対値を求める
+:
+	cmp #$1c
+	bmi @SKIP1
+	inx
+@SKIP1:
+	cmp #$19
+	bmi @SKIP2
+	inx
+@SKIP2:
+	cmp #$10
+	bmi @SKIP3
+	inx
+@SKIP3:
+	cmp #$09
+	bmi @SKIP4
+	inx
+@SKIP4:
+
+	lda VER_FORCE_DECIMAL_PART_DATA, x
+	sta spr_decimal_part_force_y+$0
+	lda VER_FALL_FORCE_DATA, x
+	sta spr_force_fall_y+$0
+	lda INITIAL_VER_FORCE_DATA, x
+	sta spr_decimal_part_velocity_y_arr+$0
+	lda INITIAL_VER_SPEED_DATA, x
+	sta spr_velocity_y_arr+$0
+
+	rts
+	; ------------------------------
+.endproc
+
+.proc _moveProcess
+	lda spr_velocity_y_arr+$0
+	bpl @SKIP1
+	lda Joypad::joy1
+	and #Joypad::BTN_A
+	bne @SKIP2
+	lda Joypad::joy1_prev
+	and #Joypad::BTN_A
+	beq @SKIP2
+@SKIP1:
+	lda spr_force_fall_y+$0
+	sta spr_decimal_part_force_y+$0
+@SKIP2:
+	jsr Player::_physicsY
+	rts
+	; ------------------------------
+.endproc
+
+
+.proc _physicsY
+	ldx #0
+	stx spr_fix_val_y+$0
+	lda spr_pos_y_decimal_part+$0
+	add spr_decimal_part_force_y+$0
+	sta spr_pos_y_decimal_part+$0
+	bcc @SKIP_OVERFLOW
+	; オーバーフローしてたら
+	stx spr_pos_y_decimal_part+$0
+	inx
+	stx spr_fix_val_y+$0				; 補正値があったらここで修正
+@SKIP_OVERFLOW:
+	lda spr_decimal_part_velocity_y_arr+$0
+	add spr_decimal_part_force_y+$0
+	sta spr_decimal_part_velocity_y_arr+$0
+	bcc @EXIT
+	lda #0
+	sta spr_decimal_part_velocity_y_arr+$0
+
+	ldx spr_velocity_y_arr+$0
+	inx
+	cpx #DOWN_SPEED_LIMIT
+	bmi @STORE_VER_SPEED
+	;lda ver_speed_decimal_part
+	;bpl @STORE_VER_SPEED
+	ldx #DOWN_SPEED_LIMIT
+	lda #0
+	sta spr_decimal_part_velocity_y_arr+$0
+@STORE_VER_SPEED:
+	stx spr_velocity_y_arr+$0
+
+@EXIT:
+	rts
+	; ------------------------------
 .endproc
 
 .endscope

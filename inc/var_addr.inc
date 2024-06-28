@@ -45,15 +45,23 @@ is_jumping				: .byte 0
 
 
 spr_posX_arr						: .res 6
-spr_posY_arr						: .res 6
-spr_id_arr							: .res 6		; id = 0: no spr
-spr_attr_arr						: .res 6		; bit0: 向き（1のとき右向き）
 spr_velocity_x_arr					: .res 6
-spr_final_velocity_x_arr			: .res 6		; 未使用
 spr_float_velocity_x_arr			: .res 6
-spr_velocity_x_decimal_part_arr		: .res 6		; 小数部分
+spr_decimal_part_velocity_x_arr		: .res 6		; 小数部分のみ（補正値）
+
+spr_posY_arr						: .res 6
+spr_velocity_y_arr					: .res 6
+spr_decimal_part_velocity_y_arr		: .res 6		; 小数部分のみ（補正値）
+spr_pos_y_origin					: .res 6
+spr_decimal_part_force_y			: .res 6		; 現在の加速度
+spr_force_fall_y					: .res 6		; 降下時の加速度
+spr_pos_y_decimal_part				: .res 6
+spr_fix_val_y						: .res 6		; 加速度補正値
+
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
+spr_id_arr							: .res 6		; id = 0: no spr
+spr_attr_arr						: .res 6		; bit0: 向き（1のとき右向き）
 
 
 .code

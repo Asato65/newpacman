@@ -86,12 +86,6 @@ AMOUNT_INC_SPD_R:
 
 .scope Sprite
 
-.ZeroPage
-
-move_dx		: .byte 0
-move_dy		: .byte 0
-
-
 .code									; ----- code -----
 
 ;*------------------------------------------------------------------------------
@@ -144,7 +138,8 @@ move_dy		: .byte 0
 
 @MOVE_Y:
 		lda spr_posY_arr, x
-		add Sprite::move_dy
+		clc
+		adc spr_velocity_y_arr, x
 		sta spr_posY_arr, x
 
 		rts
