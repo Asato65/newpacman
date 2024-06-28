@@ -1,6 +1,6 @@
 ;*------------------------------------------------------------------------------
 ; bg_buffを読み取り，指定アドレスに書き込んでカウンタをインクリメント
-; Read PPU update data & store to PPU
+; Unused
 ; @PARAMS		ADDR: Forwarding address
 ; @CLOBBERS		A X
 ; @RETURNS		None

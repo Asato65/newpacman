@@ -1,4 +1,4 @@
-MAIN_FILE = pacman
+MAIN_FILE = mario
 ASM_FILE = $(MAIN_FILE).asm
 OBJ_FILE = $(MAIN_FILE).o
 NES_FILE = $(MAIN_FILE).nes

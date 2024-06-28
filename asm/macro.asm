@@ -3,22 +3,22 @@
 ; A = Arr[X][Y]
 ; @PARAMS		ADDR: Array Address
 ; @PARAMS		X Y: index (Access Arr[x][y])
-; @CLOBBERS		tmp1
+; @CLOBBERS		tmp6 addr_tmp1
 ; ------------------------------------------------------------------------------
 
 .code									; ----- code -----
 
 .macro ldarr addr
 		.if !(.blank(addr))
-			sty tmp1						; save Y
+			sty tmp6						; save Y
 			txa
 			asl								; ×2（アドレスが16bitなのでARR[x][y]のxが+1 => 読み込むアドレスは+2する必要がある
 			tay								; アドレッシングに使うためYレジスタへ
 			lda addr, y						; Low
-			sta <addr_tmp1
+			sta addr_tmp1+0
 			lda addr+1, y					; High
-			sta >addr_tmp1
-			ldy tmp1						; restore Y
+			sta addr_tmp1+1
+			ldy tmp6						; restore Y
 			lda (addr_tmp1), y
 		.else
 			.error "Arg addr in macro ldarr is wrong."

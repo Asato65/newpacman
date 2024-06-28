@@ -28,11 +28,11 @@
 
 
 CHR_ATTR:
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; standing
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; walk1
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; walk2
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; walk3, fall
+		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; jumping
 
 CHR_ID:
 		.byte $3a, $37, $4f, $4f		; standing
@@ -40,6 +40,34 @@ CHR_ID:
 		.byte $36, $37, $38, $39		; walk2
 		.byte $3a, $37, $3b, $3c		; walk3, falling
 		.byte $32, $41, $42, $43		; jumping
+
+
+PLAYER_STANDING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
+PLAYER_WALK1_ATTR:			.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+PLAYER_WALK2_ATTR:			.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+PLAYER_WALK3_FALLING_ATTR:	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+PLAYER_JUMPING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+PLAYER_BRAKING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+
+PLAYER_STANDING:		.byte $3a, $37, $4f, $4f
+PLAYER_WALK1:			.byte $32, $33, $34, $35
+PLAYER_WALK2:			.byte $36, $37, $38, $39
+PLAYER_WALK3_FALLING:	.byte $3a, $37, $3b, $3c
+PLAYER_JUMPING:			.byte $32, $41, $42, $43
+PLAYER_BRAKING:			.byte $3d, $3e, $3f, $40
+
+
+CHR_ATTR_TABLE:
+		.word PLAYER_STANDING_ATTR
+		.word PLAYER_WALK1_ATTR, PLAYER_WALK2_ATTR, PLAYER_WALK3_FALLING_ATTR
+		.word PLAYER_JUMPING_ATTR
+		.word PLAYER_BRAKING_ATTR
+
+CHR_ID_TABLE:
+		.word PLAYER_STANDING
+		.word PLAYER_WALK1, PLAYER_WALK2, PLAYER_WALK3_FALLING
+		.word PLAYER_JUMPING
+		.word PLAYER_BRAKING
 
 
 MAX_SPD_L:
@@ -73,58 +101,250 @@ move_dy		: .byte 0
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _moveSprite
-	dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
-	lda spr_velocity_x_arr, x
-	sta spr_final_velocity_x_arr, x
-	bne :+
-	sta scroll_amount
+		dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
+		lda spr_velocity_x_arr, x
+		bne :+
+		sta scroll_amount
 :
-	clc
-	adc spr_posX_arr, x
-	cmp #$f0
-	bcc :+
-	ldy spr_velocity_x_arr, x
-	cpy #$80
-	bcc :+
-	; posX < 0 && move_dx < 0
-	lda #0
+		clc
+		adc spr_posX_arr, x
+		cmp #$f0
+		bcc :+
+		ldy spr_velocity_x_arr, x
+		cpy #$80
+		bcc :+
+		; posX < 0 && move_dx < 0
+		lda #0
 :
 
-	; スクロールロック時の処理
-	ldy is_scroll_locked
-	bne @STORE_POSX
+		; スクロールロック時の処理
+		ldy is_scroll_locked
+		bne @STORE_POSX
 
-	cmp #PLAYER_MAX_POSX
-	bcs @MOVE_SCROLL
+		cmp #PLAYER_MAX_POSX
+		bcs @MOVE_SCROLL
 
 @STORE_POSX:
-	cmp #($100-(PLAYER_WIDTH+PLAYER_PADDING))
-	bcc @STOP_MOVE
-	beq @STOP_MOVE
+		cmp #($100-(PLAYER_WIDTH+PLAYER_PADDING))
+		bcc @STOP_MOVE
+		beq @STOP_MOVE
 
-	lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
+		lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
 @STOP_MOVE:
-	sta tmp1
-	lda spr_posX_arr, x
-	sub tmp1
-	sta spr_final_velocity_x_arr, x
-	lda tmp1
-	sta spr_posX_arr, x
-	jmp @MOVE_Y
-	; ------------------------------
+		sta spr_posX_arr, x
+		jmp @MOVE_Y
+		; ------------------------------
 
 @MOVE_SCROLL:
-	sub #PLAYER_MAX_POSX
-	sta scroll_amount
+		sub #PLAYER_MAX_POSX
+		sta scroll_amount
 
-	lda #PLAYER_MAX_POSX
-	sta spr_posX_arr, x
+		lda #PLAYER_MAX_POSX
+		sta spr_posX_arr, x
 
 @MOVE_Y:
-	lda spr_posY_arr, x
-	add Sprite::move_dy
-	sta spr_posY_arr, x
+		lda spr_posY_arr, x
+		add Sprite::move_dy
+		sta spr_posY_arr, x
 
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 通常の向きでスプライトをバッファ転送する
+; @PARAMS		x: sprite id（-1された状態)
+; @PARAMS		y: buff index（ストアし始める最初のindex）
+; @PARAMS		tmp1: posY
+; @PARAMS		tmp2: posX
+; @CLOBBERS		A X Y
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+.proc _tfrSprToBuffNormal
+		; Upper left
+		lda tmp1
+		sta CHR_BUFF+$0, y
+		sta CHR_BUFF+$4, y
+		add #8
+		sta CHR_BUFF+$8, y
+		sta CHR_BUFF+$c, y
+
+		lda tmp2
+		sta CHR_BUFF+$3, y
+		sta CHR_BUFF+$b, y
+		add #8
+		sta CHR_BUFF+$7, y
+		sta CHR_BUFF+$f, y
+
+
+		sty tmp_rgstY
+		lda spr_anime_num, x
+		tax
+
+		ldy #0
+		ldarr CHR_ATTR_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$2, y
+		ldy #1
+		ldarr CHR_ATTR_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$6, y
+		ldy #2
+		ldarr CHR_ATTR_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$a, y
+		ldy #3
+		ldarr CHR_ATTR_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$e, y
+
+		ldy #0
+		ldarr CHR_ID_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$1, y
+		ldy #1
+		ldarr CHR_ID_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$5, y
+		ldy #2
+		ldarr CHR_ID_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$9, y
+		ldy #3
+		ldarr CHR_ID_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$d, y
+
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 左右反転してスプライトをバッファ転送する
+; @PARAMS		x: sprite id（-1された状態)
+; @PARAMS		y: buff index（ストアし始める最初のindex）
+; @PARAMS		tmp1: posY
+; @PARAMS		tmp2: posX
+; @CLOBBERS		A X Y
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+.proc _tfrSprToBuffFlipX
+		lda tmp1
+		sta CHR_BUFF+$0, y
+		sta CHR_BUFF+$4, y
+		add #8
+		sta CHR_BUFF+$8, y
+		sta CHR_BUFF+$c, y
+
+		lda tmp2
+		sta CHR_BUFF+$7, y
+		sta CHR_BUFF+$f, y
+		add #8
+		sta CHR_BUFF+$3, y
+		sta CHR_BUFF+$b, y
+
+		sty tmp_rgstY
+		lda spr_anime_num, x
+		tax
+
+		ldy #0
+		ldarr CHR_ATTR_TABLE
+		eor #%0100_0000						; 左右反転
+		ldy tmp_rgstY
+		sta CHR_BUFF+$2, y
+		ldy #1
+		ldarr CHR_ATTR_TABLE
+		eor #%0100_0000
+		ldy tmp_rgstY
+		sta CHR_BUFF+$6, y
+		ldy #2
+		ldarr CHR_ATTR_TABLE
+		eor #%0100_0000
+		ldy tmp_rgstY
+		sta CHR_BUFF+$a, y
+		ldy #3
+		ldarr CHR_ATTR_TABLE
+		eor #%0100_0000
+		ldy tmp_rgstY
+		sta CHR_BUFF+$e, y
+
+		ldy #0
+		ldarr CHR_ID_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$1, y
+		ldy #1
+		ldarr CHR_ID_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$5, y
+		ldy #2
+		ldarr CHR_ID_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$9, y
+		ldy #3
+		ldarr CHR_ID_TABLE
+		ldy tmp_rgstY
+		sta CHR_BUFF+$d, y
+
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 上下反転してスプライトをバッファ転送する
+; @PARAMS		x: sprite id（-1された状態)
+; @PARAMS		y: buff index（ストアし始める最初のindex）
+; @PARAMS		tmp1: posY
+; @PARAMS		tmp2: posX
+; @CLOBBERS		A X Y
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+.proc _tfrSprToBuffFlipY
+	; Lower left
+	lda tmp1
+	add #8
+	sta CHR_BUFF+$0, y
+	lda CHR_ID, x
+	sta CHR_BUFF+$1, y
+	lda CHR_ATTR, x
+	sta CHR_BUFF+$2, y
+	lda tmp2
+	sta CHR_BUFF+$3, y
+	; Lower right
+	inx
+	lda tmp1
+	add #8
+	sta CHR_BUFF+$4, y
+	lda CHR_ID, x
+	sta CHR_BUFF+$5, y
+	lda CHR_ATTR, x
+	sta CHR_BUFF+$6, y
+	lda tmp2
+	add #8
+	sta CHR_BUFF+$7, y
+	; Upper left
+	inx
+	lda tmp1
+	sta CHR_BUFF+$8, y
+	lda CHR_ID, x
+	sta CHR_BUFF+$9, y
+	lda CHR_ATTR, x
+	sta CHR_BUFF+$a, y
+	lda tmp2
+	sta CHR_BUFF+$b, y
+	; Upper right
+	inx
+	lda tmp1
+	sta CHR_BUFF+$c, y
+	lda CHR_ID, x
+	sta CHR_BUFF+$d, y
+	lda CHR_ATTR, x
+	sta CHR_BUFF+$e, y
+	lda tmp2
+	add #8
+	sta CHR_BUFF+$f, y
 	rts
 	; ------------------------------
 .endproc
@@ -137,250 +357,31 @@ move_dy		: .byte 0
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _tfrToChrBuff
-	/*
-	MEMO:
-	sprite
-		posX, Y
-		sprID
-		velocity (HI: X, LO: Y)
-		(player: acceleration)
-	*/
+		cpx #0								; sprid=0 -> スプライトなし
+		beq @EXIT
+		dex									; spridを0～に変更
 
-	cpx #0								; sprid=0 -> スプライトなし
-	beq @EXIT
-	dex									; spridを0～に変更
+		iny									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
+		tya
+		shl #2
+		tay
 
-	iny									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
-	tya
-	shl #2
-	tay
+		lda spr_posY_arr, x
+		sta tmp1							; posY
+		lda spr_posX_arr, x
+		sta tmp2							; posX
 
-	lda spr_posY_arr, x
-	sta tmp1							; posY
-	lda spr_posX_arr, x
-	sta tmp2							; posX
-
-	; Upper left
-	lda tmp1
-	sta CHR_BUFF+$0, y
-
-	lda CHR_ID, x
-	sta CHR_BUFF+$1, y
-
-	lda CHR_ATTR, x
-	sta CHR_BUFF+$2, y
-
-	lda tmp2
-	sta CHR_BUFF+$3, y
-
-	; Upper right
-	inx
-	lda tmp1
-	sta CHR_BUFF+$4, y
-
-	lda CHR_ID, x
-	sta CHR_BUFF+$5, y
-
-	lda CHR_ATTR, x
-	sta CHR_BUFF+$6, y
-
-	lda tmp2
-	add #8
-	sta CHR_BUFF+$7, y
-
-	; Lower left
-	inx
-	lda tmp1
-	add #8
-	sta CHR_BUFF+$8, y
-
-	lda CHR_ID, x
-	sta CHR_BUFF+$9, y
-
-	lda CHR_ATTR, x
-	sta CHR_BUFF+$a, y
-
-	lda tmp2
-	sta CHR_BUFF+$b, y
-
-
-	; Lower right
-	inx
-	lda tmp1
-	add #8
-	sta CHR_BUFF+$c, y
-
-	lda CHR_ID, x
-	sta CHR_BUFF+$d, y
-
-	lda CHR_ATTR, x
-	sta CHR_BUFF+$e, y
-
-	lda tmp2
-	add #8
-	sta CHR_BUFF+$f, y
+		lda spr_attr_arr, x
+		and #BIT0
+		beq :+
+		jsr _tfrSprToBuffNormal
+		jmp @EXIT
+:
+		jsr _tfrSprToBuffFlipX
 
 @EXIT:
-	rts
-	; ------------------------------
-.endproc
-
-
-;*------------------------------------------------------------------------------
-; player physics
-; @CLOBBERS		A X
-; @RETURNS		None
-;*------------------------------------------------------------------------------
-.proc _playerPhysics
-	lda #0
-	sta spr_velocity_x_arr+$0
-	lda Joypad::joy1
-	and #Joypad::BTN_L
-	bne @ACCELERATE_LEFT
-	lda Joypad::joy1
-	and #Joypad::BTN_R
-	beq @DEC_ACCELERATION
-	jmp @ACCELERATE_RIGHT
-@DEC_ACCELERATION:
-	lda spr_float_velocity_x_arr+$0
-	beq @EXIT1
-	; 減速
-	lda spr_float_velocity_x_arr+$0
-	bmi @INC_SPEED
-@DEC_SPEED:
-	; 右向きに進んでいるときの減速
-	ldx spr_float_velocity_x_arr+$0
-	dex
-	stx spr_float_velocity_x_arr+$0
-	txa
-	shr #4
-	sta spr_velocity_x_arr+$0
-	cpx #$10
-	bpl @EXIT1
-	cpx #$08
-	bmi @EXIT1
-	ldx spr_velocity_x_arr+$0
-	beq @EXIT1
-	dex
-	stx spr_velocity_x_arr+$0
-	jmp @EXIT1
-@INC_SPEED:
-	; 左向きに進んでいるときの減速
-	ldx spr_float_velocity_x_arr+$0
-	inx
-	stx spr_float_velocity_x_arr+$0
-	txa
-	shr #4
-	beq :+
-	ora #%11110000						; 上位4ビットを埋める（負の数にする）
-:
-	sta spr_velocity_x_arr+$0
-	cpx #$f0
-	bmi @EXIT1
-	cpx #$f8
-	bpl @EXIT1
-	ldx spr_velocity_x_arr+$0
-	beq @EXIT1
-	inx
-	stx spr_velocity_x_arr+$0
-@EXIT1:
-	rts
-	; ------------------------------
-@ACCELERATE_LEFT:
-	; 左向きに加速度を上昇させる
-	ldx #0
-	lda Joypad::joy1
-	and #Joypad::BTN_B
-	beq :+
-	inx
-:
-	lda AMOUNT_INC_SPD_L, x
-	add spr_float_velocity_x_arr+$0
-	cmp MAX_SPD_L, x
-	bpl :+
-	inx
-	sec
-	sbc AMOUNT_INC_SPD_L, x
-:
-	sta spr_float_velocity_x_arr+$0
-	pha
-	cmp #0
-	bpl :+
-	shr #4
-	ora #%11110000						; 上位4ビットを埋める（負の数にする）
-	bne :++
-:
-	shr #4
-:
-	sta spr_velocity_x_arr+$0
-	pla
-	cmp #$f0
-	bmi :+
-	cmp #$f8
-	bpl :+
-	dec spr_velocity_x_arr+$0
-:
-	rts
-	; ------------------------------
-
-@ACCELERATE_RIGHT:
-	; AMOUNT_INC_SPD_R[]のindex決定
-	ldx #0
-	lda Joypad::joy1
-	and #Joypad::BTN_B
-	beq :+
-	inx
-:
-	lda AMOUNT_INC_SPD_R, x
-	add spr_float_velocity_x_arr+$0		; 加速度をプラス
-	cmp MAX_SPD_R, x
-	bmi :+
-	inx
-	sec
-	sbc AMOUNT_INC_SPD_R, x				; 足した加速度よりも大きな加速度で引く（加速度が負に）
-:
-	sta spr_float_velocity_x_arr+$0
-	add spr_velocity_x_decimal_part_arr+$0
-	sta tmp1
-	and #BYT_GET_LO
-	sta spr_velocity_x_decimal_part_arr+$0
-	lda tmp1
-	cmp #0
-	bpl :+
-	shr #4								; 加速度が負のとき（左に進んでて，右に入力がある場合）
-	ora #%11110000
-	bne :++
-:
-	shr #4								; 加速度が正のとき
-:
-	sta spr_velocity_x_arr+$0
-	lda tmp1
-	cmp #$10
-	bpl :+
-	cmp #$08
-	bmi :+								; $09-$0fのときに速度を1足す
-	inc spr_velocity_x_arr+$0
-:
-	rts
-	; ------------------------------
-.endproc
-
-
-;*------------------------------------------------------------------------------
-; sprite animate
-; @PARAMS		X: sprite id
-; @CLOBBERS		A X
-; @RETURNS		None
-;*------------------------------------------------------------------------------
-.proc _sprAnimate
-	cpx #0
-	beq :+
-	rts
-	; ------------------------------
-:
-	dex
-	lda spr_velocity_x_arr, x
-
+		rts
+		; ------------------------------
 .endproc
 
 .endscope

@@ -47,10 +47,10 @@ is_jumping				: .byte 0
 spr_posX_arr						: .res 6
 spr_posY_arr						: .res 6
 spr_id_arr							: .res 6		; id = 0: no spr
+spr_attr_arr						: .res 6		; bit0: 向き（1のとき右向き）
 spr_velocity_x_arr					: .res 6
-spr_final_velocity_x_arr			: .res 6
+spr_final_velocity_x_arr			: .res 6		; 未使用
 spr_float_velocity_x_arr			: .res 6
-spr_last_float_velocity_x_arr		: .res 6
 spr_velocity_x_decimal_part_arr		: .res 6		; 小数部分
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6

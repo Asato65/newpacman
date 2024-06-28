@@ -34,18 +34,12 @@
 		dey
 		bne :-
 
-		jsr Subfunc::_setScroll
-
 		; ----------- 0爆弾後 -----------
 
-	; 前回の最終速度をコピー
-	ldx #0
-:
-	lda spr_float_velocity_x_arr, x
-	sta spr_last_float_velocity_x_arr, x
-	inx
-	cpx #6
-	bne :-
+		jsr Subfunc::_setScroll
+
+	; inc timer
+	inc spr_anime_timer+$0
 
 	; chr move
 	ldx #PLAYER_SPR_ID					; spr id
@@ -86,7 +80,8 @@
 		dec Sprite::move_dx
 @NO_PUSHED_BTN_D:
 
-		jsr Sprite::_playerPhysics
+		jsr Player::_physics
+		jsr Player::_animate
 
 
 		; ----- End main -----
