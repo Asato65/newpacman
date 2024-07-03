@@ -80,7 +80,8 @@
 
 		jsr Player::_physicsX
 		jsr Player::_jumpCheck
-		jsr Player::_moveProcess
+		jsr Player::_moveYProcess
+		jsr Player::_checkCollision
 		jsr Player::_animate
 
 

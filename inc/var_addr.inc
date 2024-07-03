@@ -45,11 +45,13 @@ is_jumping				: .byte 0
 
 
 spr_posX_arr						: .res 6
+spr_posX_tmp_arr					: .res 6
 spr_velocity_x_arr					: .res 6
 spr_float_velocity_x_arr			: .res 6
 spr_decimal_part_velocity_x_arr		: .res 6		; 小数部分のみ（補正値）
 
 spr_posY_arr						: .res 6
+spr_posY_tmp_arr					: .res 6
 spr_velocity_y_arr					: .res 6
 spr_decimal_part_velocity_y_arr		: .res 6		; 小数部分のみ（補正値）
 spr_pos_y_origin					: .res 6

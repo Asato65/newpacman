@@ -104,7 +104,12 @@ AMOUNT_INC_SPD_R:
 		adc spr_posX_arr, x
 		cmp #$f0
 		bcc :+
-		ldy spr_velocity_x_arr, x
+		pha
+		lda spr_posX_tmp_arr, x
+		sec
+		sbc spr_posX_arr, x
+		tay								; move_dxを求める（移動量）
+		pla
 		cpy #$80
 		bcc :+
 		; posX < 0 && move_dx < 0
@@ -137,9 +142,7 @@ AMOUNT_INC_SPD_R:
 		sta spr_posX_arr, x
 
 @MOVE_Y:
-		lda spr_posY_arr, x
-		clc
-		adc spr_velocity_y_arr, x
+		lda spr_posY_tmp_arr, x
 		sta spr_posY_arr, x
 
 		rts
@@ -378,5 +381,6 @@ AMOUNT_INC_SPD_R:
 		rts
 		; ------------------------------
 .endproc
+
 
 .endscope

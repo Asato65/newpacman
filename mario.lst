@@ -155,41 +155,45 @@ Current file: mario.asm
 000000r 2               
 000000r 2  xx xx xx xx  spr_posX_arr						: .res 6
 000004r 2  xx xx        
-000006r 2  xx xx xx xx  spr_velocity_x_arr					: .res 6
+000006r 2  xx xx xx xx  spr_posX_tmp_arr					: .res 6
 00000Ar 2  xx xx        
-00000Cr 2  xx xx xx xx  spr_float_velocity_x_arr			: .res 6
+00000Cr 2  xx xx xx xx  spr_velocity_x_arr					: .res 6
 000010r 2  xx xx        
-000012r 2  xx xx xx xx  spr_decimal_part_velocity_x_arr		: .res 6		; 小数部分のみ（補正値）
+000012r 2  xx xx xx xx  spr_float_velocity_x_arr			: .res 6
 000016r 2  xx xx        
-000018r 2               
-000018r 2  xx xx xx xx  spr_posY_arr						: .res 6
+000018r 2  xx xx xx xx  spr_decimal_part_velocity_x_arr		: .res 6		; 小数部分のみ（補正値）
 00001Cr 2  xx xx        
-00001Er 2  xx xx xx xx  spr_velocity_y_arr					: .res 6
+00001Er 2               
+00001Er 2  xx xx xx xx  spr_posY_arr						: .res 6
 000022r 2  xx xx        
-000024r 2  xx xx xx xx  spr_decimal_part_velocity_y_arr		: .res 6		; 小数部分のみ（補正値）
+000024r 2  xx xx xx xx  spr_posY_tmp_arr					: .res 6
 000028r 2  xx xx        
-00002Ar 2  xx xx xx xx  spr_pos_y_origin					: .res 6
+00002Ar 2  xx xx xx xx  spr_velocity_y_arr					: .res 6
 00002Er 2  xx xx        
-000030r 2  xx xx xx xx  spr_decimal_part_force_y			: .res 6		; 現在の加速度
+000030r 2  xx xx xx xx  spr_decimal_part_velocity_y_arr		: .res 6		; 小数部分のみ（補正値）
 000034r 2  xx xx        
-000036r 2  xx xx xx xx  spr_force_fall_y					: .res 6		; 降下時の加速度
+000036r 2  xx xx xx xx  spr_pos_y_origin					: .res 6
 00003Ar 2  xx xx        
-00003Cr 2  xx xx xx xx  spr_pos_y_decimal_part				: .res 6
+00003Cr 2  xx xx xx xx  spr_decimal_part_force_y			: .res 6		; 現在の加速度
 000040r 2  xx xx        
-000042r 2  xx xx xx xx  spr_fix_val_y						: .res 6		; 加速度補正値
+000042r 2  xx xx xx xx  spr_force_fall_y					: .res 6		; 降下時の加速度
 000046r 2  xx xx        
-000048r 2               
-000048r 2  xx xx xx xx  spr_anime_timer						: .res 6
+000048r 2  xx xx xx xx  spr_pos_y_decimal_part				: .res 6
 00004Cr 2  xx xx        
-00004Er 2  xx xx xx xx  spr_anime_num						: .res 6
+00004Er 2  xx xx xx xx  spr_fix_val_y						: .res 6		; 加速度補正値
 000052r 2  xx xx        
-000054r 2  xx xx xx xx  spr_id_arr							: .res 6		; id = 0: no spr
+000054r 2               
+000054r 2  xx xx xx xx  spr_anime_timer						: .res 6
 000058r 2  xx xx        
-00005Ar 2  xx xx xx xx  spr_attr_arr						: .res 6		; bit0: 向き（1のとき右向き）
+00005Ar 2  xx xx xx xx  spr_anime_num						: .res 6
 00005Er 2  xx xx        
-000060r 2               
-000060r 2               
-000060r 2               .code
+000060r 2  xx xx xx xx  spr_id_arr							: .res 6		; id = 0: no spr
+000064r 2  xx xx        
+000066r 2  xx xx xx xx  spr_attr_arr						: .res 6		; bit0: 向き（1のとき右向き）
+00006Ar 2  xx xx        
+00006Cr 2               
+00006Cr 2               
+00006Cr 2               .code
 000000r 2               
 000000r 1               .include "./inc/defmacro.inc"
 000000r 2               ;*------------------------------------------------------------------------------
@@ -1776,338 +1780,338 @@ Current file: mario.asm
 0004CBr 2  18           		clc
 0004CCr 2  7D rr rr     		adc spr_posX_arr, x
 0004CFr 2  C9 F0        		cmp #$f0
-0004D1r 2  90 09        		bcc :+
-0004D3r 2  BC rr rr     		ldy spr_velocity_x_arr, x
-0004D6r 2  C0 80        		cpy #$80
-0004D8r 2  90 02        		bcc :+
-0004DAr 2               		; posX < 0 && move_dx < 0
-0004DAr 2  A9 00        		lda #0
-0004DCr 2               :
-0004DCr 2               
-0004DCr 2               		; スクロールロック時の処理
-0004DCr 2  A4 rr        		ldy is_scroll_locked
-0004DEr 2  D0 04        		bne @STORE_POSX
-0004E0r 2               
-0004E0r 2  C9 70        		cmp #PLAYER_MAX_POSX
-0004E2r 2  B0 0E        		bcs @MOVE_SCROLL
-0004E4r 2               
-0004E4r 2               @STORE_POSX:
-0004E4r 2  C9 F2        		cmp #($100-(PLAYER_WIDTH+PLAYER_PADDING))
-0004E6r 2  90 04        		bcc @STOP_MOVE
-0004E8r 2  F0 02        		beq @STOP_MOVE
-0004EAr 2               
-0004EAr 2  A9 F2        		lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
-0004ECr 2               @STOP_MOVE:
-0004ECr 2  9D rr rr     		sta spr_posX_arr, x
-0004EFr 2  4C rr rr     		jmp @MOVE_Y
-0004F2r 2               		; ------------------------------
-0004F2r 2               
-0004F2r 2               @MOVE_SCROLL:
-0004F2r 2  38 E9 70     		sub #PLAYER_MAX_POSX
-0004F5r 2  85 rr        		sta scroll_amount
-0004F7r 2               
-0004F7r 2  A9 70        		lda #PLAYER_MAX_POSX
-0004F9r 2  9D rr rr     		sta spr_posX_arr, x
-0004FCr 2               
-0004FCr 2               @MOVE_Y:
-0004FCr 2  BD rr rr     		lda spr_posY_arr, x
-0004FFr 2  18           		clc
-000500r 2  7D rr rr     		adc spr_velocity_y_arr, x
-000503r 2  9D rr rr     		sta spr_posY_arr, x
-000506r 2               
-000506r 2  60           		rts
-000507r 2               		; ------------------------------
-000507r 2               .endproc
-000507r 2               
-000507r 2               
-000507r 2               ;*------------------------------------------------------------------------------
-000507r 2               ; 通常の向きでスプライトをバッファ転送する
-000507r 2               ; @PARAMS		x: sprite id（-1された状態)
-000507r 2               ; @PARAMS		y: buff index（ストアし始める最初のindex）
-000507r 2               ; @PARAMS		tmp1: posY
-000507r 2               ; @PARAMS		tmp2: posX
-000507r 2               ; @CLOBBERS		A X Y
-000507r 2               ; @RETURNS		None
-000507r 2               ;*------------------------------------------------------------------------------
-000507r 2               .proc _tfrSprToBuffNormal
-000507r 2               		; Upper left
-000507r 2  A5 rr        		lda tmp1
-000509r 2  99 00 03     		sta CHR_BUFF+$0, y
-00050Cr 2  99 04 03     		sta CHR_BUFF+$4, y
-00050Fr 2  18 69 08     		add #8
-000512r 2  99 08 03     		sta CHR_BUFF+$8, y
-000515r 2  99 0C 03     		sta CHR_BUFF+$c, y
-000518r 2               
-000518r 2  A5 rr        		lda tmp2
-00051Ar 2  99 03 03     		sta CHR_BUFF+$3, y
-00051Dr 2  99 0B 03     		sta CHR_BUFF+$b, y
-000520r 2  18 69 08     		add #8
-000523r 2  99 07 03     		sta CHR_BUFF+$7, y
-000526r 2  99 0F 03     		sta CHR_BUFF+$f, y
-000529r 2               
-000529r 2               
-000529r 2  84 rr        		sty tmp_rgstY
-00052Br 2  BD rr rr     		lda spr_anime_num, x
-00052Er 2  AA           		tax
-00052Fr 2               
-00052Fr 2  A0 00        		ldy #0
-000531r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
-000535r 2  A8 B9 rr rr  
-000539r 2  85 rr B9 rr  
-000544r 2  A4 rr        		ldy tmp_rgstY
-000546r 2  99 02 03     		sta CHR_BUFF+$2, y
-000549r 2  A0 01        		ldy #1
-00054Br 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
-00054Fr 2  A8 B9 rr rr  
-000553r 2  85 rr B9 rr  
-00055Er 2  A4 rr        		ldy tmp_rgstY
-000560r 2  99 06 03     		sta CHR_BUFF+$6, y
-000563r 2  A0 02        		ldy #2
-000565r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
-000569r 2  A8 B9 rr rr  
-00056Dr 2  85 rr B9 rr  
-000578r 2  A4 rr        		ldy tmp_rgstY
-00057Ar 2  99 0A 03     		sta CHR_BUFF+$a, y
-00057Dr 2  A0 03        		ldy #3
-00057Fr 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
-000583r 2  A8 B9 rr rr  
-000587r 2  85 rr B9 rr  
-000592r 2  A4 rr        		ldy tmp_rgstY
-000594r 2  99 0E 03     		sta CHR_BUFF+$e, y
-000597r 2               
-000597r 2  A0 00        		ldy #0
-000599r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
-00059Dr 2  A8 B9 rr rr  
-0005A1r 2  85 rr B9 rr  
-0005ACr 2  A4 rr        		ldy tmp_rgstY
-0005AEr 2  99 01 03     		sta CHR_BUFF+$1, y
-0005B1r 2  A0 01        		ldy #1
-0005B3r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
-0005B7r 2  A8 B9 rr rr  
-0005BBr 2  85 rr B9 rr  
-0005C6r 2  A4 rr        		ldy tmp_rgstY
-0005C8r 2  99 05 03     		sta CHR_BUFF+$5, y
-0005CBr 2  A0 02        		ldy #2
-0005CDr 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
-0005D1r 2  A8 B9 rr rr  
-0005D5r 2  85 rr B9 rr  
-0005E0r 2  A4 rr        		ldy tmp_rgstY
-0005E2r 2  99 09 03     		sta CHR_BUFF+$9, y
-0005E5r 2  A0 03        		ldy #3
-0005E7r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
-0005EBr 2  A8 B9 rr rr  
-0005EFr 2  85 rr B9 rr  
-0005FAr 2  A4 rr        		ldy tmp_rgstY
-0005FCr 2  99 0D 03     		sta CHR_BUFF+$d, y
-0005FFr 2               
-0005FFr 2  60           		rts
-000600r 2               		; ------------------------------
-000600r 2               .endproc
-000600r 2               
-000600r 2               
-000600r 2               ;*------------------------------------------------------------------------------
-000600r 2               ; 左右反転してスプライトをバッファ転送する
-000600r 2               ; @PARAMS		x: sprite id（-1された状態)
-000600r 2               ; @PARAMS		y: buff index（ストアし始める最初のindex）
-000600r 2               ; @PARAMS		tmp1: posY
-000600r 2               ; @PARAMS		tmp2: posX
-000600r 2               ; @CLOBBERS		A X Y
-000600r 2               ; @RETURNS		None
-000600r 2               ;*------------------------------------------------------------------------------
-000600r 2               .proc _tfrSprToBuffFlipX
-000600r 2  A5 rr        		lda tmp1
-000602r 2  99 00 03     		sta CHR_BUFF+$0, y
-000605r 2  99 04 03     		sta CHR_BUFF+$4, y
-000608r 2  18 69 08     		add #8
-00060Br 2  99 08 03     		sta CHR_BUFF+$8, y
-00060Er 2  99 0C 03     		sta CHR_BUFF+$c, y
-000611r 2               
-000611r 2  A5 rr        		lda tmp2
-000613r 2  99 07 03     		sta CHR_BUFF+$7, y
-000616r 2  99 0F 03     		sta CHR_BUFF+$f, y
-000619r 2  18 69 08     		add #8
-00061Cr 2  99 03 03     		sta CHR_BUFF+$3, y
-00061Fr 2  99 0B 03     		sta CHR_BUFF+$b, y
-000622r 2               
-000622r 2  84 rr        		sty tmp_rgstY
-000624r 2  BD rr rr     		lda spr_anime_num, x
-000627r 2  AA           		tax
-000628r 2               
-000628r 2  A0 00        		ldy #0
-00062Ar 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
-00062Er 2  A8 B9 rr rr  
-000632r 2  85 rr B9 rr  
-00063Dr 2  49 40        		eor #%0100_0000						; 左右反転
-00063Fr 2  A4 rr        		ldy tmp_rgstY
-000641r 2  99 02 03     		sta CHR_BUFF+$2, y
-000644r 2  A0 01        		ldy #1
-000646r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
-00064Ar 2  A8 B9 rr rr  
-00064Er 2  85 rr B9 rr  
-000659r 2  49 40        		eor #%0100_0000
-00065Br 2  A4 rr        		ldy tmp_rgstY
-00065Dr 2  99 06 03     		sta CHR_BUFF+$6, y
-000660r 2  A0 02        		ldy #2
-000662r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
-000666r 2  A8 B9 rr rr  
-00066Ar 2  85 rr B9 rr  
-000675r 2  49 40        		eor #%0100_0000
-000677r 2  A4 rr        		ldy tmp_rgstY
-000679r 2  99 0A 03     		sta CHR_BUFF+$a, y
-00067Cr 2  A0 03        		ldy #3
-00067Er 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
-000682r 2  A8 B9 rr rr  
-000686r 2  85 rr B9 rr  
-000691r 2  49 40        		eor #%0100_0000
-000693r 2  A4 rr        		ldy tmp_rgstY
-000695r 2  99 0E 03     		sta CHR_BUFF+$e, y
-000698r 2               
-000698r 2  A0 00        		ldy #0
-00069Ar 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
-00069Er 2  A8 B9 rr rr  
-0006A2r 2  85 rr B9 rr  
-0006ADr 2  A4 rr        		ldy tmp_rgstY
-0006AFr 2  99 01 03     		sta CHR_BUFF+$1, y
-0006B2r 2  A0 01        		ldy #1
-0006B4r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
-0006B8r 2  A8 B9 rr rr  
-0006BCr 2  85 rr B9 rr  
-0006C7r 2  A4 rr        		ldy tmp_rgstY
-0006C9r 2  99 05 03     		sta CHR_BUFF+$5, y
-0006CCr 2  A0 02        		ldy #2
-0006CEr 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
-0006D2r 2  A8 B9 rr rr  
-0006D6r 2  85 rr B9 rr  
-0006E1r 2  A4 rr        		ldy tmp_rgstY
-0006E3r 2  99 09 03     		sta CHR_BUFF+$9, y
-0006E6r 2  A0 03        		ldy #3
-0006E8r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
-0006ECr 2  A8 B9 rr rr  
-0006F0r 2  85 rr B9 rr  
-0006FBr 2  A4 rr        		ldy tmp_rgstY
-0006FDr 2  99 0D 03     		sta CHR_BUFF+$d, y
-000700r 2               
-000700r 2  60           		rts
-000701r 2               		; ------------------------------
-000701r 2               .endproc
-000701r 2               
-000701r 2               
-000701r 2               ;*------------------------------------------------------------------------------
-000701r 2               ; 上下反転してスプライトをバッファ転送する
-000701r 2               ; @PARAMS		x: sprite id（-1された状態)
-000701r 2               ; @PARAMS		y: buff index（ストアし始める最初のindex）
-000701r 2               ; @PARAMS		tmp1: posY
-000701r 2               ; @PARAMS		tmp2: posX
-000701r 2               ; @CLOBBERS		A X Y
-000701r 2               ; @RETURNS		None
-000701r 2               ;*------------------------------------------------------------------------------
-000701r 2               .proc _tfrSprToBuffFlipY
-000701r 2               	; Lower left
-000701r 2  A5 rr        	lda tmp1
-000703r 2  18 69 08     	add #8
-000706r 2  99 00 03     	sta CHR_BUFF+$0, y
-000709r 2  BD rr rr     	lda CHR_ID, x
-00070Cr 2  99 01 03     	sta CHR_BUFF+$1, y
-00070Fr 2  BD rr rr     	lda CHR_ATTR, x
-000712r 2  99 02 03     	sta CHR_BUFF+$2, y
-000715r 2  A5 rr        	lda tmp2
-000717r 2  99 03 03     	sta CHR_BUFF+$3, y
-00071Ar 2               	; Lower right
-00071Ar 2  E8           	inx
-00071Br 2  A5 rr        	lda tmp1
-00071Dr 2  18 69 08     	add #8
-000720r 2  99 04 03     	sta CHR_BUFF+$4, y
-000723r 2  BD rr rr     	lda CHR_ID, x
-000726r 2  99 05 03     	sta CHR_BUFF+$5, y
-000729r 2  BD rr rr     	lda CHR_ATTR, x
-00072Cr 2  99 06 03     	sta CHR_BUFF+$6, y
-00072Fr 2  A5 rr        	lda tmp2
-000731r 2  18 69 08     	add #8
-000734r 2  99 07 03     	sta CHR_BUFF+$7, y
-000737r 2               	; Upper left
-000737r 2  E8           	inx
-000738r 2  A5 rr        	lda tmp1
-00073Ar 2  99 08 03     	sta CHR_BUFF+$8, y
-00073Dr 2  BD rr rr     	lda CHR_ID, x
-000740r 2  99 09 03     	sta CHR_BUFF+$9, y
-000743r 2  BD rr rr     	lda CHR_ATTR, x
-000746r 2  99 0A 03     	sta CHR_BUFF+$a, y
-000749r 2  A5 rr        	lda tmp2
-00074Br 2  99 0B 03     	sta CHR_BUFF+$b, y
-00074Er 2               	; Upper right
-00074Er 2  E8           	inx
-00074Fr 2  A5 rr        	lda tmp1
-000751r 2  99 0C 03     	sta CHR_BUFF+$c, y
-000754r 2  BD rr rr     	lda CHR_ID, x
-000757r 2  99 0D 03     	sta CHR_BUFF+$d, y
-00075Ar 2  BD rr rr     	lda CHR_ATTR, x
-00075Dr 2  99 0E 03     	sta CHR_BUFF+$e, y
-000760r 2  A5 rr        	lda tmp2
-000762r 2  18 69 08     	add #8
-000765r 2  99 0F 03     	sta CHR_BUFF+$f, y
-000768r 2  60           	rts
-000769r 2               	; ------------------------------
-000769r 2               .endproc
-000769r 2               
-000769r 2               
-000769r 2               ;*------------------------------------------------------------------------------
-000769r 2               ; transfar to chr buff
-000769r 2               ; @PARAMS		X: sprite id, Y = BUFF index
-000769r 2               ; @CLOBBERS		A X Y
-000769r 2               ; @RETURNS		None
-000769r 2               ;*------------------------------------------------------------------------------
-000769r 2               .proc _tfrToChrBuff
-000769r 2  E0 00        		cpx #0								; sprid=0 -> スプライトなし
-00076Br 2  F0 20        		beq @EXIT
-00076Dr 2  CA           		dex									; spridを0～に変更
-00076Er 2               
-00076Er 2  C8           		iny									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
-00076Fr 2  98           		tya
-000770r 2  0A 0A        		shl #2
-000772r 2  A8           		tay
-000773r 2               
-000773r 2  BD rr rr     		lda spr_posY_arr, x
-000776r 2  85 rr        		sta tmp1							; posY
-000778r 2  BD rr rr     		lda spr_posX_arr, x
-00077Br 2  85 rr        		sta tmp2							; posX
-00077Dr 2               
-00077Dr 2  BD rr rr     		lda spr_attr_arr, x
-000780r 2  29 01        		and #BIT0
-000782r 2  F0 06        		beq :+
-000784r 2  20 rr rr     		jsr _tfrSprToBuffNormal
-000787r 2  4C rr rr     		jmp @EXIT
-00078Ar 2               :
-00078Ar 2  20 rr rr     		jsr _tfrSprToBuffFlipX
-00078Dr 2               
-00078Dr 2               @EXIT:
-00078Dr 2  60           		rts
-00078Er 2               		; ------------------------------
-00078Er 2               .endproc
-00078Er 2               
-00078Er 2               .endscope
-00078Er 2               
-00078Er 1               .include "./asm/player_move.asm"
-00078Er 2               .scope Player							; スコープ名注意！
-00078Er 2               
-00078Er 2               DOWN_SPEED_LIMIT = $04		; 落下の最高速度
-00078Er 2               ; 加速度の増加値
-00078Er 2               VER_FORCE_DECIMAL_PART_DATA:
-00078Er 2  20 20 1E 28  		.byte $20, $20, $1e, $28, $28
-000792r 2  28           
-000793r 2               ; 降下時の加速度
-000793r 2               VER_FALL_FORCE_DATA:
-000793r 2  70 70 60 90  		.byte $70, $70, $60, $90, $90
-000797r 2  90           
-000798r 2               ; 初速度(v0)
-000798r 2               INITIAL_VER_SPEED_DATA:
-000798r 2  FC FC FC FB  		.byte $fc, $fc, $fc, $fb, $fb
-00079Cr 2  FB           
-00079Dr 2               ; 初期加速度(a)
-00079Dr 2               INITIAL_VER_FORCE_DATA:
-00079Dr 2  00 00 00 00  		.byte $00, $00, $00, $00, $00
-0007A1r 2  00           
-0007A2r 2               
-0007A2r 2               .ZeroPage
+0004D1r 2  90 10        		bcc :+
+0004D3r 2  48           		pha
+0004D4r 2  BD rr rr     		lda spr_posX_tmp_arr, x
+0004D7r 2  38           		sec
+0004D8r 2  FD rr rr     		sbc spr_posX_arr, x
+0004DBr 2  A8           		tay								; move_dxを求める（移動量）
+0004DCr 2  68           		pla
+0004DDr 2  C0 80        		cpy #$80
+0004DFr 2  90 02        		bcc :+
+0004E1r 2               		; posX < 0 && move_dx < 0
+0004E1r 2  A9 00        		lda #0
+0004E3r 2               :
+0004E3r 2               
+0004E3r 2               		; スクロールロック時の処理
+0004E3r 2  A4 rr        		ldy is_scroll_locked
+0004E5r 2  D0 04        		bne @STORE_POSX
+0004E7r 2               
+0004E7r 2  C9 70        		cmp #PLAYER_MAX_POSX
+0004E9r 2  B0 0E        		bcs @MOVE_SCROLL
+0004EBr 2               
+0004EBr 2               @STORE_POSX:
+0004EBr 2  C9 F2        		cmp #($100-(PLAYER_WIDTH+PLAYER_PADDING))
+0004EDr 2  90 04        		bcc @STOP_MOVE
+0004EFr 2  F0 02        		beq @STOP_MOVE
+0004F1r 2               
+0004F1r 2  A9 F2        		lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
+0004F3r 2               @STOP_MOVE:
+0004F3r 2  9D rr rr     		sta spr_posX_arr, x
+0004F6r 2  4C rr rr     		jmp @MOVE_Y
+0004F9r 2               		; ------------------------------
+0004F9r 2               
+0004F9r 2               @MOVE_SCROLL:
+0004F9r 2  38 E9 70     		sub #PLAYER_MAX_POSX
+0004FCr 2  85 rr        		sta scroll_amount
+0004FEr 2               
+0004FEr 2  A9 70        		lda #PLAYER_MAX_POSX
+000500r 2  9D rr rr     		sta spr_posX_arr, x
+000503r 2               
+000503r 2               @MOVE_Y:
+000503r 2  BD rr rr     		lda spr_posY_tmp_arr, x
+000506r 2  9D rr rr     		sta spr_posY_arr, x
+000509r 2               
+000509r 2  60           		rts
+00050Ar 2               		; ------------------------------
+00050Ar 2               .endproc
+00050Ar 2               
+00050Ar 2               
+00050Ar 2               ;*------------------------------------------------------------------------------
+00050Ar 2               ; 通常の向きでスプライトをバッファ転送する
+00050Ar 2               ; @PARAMS		x: sprite id（-1された状態)
+00050Ar 2               ; @PARAMS		y: buff index（ストアし始める最初のindex）
+00050Ar 2               ; @PARAMS		tmp1: posY
+00050Ar 2               ; @PARAMS		tmp2: posX
+00050Ar 2               ; @CLOBBERS		A X Y
+00050Ar 2               ; @RETURNS		None
+00050Ar 2               ;*------------------------------------------------------------------------------
+00050Ar 2               .proc _tfrSprToBuffNormal
+00050Ar 2               		; Upper left
+00050Ar 2  A5 rr        		lda tmp1
+00050Cr 2  99 00 03     		sta CHR_BUFF+$0, y
+00050Fr 2  99 04 03     		sta CHR_BUFF+$4, y
+000512r 2  18 69 08     		add #8
+000515r 2  99 08 03     		sta CHR_BUFF+$8, y
+000518r 2  99 0C 03     		sta CHR_BUFF+$c, y
+00051Br 2               
+00051Br 2  A5 rr        		lda tmp2
+00051Dr 2  99 03 03     		sta CHR_BUFF+$3, y
+000520r 2  99 0B 03     		sta CHR_BUFF+$b, y
+000523r 2  18 69 08     		add #8
+000526r 2  99 07 03     		sta CHR_BUFF+$7, y
+000529r 2  99 0F 03     		sta CHR_BUFF+$f, y
+00052Cr 2               
+00052Cr 2               
+00052Cr 2  84 rr        		sty tmp_rgstY
+00052Er 2  BD rr rr     		lda spr_anime_num, x
+000531r 2  AA           		tax
+000532r 2               
+000532r 2  A0 00        		ldy #0
+000534r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
+000538r 2  A8 B9 rr rr  
+00053Cr 2  85 rr B9 rr  
+000547r 2  A4 rr        		ldy tmp_rgstY
+000549r 2  99 02 03     		sta CHR_BUFF+$2, y
+00054Cr 2  A0 01        		ldy #1
+00054Er 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
+000552r 2  A8 B9 rr rr  
+000556r 2  85 rr B9 rr  
+000561r 2  A4 rr        		ldy tmp_rgstY
+000563r 2  99 06 03     		sta CHR_BUFF+$6, y
+000566r 2  A0 02        		ldy #2
+000568r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
+00056Cr 2  A8 B9 rr rr  
+000570r 2  85 rr B9 rr  
+00057Br 2  A4 rr        		ldy tmp_rgstY
+00057Dr 2  99 0A 03     		sta CHR_BUFF+$a, y
+000580r 2  A0 03        		ldy #3
+000582r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
+000586r 2  A8 B9 rr rr  
+00058Ar 2  85 rr B9 rr  
+000595r 2  A4 rr        		ldy tmp_rgstY
+000597r 2  99 0E 03     		sta CHR_BUFF+$e, y
+00059Ar 2               
+00059Ar 2  A0 00        		ldy #0
+00059Cr 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
+0005A0r 2  A8 B9 rr rr  
+0005A4r 2  85 rr B9 rr  
+0005AFr 2  A4 rr        		ldy tmp_rgstY
+0005B1r 2  99 01 03     		sta CHR_BUFF+$1, y
+0005B4r 2  A0 01        		ldy #1
+0005B6r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
+0005BAr 2  A8 B9 rr rr  
+0005BEr 2  85 rr B9 rr  
+0005C9r 2  A4 rr        		ldy tmp_rgstY
+0005CBr 2  99 05 03     		sta CHR_BUFF+$5, y
+0005CEr 2  A0 02        		ldy #2
+0005D0r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
+0005D4r 2  A8 B9 rr rr  
+0005D8r 2  85 rr B9 rr  
+0005E3r 2  A4 rr        		ldy tmp_rgstY
+0005E5r 2  99 09 03     		sta CHR_BUFF+$9, y
+0005E8r 2  A0 03        		ldy #3
+0005EAr 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
+0005EEr 2  A8 B9 rr rr  
+0005F2r 2  85 rr B9 rr  
+0005FDr 2  A4 rr        		ldy tmp_rgstY
+0005FFr 2  99 0D 03     		sta CHR_BUFF+$d, y
+000602r 2               
+000602r 2  60           		rts
+000603r 2               		; ------------------------------
+000603r 2               .endproc
+000603r 2               
+000603r 2               
+000603r 2               ;*------------------------------------------------------------------------------
+000603r 2               ; 左右反転してスプライトをバッファ転送する
+000603r 2               ; @PARAMS		x: sprite id（-1された状態)
+000603r 2               ; @PARAMS		y: buff index（ストアし始める最初のindex）
+000603r 2               ; @PARAMS		tmp1: posY
+000603r 2               ; @PARAMS		tmp2: posX
+000603r 2               ; @CLOBBERS		A X Y
+000603r 2               ; @RETURNS		None
+000603r 2               ;*------------------------------------------------------------------------------
+000603r 2               .proc _tfrSprToBuffFlipX
+000603r 2  A5 rr        		lda tmp1
+000605r 2  99 00 03     		sta CHR_BUFF+$0, y
+000608r 2  99 04 03     		sta CHR_BUFF+$4, y
+00060Br 2  18 69 08     		add #8
+00060Er 2  99 08 03     		sta CHR_BUFF+$8, y
+000611r 2  99 0C 03     		sta CHR_BUFF+$c, y
+000614r 2               
+000614r 2  A5 rr        		lda tmp2
+000616r 2  99 07 03     		sta CHR_BUFF+$7, y
+000619r 2  99 0F 03     		sta CHR_BUFF+$f, y
+00061Cr 2  18 69 08     		add #8
+00061Fr 2  99 03 03     		sta CHR_BUFF+$3, y
+000622r 2  99 0B 03     		sta CHR_BUFF+$b, y
+000625r 2               
+000625r 2  84 rr        		sty tmp_rgstY
+000627r 2  BD rr rr     		lda spr_anime_num, x
+00062Ar 2  AA           		tax
+00062Br 2               
+00062Br 2  A0 00        		ldy #0
+00062Dr 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
+000631r 2  A8 B9 rr rr  
+000635r 2  85 rr B9 rr  
+000640r 2  49 40        		eor #%0100_0000						; 左右反転
+000642r 2  A4 rr        		ldy tmp_rgstY
+000644r 2  99 02 03     		sta CHR_BUFF+$2, y
+000647r 2  A0 01        		ldy #1
+000649r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
+00064Dr 2  A8 B9 rr rr  
+000651r 2  85 rr B9 rr  
+00065Cr 2  49 40        		eor #%0100_0000
+00065Er 2  A4 rr        		ldy tmp_rgstY
+000660r 2  99 06 03     		sta CHR_BUFF+$6, y
+000663r 2  A0 02        		ldy #2
+000665r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
+000669r 2  A8 B9 rr rr  
+00066Dr 2  85 rr B9 rr  
+000678r 2  49 40        		eor #%0100_0000
+00067Ar 2  A4 rr        		ldy tmp_rgstY
+00067Cr 2  99 0A 03     		sta CHR_BUFF+$a, y
+00067Fr 2  A0 03        		ldy #3
+000681r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
+000685r 2  A8 B9 rr rr  
+000689r 2  85 rr B9 rr  
+000694r 2  49 40        		eor #%0100_0000
+000696r 2  A4 rr        		ldy tmp_rgstY
+000698r 2  99 0E 03     		sta CHR_BUFF+$e, y
+00069Br 2               
+00069Br 2  A0 00        		ldy #0
+00069Dr 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
+0006A1r 2  A8 B9 rr rr  
+0006A5r 2  85 rr B9 rr  
+0006B0r 2  A4 rr        		ldy tmp_rgstY
+0006B2r 2  99 01 03     		sta CHR_BUFF+$1, y
+0006B5r 2  A0 01        		ldy #1
+0006B7r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
+0006BBr 2  A8 B9 rr rr  
+0006BFr 2  85 rr B9 rr  
+0006CAr 2  A4 rr        		ldy tmp_rgstY
+0006CCr 2  99 05 03     		sta CHR_BUFF+$5, y
+0006CFr 2  A0 02        		ldy #2
+0006D1r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
+0006D5r 2  A8 B9 rr rr  
+0006D9r 2  85 rr B9 rr  
+0006E4r 2  A4 rr        		ldy tmp_rgstY
+0006E6r 2  99 09 03     		sta CHR_BUFF+$9, y
+0006E9r 2  A0 03        		ldy #3
+0006EBr 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
+0006EFr 2  A8 B9 rr rr  
+0006F3r 2  85 rr B9 rr  
+0006FEr 2  A4 rr        		ldy tmp_rgstY
+000700r 2  99 0D 03     		sta CHR_BUFF+$d, y
+000703r 2               
+000703r 2  60           		rts
+000704r 2               		; ------------------------------
+000704r 2               .endproc
+000704r 2               
+000704r 2               
+000704r 2               ;*------------------------------------------------------------------------------
+000704r 2               ; 上下反転してスプライトをバッファ転送する
+000704r 2               ; @PARAMS		x: sprite id（-1された状態)
+000704r 2               ; @PARAMS		y: buff index（ストアし始める最初のindex）
+000704r 2               ; @PARAMS		tmp1: posY
+000704r 2               ; @PARAMS		tmp2: posX
+000704r 2               ; @CLOBBERS		A X Y
+000704r 2               ; @RETURNS		None
+000704r 2               ;*------------------------------------------------------------------------------
+000704r 2               .proc _tfrSprToBuffFlipY
+000704r 2               	; Lower left
+000704r 2  A5 rr        	lda tmp1
+000706r 2  18 69 08     	add #8
+000709r 2  99 00 03     	sta CHR_BUFF+$0, y
+00070Cr 2  BD rr rr     	lda CHR_ID, x
+00070Fr 2  99 01 03     	sta CHR_BUFF+$1, y
+000712r 2  BD rr rr     	lda CHR_ATTR, x
+000715r 2  99 02 03     	sta CHR_BUFF+$2, y
+000718r 2  A5 rr        	lda tmp2
+00071Ar 2  99 03 03     	sta CHR_BUFF+$3, y
+00071Dr 2               	; Lower right
+00071Dr 2  E8           	inx
+00071Er 2  A5 rr        	lda tmp1
+000720r 2  18 69 08     	add #8
+000723r 2  99 04 03     	sta CHR_BUFF+$4, y
+000726r 2  BD rr rr     	lda CHR_ID, x
+000729r 2  99 05 03     	sta CHR_BUFF+$5, y
+00072Cr 2  BD rr rr     	lda CHR_ATTR, x
+00072Fr 2  99 06 03     	sta CHR_BUFF+$6, y
+000732r 2  A5 rr        	lda tmp2
+000734r 2  18 69 08     	add #8
+000737r 2  99 07 03     	sta CHR_BUFF+$7, y
+00073Ar 2               	; Upper left
+00073Ar 2  E8           	inx
+00073Br 2  A5 rr        	lda tmp1
+00073Dr 2  99 08 03     	sta CHR_BUFF+$8, y
+000740r 2  BD rr rr     	lda CHR_ID, x
+000743r 2  99 09 03     	sta CHR_BUFF+$9, y
+000746r 2  BD rr rr     	lda CHR_ATTR, x
+000749r 2  99 0A 03     	sta CHR_BUFF+$a, y
+00074Cr 2  A5 rr        	lda tmp2
+00074Er 2  99 0B 03     	sta CHR_BUFF+$b, y
+000751r 2               	; Upper right
+000751r 2  E8           	inx
+000752r 2  A5 rr        	lda tmp1
+000754r 2  99 0C 03     	sta CHR_BUFF+$c, y
+000757r 2  BD rr rr     	lda CHR_ID, x
+00075Ar 2  99 0D 03     	sta CHR_BUFF+$d, y
+00075Dr 2  BD rr rr     	lda CHR_ATTR, x
+000760r 2  99 0E 03     	sta CHR_BUFF+$e, y
+000763r 2  A5 rr        	lda tmp2
+000765r 2  18 69 08     	add #8
+000768r 2  99 0F 03     	sta CHR_BUFF+$f, y
+00076Br 2  60           	rts
+00076Cr 2               	; ------------------------------
+00076Cr 2               .endproc
+00076Cr 2               
+00076Cr 2               
+00076Cr 2               ;*------------------------------------------------------------------------------
+00076Cr 2               ; transfar to chr buff
+00076Cr 2               ; @PARAMS		X: sprite id, Y = BUFF index
+00076Cr 2               ; @CLOBBERS		A X Y
+00076Cr 2               ; @RETURNS		None
+00076Cr 2               ;*------------------------------------------------------------------------------
+00076Cr 2               .proc _tfrToChrBuff
+00076Cr 2  E0 00        		cpx #0								; sprid=0 -> スプライトなし
+00076Er 2  F0 20        		beq @EXIT
+000770r 2  CA           		dex									; spridを0～に変更
+000771r 2               
+000771r 2  C8           		iny									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
+000772r 2  98           		tya
+000773r 2  0A 0A        		shl #2
+000775r 2  A8           		tay
+000776r 2               
+000776r 2  BD rr rr     		lda spr_posY_arr, x
+000779r 2  85 rr        		sta tmp1							; posY
+00077Br 2  BD rr rr     		lda spr_posX_arr, x
+00077Er 2  85 rr        		sta tmp2							; posX
+000780r 2               
+000780r 2  BD rr rr     		lda spr_attr_arr, x
+000783r 2  29 01        		and #BIT0
+000785r 2  F0 06        		beq :+
+000787r 2  20 rr rr     		jsr _tfrSprToBuffNormal
+00078Ar 2  4C rr rr     		jmp @EXIT
+00078Dr 2               :
+00078Dr 2  20 rr rr     		jsr _tfrSprToBuffFlipX
+000790r 2               
+000790r 2               @EXIT:
+000790r 2  60           		rts
+000791r 2               		; ------------------------------
+000791r 2               .endproc
+000791r 2               
+000791r 2               
+000791r 2               .endscope
+000791r 2               
+000791r 1               .include "./asm/player_move.asm"
+000791r 2               .scope Player							; スコープ名注意！
+000791r 2               
+000791r 2               DOWN_SPEED_LIMIT = $04					; 落下の最高速度
+000791r 2               VER_FORCE_DECIMAL_PART_DATA:			; 加速度の増加値
+000791r 2  20 20 1E 28  		.byte $20, $20, $1e, $28, $28
+000795r 2  28           
+000796r 2               VER_FALL_FORCE_DATA:					; 降下時の加速度
+000796r 2  70 70 60 90  		.byte $70, $70, $60, $90, $90
+00079Ar 2  90           
+00079Br 2               INITIAL_VER_SPEED_DATA:					; 初速度(v0)
+00079Br 2  FC FC FC FB  		.byte $fc, $fc, $fc, $fb, $fb
+00079Fr 2  FB           
+0007A0r 2               INITIAL_VER_FORCE_DATA:					; 初期加速度(a)
+0007A0r 2  00 00 00 00  		.byte $00, $00, $00, $00, $00
+0007A4r 2  00           
+0007A5r 2               
+0007A5r 2               .ZeroPage
 000034r 2  00           is_fly: 					.byte 0		; 空中にいるか
 000035r 2  00           is_jumping:					.byte 0		; ジャンプ中か
 000036r 2  00           posY_origin:				.byte 0		; ジャンプ開始時の位置
@@ -2117,858 +2121,1050 @@ Current file: mario.asm
 00003Ar 2  00           ver_speed_decimal_part:		.byte 0		; 加速度の増加値
 00003Br 2  00           ver_pos_decimal_part:		.byte 0		; 累積計算での補正値
 00003Cr 2  00           ver_pos_fix_val:			.byte 0		; 補正値
-00003Dr 2               
-00003Dr 2               .code
-0007A2r 2               
-0007A2r 2               ;*------------------------------------------------------------------------------
-0007A2r 2               ; player physics
-0007A2r 2               ; @PARAMS		None
-0007A2r 2               ; @CLOBBERS		A X
-0007A2r 2               ; @RETURNS		None
-0007A2r 2               ;*------------------------------------------------------------------------------
-0007A2r 2               .proc _physicsX
-0007A2r 2  A9 00        		lda #0								; 初期化
-0007A4r 2  8D rr rr     		sta spr_velocity_x_arr+$0
-0007A7r 2               
-0007A7r 2  A5 rr        		lda Joypad::joy1
-0007A9r 2  29 02        		and #Joypad::BTN_L
-0007ABr 2  D0 4F        		bne @ACCELERATE_LEFT
-0007ADr 2  A5 rr        		lda Joypad::joy1
-0007AFr 2  29 01        		and #Joypad::BTN_R
-0007B1r 2  F0 03        		beq @DEC_ACCELERATION
-0007B3r 2  4C rr rr     		jmp @ACCELERATE_RIGHT
-0007B6r 2               
-0007B6r 2               @DEC_ACCELERATION:						; 減速
-0007B6r 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
-0007B9r 2  F0 40        		beq @EXIT1
-0007BBr 2  30 1E        		bmi @INC_SPEED
-0007BDr 2               
-0007BDr 2               		; 右向きに進んでいるときの減速
-0007BDr 2  38 E9 01     		sub #1								; 減速
-0007C0r 2  8D rr rr     		sta spr_float_velocity_x_arr+$0
-0007C3r 2  F0 36        		beq @EXIT1							; 速度0なら終了
-0007C5r 2               
-0007C5r 2  AA           		tax
-0007C6r 2  4A 4A 4A 4A  		shr #4
-0007CAr 2  8D rr rr     		sta spr_velocity_x_arr+$0
-0007CDr 2               
-0007CDr 2  E0 10        		cpx #$10
-0007CFr 2  B0 2A        		bcs @EXIT1
-0007D1r 2  E0 0A        		cpx #$0A
-0007D3r 2  90 26        		bcc @EXIT1
-0007D5r 2  EE rr rr     		inc spr_velocity_x_arr+$0
-0007D8r 2  4C rr rr     		jmp @EXIT1	; -------------------
-0007DBr 2               
-0007DBr 2               @INC_SPEED:
-0007DBr 2               		; 左向きに進んでいるときの減速
-0007DBr 2  18 69 01     		add #1
-0007DEr 2  8D rr rr     		sta spr_float_velocity_x_arr+$0
-0007E1r 2  F0 18        		beq @EXIT1
-0007E3r 2               
-0007E3r 2  AA           		tax
-0007E4r 2  4A 4A 4A 4A  		shr #4
-0007E8r 2  09 F0        		ora #%11110000						; 上位4ビットを埋める（負の数にする）
-0007EAr 2  8D rr rr     		sta spr_velocity_x_arr+$0
-0007EDr 2               
-0007EDr 2  E0 F0        		cpx #$f0
-0007EFr 2  90 07        		bcc @EXIT2
-0007F1r 2  E0 FA        		cpx #$fA
-0007F3r 2  B0 03        		bcs @EXIT2
-0007F5r 2  CE rr rr     		dec spr_velocity_x_arr+$0
-0007F8r 2               @EXIT2:
-0007F8r 2  EE rr rr     		inc spr_velocity_x_arr+$0			; 負の向きは求めた速度+1（小数の速度がfbの時→速度はffではなく0になってほしい）
-0007FBr 2               @EXIT1:
-0007FBr 2  60           		rts
-0007FCr 2               		; ------------------------------
-0007FCr 2               
-0007FCr 2               @ACCELERATE_LEFT:						; 左向きに加速度を上昇させる
-0007FCr 2  A2 00        		ldx #0								; AMOUNT_INC_SPD_L[]のindex決定処理
-0007FEr 2  A5 rr        		lda Joypad::joy1
-000800r 2  29 40        		and #Joypad::BTN_B
-000802r 2  F0 01        		beq :+
-000804r 2  E8           		inx
-000805r 2               :
-000805r 2  BD rr rr     		lda AMOUNT_INC_SPD_L, x				; 加速度を足す
-000808r 2  18 6D rr rr  		add spr_float_velocity_x_arr+$0
-00080Cr 2  DD rr rr     		cmp MAX_SPD_L, x
-00080Fr 2  10 05        		bpl :+
-000811r 2  E8           		inx
-000812r 2  38           		sec
-000813r 2  FD rr rr     		sbc AMOUNT_INC_SPD_L, x				; 足した加速度よりも大きな加速度で引く（加速度が負に）
-000816r 2               :
-000816r 2  8D rr rr     		sta spr_float_velocity_x_arr+$0
-000819r 2  85 rr        		sta tmp1
-00081Br 2  AD rr rr     		lda spr_decimal_part_velocity_x_arr+$0
-00081Er 2  09 F0        		ora #%1111_0000
-000820r 2  18 65 rr     		add tmp1
-000823r 2  85 rr        		sta tmp1
-000825r 2  29 0F        		and #BYT_GET_LO
-000827r 2  8D rr rr     		sta spr_decimal_part_velocity_x_arr+$0
-00082Ar 2  A5 rr        		lda tmp1
-00082Cr 2  C9 00        		cmp #0
-00082Er 2  10 08        		bpl :+
-000830r 2  4A 4A 4A 4A  		shr #4								; 加速度が負のとき（左に進んでて，右に入力がある場合）
-000834r 2  09 F0        		ora #%11110000						; 上位4ビットを埋める（負の数にする）
-000836r 2  D0 04        		bne :++
-000838r 2               :
-000838r 2  4A 4A 4A 4A  		shr #4								; 加速度が正のとき
-00083Cr 2               :
-00083Cr 2  8D rr rr     		sta spr_velocity_x_arr+$0
-00083Fr 2               		; 向きの更新
-00083Fr 2  F0 14        		beq :++								; 速度が0のとき向きフラグを更新しない（今の向きを継続利用）
-000841r 2  30 0A        		bmi :+
-000843r 2  A9 01        		lda #%0000_0001						; 速度が正のとき向きフラグを1に
-000845r 2  0D rr rr     		ora spr_attr_arr+$0
-000848r 2  8D rr rr     		sta spr_attr_arr+$0
-00084Br 2  D0 08        		bne :++
-00084Dr 2               :
-00084Dr 2  AD rr rr     		lda spr_attr_arr+$0					; 速度が負のとき向きフラグを0に
-000850r 2  29 FE        		and #%1111_1110
-000852r 2  8D rr rr     		sta spr_attr_arr+$0
-000855r 2               :
-000855r 2               		; 速度調整
-000855r 2  A5 rr        		lda tmp1
-000857r 2  E0 F0        		cpx #$f0
-000859r 2  90 07        		bcc :+
-00085Br 2  E0 FA        		cpx #$fA
-00085Dr 2  B0 03        		bcs :+
-00085Fr 2  CE rr rr     		dec spr_velocity_x_arr+$0			; 速度が遅めのときに進んでいる方向に速度を1足す
-000862r 2               :
-000862r 2  EE rr rr     		inc spr_velocity_x_arr+$0
-000865r 2  60           		rts
-000866r 2               		; ------------------------------
-000866r 2               
-000866r 2               @ACCELERATE_RIGHT:
-000866r 2  A2 00        		ldx #0
-000868r 2  A5 rr        		lda Joypad::joy1
-00086Ar 2  29 40        		and #Joypad::BTN_B
-00086Cr 2  F0 01        		beq :+
-00086Er 2  E8           		inx
-00086Fr 2               :
-00086Fr 2  BD rr rr     		lda AMOUNT_INC_SPD_R, x
-000872r 2  18 6D rr rr  		add spr_float_velocity_x_arr+$0
-000876r 2  DD rr rr     		cmp MAX_SPD_R, x
-000879r 2  30 05        		bmi :+
-00087Br 2  E8           		inx
-00087Cr 2  38           		sec
-00087Dr 2  FD rr rr     		sbc AMOUNT_INC_SPD_R, x
-000880r 2               :
-000880r 2  8D rr rr     		sta spr_float_velocity_x_arr+$0
-000883r 2  18 6D rr rr  		add spr_decimal_part_velocity_x_arr+$0
-000887r 2  85 rr        		sta tmp1
-000889r 2  29 0F        		and #BYT_GET_LO
-00088Br 2  8D rr rr     		sta spr_decimal_part_velocity_x_arr+$0
-00088Er 2  A5 rr        		lda tmp1
-000890r 2  C9 00        		cmp #0
-000892r 2  10 08        		bpl :+
-000894r 2  4A 4A 4A 4A  		shr #4
-000898r 2  09 F0        		ora #%11110000
-00089Ar 2  D0 04        		bne :++
-00089Cr 2               :
-00089Cr 2  4A 4A 4A 4A  		shr #4
-0008A0r 2               :
-0008A0r 2  8D rr rr     		sta spr_velocity_x_arr+$0
-0008A3r 2               		; 向きの更新
-0008A3r 2  F0 14        		beq :++								; 速度が0のとき向きフラグを更新しない（今の向きを継続利用）
-0008A5r 2  30 0A        		bmi :+
-0008A7r 2  A9 01        		lda #%0000_0001						; 速度が正のとき向きフラグを1に
-0008A9r 2  0D rr rr     		ora spr_attr_arr+$0
-0008ACr 2  8D rr rr     		sta spr_attr_arr+$0
-0008AFr 2  D0 08        		bne :++
-0008B1r 2               :
-0008B1r 2  AD rr rr     		lda spr_attr_arr+$0					; 速度が負のとき向きフラグを0に
-0008B4r 2  29 FE        		and #%1111_1110
+00003Dr 2  00           mario_block_x:				.byte 0
+00003Er 2  00           mario_block_y:				.byte 0
+00003Fr 2  00           tmp_x:						.byte 0
+000040r 2  00           tmp_y:						.byte 0
+000041r 2               
+000041r 2               .code
+0007A5r 2               
+0007A5r 2               ;*------------------------------------------------------------------------------
+0007A5r 2               ; player physics
+0007A5r 2               ; @PARAMS		None
+0007A5r 2               ; @CLOBBERS		A X
+0007A5r 2               ; @RETURNS		None
+0007A5r 2               ;*------------------------------------------------------------------------------
+0007A5r 2               .proc _physicsX
+0007A5r 2  A9 00        		lda #0							; 初期化
+0007A7r 2  8D rr rr     		sta spr_velocity_x_arr+$0
+0007AAr 2               
+0007AAr 2  A5 rr        		lda Joypad::joy1
+0007ACr 2  29 02        		and #Joypad::BTN_L
+0007AEr 2  D0 51        		bne @ACCELERATE_LEFT
+0007B0r 2  A5 rr        		lda Joypad::joy1
+0007B2r 2  29 01        		and #Joypad::BTN_R
+0007B4r 2  F0 03        		beq @DEC_ACCELERATION
+0007B6r 2  4C rr rr     		jmp @ACCELERATE_RIGHT
+0007B9r 2               
+0007B9r 2               @DEC_ACCELERATION:						; 減速
+0007B9r 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
+0007BCr 2  F0 40        		beq @EXIT1
+0007BEr 2  30 1E        		bmi @INC_SPEED
+0007C0r 2               
+0007C0r 2               		; 右向きに進んでいるときの減速
+0007C0r 2  38 E9 01     		sub #1							; 減速
+0007C3r 2  8D rr rr     		sta spr_float_velocity_x_arr+$0
+0007C6r 2  F0 36        		beq @EXIT1						; 速度0なら終了
+0007C8r 2               
+0007C8r 2  AA           		tax
+0007C9r 2  4A 4A 4A 4A  		shr #4
+0007CDr 2  8D rr rr     		sta spr_velocity_x_arr+$0
+0007D0r 2               
+0007D0r 2  E0 10        		cpx #$10
+0007D2r 2  B0 2A        		bcs @EXIT1
+0007D4r 2  E0 0A        		cpx #$0A
+0007D6r 2  90 26        		bcc @EXIT1
+0007D8r 2  EE rr rr     		inc spr_velocity_x_arr+$0
+0007DBr 2  4C rr rr     		jmp @EXIT1	; ------------------
+0007DEr 2               
+0007DEr 2               @INC_SPEED:
+0007DEr 2               		; 左向きに進んでいるときの減速
+0007DEr 2  18 69 01     		add #1
+0007E1r 2  8D rr rr     		sta spr_float_velocity_x_arr+$0
+0007E4r 2  F0 18        		beq @EXIT1
+0007E6r 2               
+0007E6r 2  AA           		tax
+0007E7r 2  4A 4A 4A 4A  		shr #4
+0007EBr 2  09 F0        		ora #%11110000					; 上位4ビットを埋める（負の数にする）
+0007EDr 2  8D rr rr     		sta spr_velocity_x_arr+$0
+0007F0r 2               
+0007F0r 2  E0 F0        		cpx #$f0
+0007F2r 2  90 07        		bcc @EXIT2
+0007F4r 2  E0 FA        		cpx #$fA
+0007F6r 2  B0 03        		bcs @EXIT2
+0007F8r 2  CE rr rr     		dec spr_velocity_x_arr+$0
+0007FBr 2               @EXIT2:
+0007FBr 2  EE rr rr     		inc spr_velocity_x_arr+$0		; 負の向きは求めた速度+1（小数の速度がfbの時→速度はffではなく0になってほしい）
+0007FEr 2               @EXIT1:
+0007FEr 2  4C rr rr     		jmp EXIT	; ------------------
+000801r 2               
+000801r 2               @ACCELERATE_LEFT:						; 左向きに加速度を上昇させる
+000801r 2  A2 00        		ldx #0							; AMOUNT_INC_SPD_L[]のindex決定処理
+000803r 2  A5 rr        		lda Joypad::joy1
+000805r 2  29 40        		and #Joypad::BTN_B
+000807r 2  F0 01        		beq :+
+000809r 2  E8           		inx
+00080Ar 2               :
+00080Ar 2  BD rr rr     		lda AMOUNT_INC_SPD_L, x			; 加速度を足す
+00080Dr 2  18 6D rr rr  		add spr_float_velocity_x_arr+$0
+000811r 2  DD rr rr     		cmp MAX_SPD_L, x
+000814r 2  10 05        		bpl :+
+000816r 2  E8           		inx
+000817r 2  38           		sec
+000818r 2  FD rr rr     		sbc AMOUNT_INC_SPD_L, x			; 足した加速度よりも大きな加速度で引く（加速度が負に）
+00081Br 2               :
+00081Br 2  8D rr rr     		sta spr_float_velocity_x_arr+$0
+00081Er 2  85 rr        		sta tmp1
+000820r 2  AD rr rr     		lda spr_decimal_part_velocity_x_arr+$0
+000823r 2  09 F0        		ora #%1111_0000
+000825r 2  18 65 rr     		add tmp1
+000828r 2  85 rr        		sta tmp1
+00082Ar 2  29 0F        		and #BYT_GET_LO
+00082Cr 2  8D rr rr     		sta spr_decimal_part_velocity_x_arr+$0
+00082Fr 2  A5 rr        		lda tmp1
+000831r 2  C9 00        		cmp #0
+000833r 2  10 08        		bpl :+
+000835r 2  4A 4A 4A 4A  		shr #4							; 加速度が負のとき（左に進んでて，右に入力がある場合）
+000839r 2  09 F0        		ora #%11110000					; 上位4ビットを埋める（負の数にする）
+00083Br 2  D0 04        		bne :++
+00083Dr 2               :
+00083Dr 2  4A 4A 4A 4A  		shr #4							; 加速度が正のとき
+000841r 2               :
+000841r 2  8D rr rr     		sta spr_velocity_x_arr+$0
+000844r 2               		; 向きの更新
+000844r 2  F0 14        		beq :++							; 速度が0のとき向きフラグを更新しない（今の向きを継続利用）
+000846r 2  30 0A        		bmi :+
+000848r 2  A9 01        		lda #%0000_0001					; 速度が正のとき向きフラグを1に
+00084Ar 2  0D rr rr     		ora spr_attr_arr+$0
+00084Dr 2  8D rr rr     		sta spr_attr_arr+$0
+000850r 2  D0 08        		bne :++
+000852r 2               :
+000852r 2  AD rr rr     		lda spr_attr_arr+$0				; 速度が負のとき向きフラグを0に
+000855r 2  29 FE        		and #%1111_1110
+000857r 2  8D rr rr     		sta spr_attr_arr+$0
+00085Ar 2               :
+00085Ar 2               		; 速度調整
+00085Ar 2  A5 rr        		lda tmp1
+00085Cr 2  E0 F0        		cpx #$f0
+00085Er 2  90 07        		bcc :+
+000860r 2  E0 FA        		cpx #$fA
+000862r 2  B0 03        		bcs :+
+000864r 2  CE rr rr     		dec spr_velocity_x_arr+$0		; 速度が遅めのときに進んでいる方向に速度を1足す
+000867r 2               :
+000867r 2  EE rr rr     		inc spr_velocity_x_arr+$0
+00086Ar 2  4C rr rr     		jmp EXIT	; ------------------
+00086Dr 2               
+00086Dr 2               @ACCELERATE_RIGHT:
+00086Dr 2  A2 00        		ldx #0
+00086Fr 2  A5 rr        		lda Joypad::joy1
+000871r 2  29 40        		and #Joypad::BTN_B
+000873r 2  F0 01        		beq :+
+000875r 2  E8           		inx
+000876r 2               :
+000876r 2  BD rr rr     		lda AMOUNT_INC_SPD_R, x
+000879r 2  18 6D rr rr  		add spr_float_velocity_x_arr+$0
+00087Dr 2  DD rr rr     		cmp MAX_SPD_R, x
+000880r 2  30 05        		bmi :+
+000882r 2  E8           		inx
+000883r 2  38           		sec
+000884r 2  FD rr rr     		sbc AMOUNT_INC_SPD_R, x
+000887r 2               :
+000887r 2  8D rr rr     		sta spr_float_velocity_x_arr+$0
+00088Ar 2  18 6D rr rr  		add spr_decimal_part_velocity_x_arr+$0
+00088Er 2  85 rr        		sta tmp1
+000890r 2  29 0F        		and #BYT_GET_LO
+000892r 2  8D rr rr     		sta spr_decimal_part_velocity_x_arr+$0
+000895r 2  A5 rr        		lda tmp1
+000897r 2  C9 00        		cmp #0
+000899r 2  10 08        		bpl :+
+00089Br 2  4A 4A 4A 4A  		shr #4
+00089Fr 2  09 F0        		ora #%11110000
+0008A1r 2  D0 04        		bne :++
+0008A3r 2               :
+0008A3r 2  4A 4A 4A 4A  		shr #4
+0008A7r 2               :
+0008A7r 2  8D rr rr     		sta spr_velocity_x_arr+$0
+0008AAr 2               		; 向きの更新
+0008AAr 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
+0008ADr 2  F0 14        		beq :++							; 速度が0のとき向きフラグを更新しない（今の向きを継続利用）
+0008AFr 2  30 0A        		bmi :+
+0008B1r 2  AD rr rr     		lda spr_attr_arr				; 速度が正のとき向きフラグを1に
+0008B4r 2  09 01        		ora #%0000_0001
 0008B6r 2  8D rr rr     		sta spr_attr_arr+$0
-0008B9r 2               :
-0008B9r 2               		; 速度調整
-0008B9r 2  A5 rr        		lda tmp1
-0008BBr 2  C9 10        		cmp #$10
-0008BDr 2  B0 07        		bcs :+
-0008BFr 2  C9 06        		cmp #$06
-0008C1r 2  90 03        		bcc :+
-0008C3r 2  EE rr rr     		inc spr_velocity_x_arr+$0
-0008C6r 2               :
-0008C6r 2  60           		rts
-0008C7r 2               		; ------------------------------
-0008C7r 2               .endproc
-0008C7r 2               
-0008C7r 2               
-0008C7r 2               ;*------------------------------------------------------------------------------
-0008C7r 2               ; player animate
-0008C7r 2               ; @PARAMS		None
-0008C7r 2               ; @CLOBBERS		A X tmp1
-0008C7r 2               ; @RETURNS		None
-0008C7r 2               ;*------------------------------------------------------------------------------
-0008C7r 2               
-0008C7r 2               .proc _animate
-0008C7r 2  A5 rr        	lda Player::is_jumping
-0008C9r 2  F0 06        	beq :+
-0008CBr 2  A9 04        	lda #4
-0008CDr 2  8D rr rr     	sta spr_anime_num
-0008D0r 2  60           	rts
-0008D1r 2               	; ------------------------------
-0008D1r 2               :
-0008D1r 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
-0008D4r 2  D0 06        		bne :+
-0008D6r 2  A9 00        		lda #0
-0008D8r 2  8D rr rr     		sta spr_anime_num+$0
-0008DBr 2  60           		rts
-0008DCr 2               		; ------------------------------
-0008DCr 2               :										; 速度が0でないとき
-0008DCr 2  A5 rr        		lda Joypad::joy1
-0008DEr 2  29 03        		and #(Joypad::BTN_L|Joypad::BTN_R)
-0008E0r 2  F0 29        		beq @NORMAL_MOVE
-0008E2r 2  29 02        		and #Joypad::BTN_L
-0008E4r 2  4A           		shr #1								; 左ボタンのフラグを最下位ビットに
-0008E5r 2  85 rr        		sta tmp1
-0008E7r 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
-0008EAr 2  0A           		asl									; 速度の最上位ビットを最下位ビットに入れる
-0008EBr 2  A9 00        		lda #0
-0008EDr 2  2A           		rol
-0008EEr 2  C5 rr        		cmp tmp1
-0008F0r 2  F0 19        		beq @NORMAL_MOVE
-0008F2r 2               		; ブレーキ時の動作
-0008F2r 2  C9 00        		cmp #0
-0008F4r 2  F0 07        		beq @RIGHT
-0008F6r 2  AD rr rr     		lda spr_attr_arr+$0					; 左ボタンが押されているとき
-0008F9r 2  09 01        		ora #%0000_0001
-0008FBr 2  D0 05        		bne :+
-0008FDr 2               @RIGHT:
-0008FDr 2  AD rr rr     		lda spr_attr_arr+$0
-000900r 2  29 FE        		and #%1111_1110
-000902r 2               :
-000902r 2  8D rr rr     		sta spr_attr_arr+$0
-000905r 2  A9 05        		lda #5
-000907r 2  8D rr rr     		sta spr_anime_num+$0
-00090Ar 2  60           		rts
-00090Br 2               		; ------------------------------
-00090Br 2               @NORMAL_MOVE:							; 通常の進み方（ブレーキでない）をしているとき
-00090Br 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
-00090Er 2  10 05        		bpl :+
-000910r 2  49 FF 18 69  		cnn									; 速度の絶対値を取る
-000914r 2  01           
-000915r 2               :
-000915r 2  C9 10        		cmp #$10
-000917r 2  10 04        		bpl :+
-000919r 2               		; スピードが$10以下
-000919r 2  A9 04        		lda #4								; タイマー5フレーム
-00091Br 2  D0 16        		bne @ANIMATE
-00091Dr 2               :
-00091Dr 2  C9 18        		cmp #$18
-00091Fr 2  10 04        		bpl :+
-000921r 2  A9 03        		lda #3
-000923r 2  D0 0E        		bne @ANIMATE
-000925r 2               :
-000925r 2  C9 20        		cmp #$20
-000927r 2  10 04        		bpl :+
-000929r 2  A9 02        		lda #2
-00092Br 2  D0 06        		bne @ANIMATE
-00092Dr 2               :
-00092Dr 2  C9 28        		cmp #$28
-00092Fr 2  10 53        		bpl :+
-000931r 2  A9 01        		lda #1
-000933r 2               @ANIMATE:								; タイマーと速度に応じた値を比較しアニメーションを進める
-000933r 2  CD rr rr     		cmp spr_anime_timer+$0
-000936r 2  10 14        		bpl @NO_CHANGE_CHR
-000938r 2               
-000938r 2  A9 00        		lda #0
-00093Ar 2  8D rr rr     		sta spr_anime_timer+$0
-00093Dr 2               
-00093Dr 2  EE rr rr     		inc spr_anime_num+$0
-000940r 2  AD rr rr     		lda spr_anime_num+$0
-000943r 2  C9 04        		cmp #4
-000945r 2  90 05        		bcc @NO_CHANGE_CHR
-000947r 2  A9 01        		lda #1								; アニメーション番号が超えたので最初に戻す
-000949r 2  8D rr rr     		sta spr_anime_num+$0
-00094Cr 2               @NO_CHANGE_CHR:
-00094Cr 2  AD rr rr     		lda spr_anime_num+$0
-00094Fr 2  D0 0A        		bne @EXIT
-000951r 2               		; 歩き始め（止まっている状態から進み出した時）
-000951r 2  A9 01        		lda #1								; 1F目から歩いているアニメーションにする
-000953r 2  8D rr rr     		sta spr_anime_num+$0
-000956r 2  A9 00        		lda #0								; タイマーリセット
-000958r 2  8D rr rr     		sta spr_anime_timer+$0
-00095Br 2               @EXIT:
-00095Br 2  60           	rts
-00095Cr 2               	; ------------------------------
-00095Cr 2               
-00095Cr 2               .endproc
-00095Cr 2               
-00095Cr 2               
-00095Cr 2               .proc _jumpCheck
-00095Cr 2  A5 rr        	lda Joypad::joy1
-00095Er 2  29 80        	and #Joypad::BTN_A
-000960r 2  D0 01        	bne @SKIP1
-000962r 2               	; 初めてAボタンが押されてないとき終了
-000962r 2  60           	rts
-000963r 2               	; ------------------------------
-000963r 2               @SKIP1:
-000963r 2  A5 rr        	lda Player::is_fly
-000965r 2  D0 03        	bne @SKIP2
-000967r 2               	; 地面にいるときジャンプ開始準備
-000967r 2  20 rr rr     	jsr Player::_prepareJumping
-00096Ar 2               @SKIP2:
-00096Ar 2  60           	rts
-00096Br 2               	; ------------------------------
-00096Br 2               .endproc
-00096Br 2               
-00096Br 2               
-00096Br 2               .proc _prepareJumping
-00096Br 2  A2 01        	ldx #1
-00096Dr 2  86 rr        	stx Player::is_fly
-00096Fr 2  86 rr        	stx Player::is_jumping
-000971r 2  CA           	dex
-000972r 2  8E rr rr     	stx spr_decimal_part_velocity_y_arr+$0
-000975r 2  AD rr rr     	lda spr_posY_arr+$0
-000978r 2  85 rr        	sta Player::posY_origin
-00097Ar 2               
-00097Ar 2               	; Xレジスタ = 0
-00097Ar 2  AD rr rr     	lda spr_velocity_x_arr+$0
-00097Dr 2  10 05        	bpl :+
-00097Fr 2  49 FF 18 69  	cnn									; X方向のスピードの絶対値を求める
-000983r 2  01           
-000984r 2               :
-000984r 2  C9 1C        	cmp #$1c
-000986r 2  30 01        	bmi @SKIP1
-000988r 2  E8           	inx
-000989r 2               @SKIP1:
-000989r 2  C9 19        	cmp #$19
-00098Br 2  30 01        	bmi @SKIP2
-00098Dr 2  E8           	inx
-00098Er 2               @SKIP2:
-00098Er 2  C9 10        	cmp #$10
-000990r 2  30 01        	bmi @SKIP3
-000992r 2  E8           	inx
-000993r 2               @SKIP3:
-000993r 2  C9 09        	cmp #$09
-000995r 2  30 01        	bmi @SKIP4
-000997r 2  E8           	inx
-000998r 2               @SKIP4:
-000998r 2               
-000998r 2  BD rr rr     	lda VER_FORCE_DECIMAL_PART_DATA, x
-00099Br 2  8D rr rr     	sta spr_decimal_part_force_y+$0
-00099Er 2  BD rr rr     	lda VER_FALL_FORCE_DATA, x
-0009A1r 2  8D rr rr     	sta spr_force_fall_y+$0
-0009A4r 2  BD rr rr     	lda INITIAL_VER_FORCE_DATA, x
-0009A7r 2  8D rr rr     	sta spr_decimal_part_velocity_y_arr+$0
-0009AAr 2  BD rr rr     	lda INITIAL_VER_SPEED_DATA, x
-0009ADr 2  8D rr rr     	sta spr_velocity_y_arr+$0
-0009B0r 2               
-0009B0r 2  60           	rts
-0009B1r 2               	; ------------------------------
-0009B1r 2               .endproc
-0009B1r 2               
-0009B1r 2               .proc _moveProcess
-0009B1r 2  AD rr rr     	lda spr_velocity_y_arr+$0
-0009B4r 2  10 0C        	bpl @SKIP1
-0009B6r 2  A5 rr        	lda Joypad::joy1
-0009B8r 2  29 80        	and #Joypad::BTN_A
-0009BAr 2  D0 0C        	bne @SKIP2
-0009BCr 2  A5 rr        	lda Joypad::joy1_prev
-0009BEr 2  29 80        	and #Joypad::BTN_A
-0009C0r 2  F0 06        	beq @SKIP2
-0009C2r 2               @SKIP1:
-0009C2r 2  AD rr rr     	lda spr_force_fall_y+$0
-0009C5r 2  8D rr rr     	sta spr_decimal_part_force_y+$0
-0009C8r 2               @SKIP2:
-0009C8r 2  20 rr rr     	jsr Player::_physicsY
-0009CBr 2  60           	rts
-0009CCr 2               	; ------------------------------
-0009CCr 2               .endproc
-0009CCr 2               
-0009CCr 2               
-0009CCr 2               .proc _physicsY
-0009CCr 2  A2 00        	ldx #0
-0009CEr 2  8E rr rr     	stx spr_fix_val_y+$0
-0009D1r 2  AD rr rr     	lda spr_pos_y_decimal_part+$0
-0009D4r 2  18 6D rr rr  	add spr_decimal_part_force_y+$0
-0009D8r 2  8D rr rr     	sta spr_pos_y_decimal_part+$0
-0009DBr 2  90 07        	bcc @SKIP_OVERFLOW
-0009DDr 2               	; オーバーフローしてたら
-0009DDr 2  8E rr rr     	stx spr_pos_y_decimal_part+$0
-0009E0r 2  E8           	inx
-0009E1r 2  8E rr rr     	stx spr_fix_val_y+$0				; 補正値があったらここで修正
-0009E4r 2               @SKIP_OVERFLOW:
-0009E4r 2  AD rr rr     	lda spr_decimal_part_velocity_y_arr+$0
-0009E7r 2  18 6D rr rr  	add spr_decimal_part_force_y+$0
-0009EBr 2  8D rr rr     	sta spr_decimal_part_velocity_y_arr+$0
-0009EEr 2  90 17        	bcc @EXIT
-0009F0r 2  A9 00        	lda #0
-0009F2r 2  8D rr rr     	sta spr_decimal_part_velocity_y_arr+$0
-0009F5r 2               
-0009F5r 2  AE rr rr     	ldx spr_velocity_y_arr+$0
-0009F8r 2  E8           	inx
-0009F9r 2  E0 04        	cpx #DOWN_SPEED_LIMIT
-0009FBr 2  30 07        	bmi @STORE_VER_SPEED
-0009FDr 2               	;lda ver_speed_decimal_part
-0009FDr 2               	;bpl @STORE_VER_SPEED
-0009FDr 2  A2 04        	ldx #DOWN_SPEED_LIMIT
-0009FFr 2  A9 00        	lda #0
-000A01r 2  8D rr rr     	sta spr_decimal_part_velocity_y_arr+$0
-000A04r 2               @STORE_VER_SPEED:
-000A04r 2  8E rr rr     	stx spr_velocity_y_arr+$0
-000A07r 2               
-000A07r 2               @EXIT:
-000A07r 2  60           	rts
-000A08r 2               	; ------------------------------
-000A08r 2               .endproc
-000A08r 2               
-000A08r 2               .endscope
-000A08r 2               
-000A08r 1               .include "./asm/nmi.asm"
-000A08r 2               ;*------------------------------------------------------------------------------
-000A08r 2               ; bg_buffを読み取り，指定アドレスに書き込んでカウンタをインクリメント
-000A08r 2               ; Unused
-000A08r 2               ; @PARAMS		ADDR: Forwarding address
-000A08r 2               ; @CLOBBERS		A X
-000A08r 2               ; @RETURNS		None
-000A08r 2               ;*------------------------------------------------------------------------------
-000A08r 2               
-000A08r 2               .code									; ----- code -----
-000A08r 2               
-000A08r 2               .macro tfrDataToPPU ADDR
-000A08r 2               	lda bg_buff, x
-000A08r 2               	sta ADDR
-000A08r 2               	inx
-000A08r 2               .endmacro
-000A08r 2               
-000A08r 2               ; memo
-000A08r 2               ; ----- PPU buff data structure -----
-000A08r 2               ; r: Direction
-000A08r 2               ; 	Bit0 is a flag, others are 1.
-000A08r 2               ; 	-> 0b1111_111[0/1]
-000A08r 2               ; 	-> 0xFE（Horizontal）/0xFF（Vertical）
-000A08r 2               ; a: Addr
-000A08r 2               ; d: Data
-000A08r 2               ; r [a a] [d d d ... d] r [a a] [d d ... d]
-000A08r 2               
-000A08r 2               
-000A08r 2               ;*------------------------------------------------------------------------------
-000A08r 2               ; NMI (Interrupt)
-000A08r 2               ; @CLOBBERS	 X Y (When end main process.)
-000A08r 2               ; To shorten the clock, put the buffer data on the stack
-000A08r 2               ; 	(Shorten clock by buff data length)
-000A08r 2               ; 	pla -> 3 clc
-000A08r 2               ; 	lda ZP/ABSORUTE, x -> 4 clc
-000A08r 2               ;*------------------------------------------------------------------------------
-000A08r 2               
-000A08r 2               .code									; ----- code -----
-000A08r 2               
-000A08r 2               .proc _nmi
-000A08r 2  48           		pha
-000A09r 2  E6 rr        		inc nmi_cnt
-000A0Br 2  A5 rr        		lda is_processing_main
-000A0Dr 2  F0 05        		beq @NMI_MAIN
-000A0Fr 2  68           		pla
-000A10r 2  20 rr rr     		jsr Subfunc::_setScroll
-000A13r 2  40           		rti	; --------------------------
-000A14r 2               
-000A14r 2               @NMI_MAIN:
-000A14r 2  A5 rr        		lda is_updated_map
-000A16r 2  F0 5E        		beq @PRINT
-000A18r 2  A2 00        		ldx #0
-000A1Ar 2  86 rr        		stx tmp1
-000A1Cr 2               @PLT_STORE_LOOP:
-000A1Cr 2  A5 rr        		lda plt_addr+1
-000A1Er 2  8D 06 20     		sta PPU_ADDR
-000A21r 2               
-000A21r 2  A5 rr        		lda plt_addr+0
-000A23r 2  18 69 08     		add #8
-000A26r 2  18 65 rr     		add tmp1
-000A29r 2  8D 06 20     		sta PPU_ADDR
-000A2Cr 2               
-000A2Cr 2  BD 34 01     		lda bg_plt_buff, x
-000A2Fr 2  8D 07 20     		sta PPU_DATA
-000A32r 2               
-000A32r 2  A5 rr        		lda tmp1
-000A34r 2  18 69 08     		add #8
-000A37r 2  85 rr        		sta tmp1
-000A39r 2               
-000A39r 2  E8           		inx
-000A3Ar 2  E0 07        		cpx #7
-000A3Cr 2  90 DE        		bcc @PLT_STORE_LOOP
-000A3Er 2               
-000A3Er 2  A5 rr        		lda ppu_ctrl1_cpy
-000A40r 2  09 04        		ora #%0000_0100					; Vertical mode
-000A42r 2  85 rr        		sta ppu_ctrl1_cpy
-000A44r 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
-000A47r 2               
-000A47r 2               		; line 1
-000A47r 2  A5 rr        		lda ppu_bg_addr+HI
-000A49r 2  8D 06 20     		sta PPU_ADDR
-000A4Cr 2  A5 rr        		lda ppu_bg_addr+LO
-000A4Er 2  8D 06 20     		sta PPU_ADDR
-000A51r 2               
-000A51r 2  A2 00        		ldx #0
-000A53r 2               @STORE_MAP_LOOP:
-000A53r 2  BD 00 01     		lda bg_map_buff, x
-000A56r 2  8D 07 20     		sta PPU_DATA
-000A59r 2  E8           		inx
-000A5Ar 2  E0 1A        		cpx #$1a
-000A5Cr 2  D0 F5        		bne @STORE_MAP_LOOP
-000A5Er 2               
-000A5Er 2               		; line 2
-000A5Er 2  A5 rr        		lda ppu_bg_addr+HI
-000A60r 2  8D 06 20     		sta PPU_ADDR
-000A63r 2  A6 rr        		ldx ppu_bg_addr+LO
-000A65r 2  E8           		inx
-000A66r 2  8E 06 20     		stx PPU_ADDR
-000A69r 2               
-000A69r 2  A2 00        		ldx #0
-000A6Br 2               @STORE_MAP_LOOP2:
-000A6Br 2  BD 1A 01     		lda bg_map_buff+$1a, x
-000A6Er 2  8D 07 20     		sta PPU_DATA
-000A71r 2  E8           		inx
-000A72r 2  E0 1A        		cpx #$1a
-000A74r 2  D0 F5        		bne @STORE_MAP_LOOP2
-000A76r 2               
-000A76r 2               @PRINT:
-000A76r 2  A9 00        		lda #0
-000A78r 2  C5 rr        		cmp bg_buff_pointer
-000A7Ar 2  F0 35        		beq @STORE_CHR
-000A7Cr 2  AA           		tax
-000A7Dr 2  BD 49 01     		lda bg_buff, x
-000A80r 2               @SET_MODE:
-000A80r 2  29 01        		and #%00000001					; Get flag
-000A82r 2  0A 0A        		shl #2							; Move flag to Bit2
-000A84r 2  85 rr        		sta tmp1						; Start using tmp1
-000A86r 2  A5 rr        		lda ppu_ctrl1_cpy
-000A88r 2  29 FB        		and #%11111011					; Mask direction flag(Horizontal(+1)/Vertical(+32))
-000A8Ar 2  05 rr        		ora tmp1						; End using tmp1
-000A8Cr 2  85 rr        		sta ppu_ctrl1_cpy
-000A8Er 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
-000A91r 2               @SET_ADDR:
-000A91r 2  E8           		inx								; Not do inx when go to @EXIT
-000A92r 2  BD 49 01     		lda bg_buff, x
-000A95r 2  8D 06 20     		sta PPU_ADDR
-000A98r 2  E8           		inx
-000A99r 2  BD 49 01     		lda bg_buff, x
-000A9Cr 2  8D 06 20     		sta PPU_ADDR
-000A9Fr 2  E8           		inx
-000AA0r 2               @STORE_DATA:
-000AA0r 2  BD 49 01     		lda bg_buff, x
-000AA3r 2  A8           		tay
-000AA4r 2  C9 FE        		cmp #$fe
-000AA6r 2  B0 D8        		bcs @SET_MODE					; no inx
-000AA8r 2  98           		tya
-000AA9r 2  8D 07 20     		sta PPU_DATA
-000AACr 2  E8           		inx
-000AADr 2  E4 rr        		cpx bg_buff_pointer
-000AAFr 2  D0 EF        		bne @STORE_DATA
-000AB1r 2               
-000AB1r 2               		; @SET_MODE + @SET_ADDR = 51 cycle
-000AB1r 2               		; @STORE_DATA (return @STORE_DATA) = 24 cycle
-000AB1r 2               		; @STORE_DATA (return @SET_MODE) = 13 cycle
-000AB1r 2               
-000AB1r 2               		; str1 = "A  B"
-000AB1r 2               		; 	=> 51 + space_len * 24 cycle
-000AB1r 2               		; 	=> mode(1) + addr(2) + data(2 + space_len) = (5 + space_len) bytes
-000AB1r 2               		; 	|  len  || 1  | 2  |  3  |  4  |
-000AB1r 2               		; 	| cycle || 75 | 99 | 123 | 147 |
-000AB1r 2               		;	| bytes || 6  | 7  |  8  |  9  |
-000AB1r 2               		; str2 = 'A', str3 = 'B'
-000AB1r 2               		; 	=> (51 + 13) * 2 = 64 * 2 = 128 cycle
-000AB1r 2               		; 	=> (mode(1) + addr(2) + data(1)) * 2 = 8 bytes
-000AB1r 2               		; space length:
-000AB1r 2               		; 	1: 75 cycle,	6 bytes (str1)
-000AB1r 2               		; 	2: 99 cycle,	7 bytes
-000AB1r 2               		; 	3: 123 cycle,	8 bytes
-000AB1r 2               		; 	4~: 128 cycle,	8 bytes (str2)
-000AB1r 2               @STORE_CHR:
-000AB1r 2  A9 00        		lda #0
-000AB3r 2  8D 03 20     		sta OAM_ADDR
-000AB6r 2  A9 03        		lda #>CHR_BUFF
-000AB8r 2  8D 14 40     		sta OAM_DMA
-000ABBr 2               
-000ABBr 2               @EXIT:
-000ABBr 2  A9 01        		lda #1
-000ABDr 2  85 rr        		sta is_processing_main
-000ABFr 2  4A           		shr #1							; A = 0
-000AC0r 2  85 rr        		sta bg_buff_pointer
-000AC2r 2  85 rr        		sta is_updated_map
-000AC4r 2  E6 rr        		inc frm_cnt
-000AC6r 2  68           		pla
-000AC7r 2  40           		rti	; --------------------------
-000AC8r 2               .endproc
-000AC8r 2               
-000AC8r 1               .include "./asm/init.asm"
-000AC8r 2               .code									; ----- code -----
-000AC8r 2               
-000AC8r 2               .macro init
-000AC8r 2               		sei								; Ban IRQ
-000AC8r 2               		cld								; Ban BCD
-000AC8r 2               		ldx #$40
-000AC8r 2               		stx JOYPAD2
-000AC8r 2               		ldx #$ff
-000AC8r 2               		txs
-000AC8r 2               		inx								; X = 0
-000AC8r 2               		stx PPU_CTRL1
-000AC8r 2               		stx PPU_CTRL2
-000AC8r 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
-000AC8r 2               		stx SOUND_CHANNEL
-000AC8r 2               
-000AC8r 2               		/*
-000AC8r 2               		A & $2002 -> set Z(zero flag)
-000AC8r 2               		$2002 bit7(vblank) -> N(negative), bit6(sprite 0 hit) -> V(overflow)
-000AC8r 2               		Reset vblank & sprite 0 hit flag
-000AC8r 2               		(The state of this flag after reset is undefined.)
-000AC8r 2               		*/
-000AC8r 2               		bit $2002
-000AC8r 2               		jsr Subfunc::_waitVblank		; 1st time
-000AC8r 2               
-000AC8r 2               		txa								; A = 0
-000AC8r 2               @CLR_MEM:
-000AC8r 2               		sta $00, x
-000AC8r 2               		sta $0100, x
-000AC8r 2               		sta $0200, x
-000AC8r 2               		sta $0400, x
-000AC8r 2               		sta $0500, x
-000AC8r 2               		sta $0600, x
-000AC8r 2               		sta $0700, x
-000AC8r 2               		inx
-000AC8r 2               		bne @CLR_MEM
-000AC8r 2               
-000AC8r 2               		lda #$ff
-000AC8r 2               @CLR_CHR_MEM:
-000AC8r 2               		sta $0300, x
-000AC8r 2               		inx
-000AC8r 2               		bne @CLR_CHR_MEM
-000AC8r 2               
-000AC8r 2               		; Zero sprite
-000AC8r 2               		lda #$10-2-1
-000AC8r 2               		sta CHR_BUFF+0
-000AC8r 2               		lda #$ff
-000AC8r 2               		sta CHR_BUFF+1
-000AC8r 2               		lda #%0000_0010
-000AC8r 2               		sta CHR_BUFF+2
-000AC8r 2               		lda #$0f
-000AC8r 2               		sta CHR_BUFF+3
-000AC8r 2               
-000AC8r 2               		jsr Subfunc::_waitVblank		; 2nd time
-000AC8r 2               
-000AC8r 2               		; ------- PPU stabilizes -------
-000AC8r 2               
-000AC8r 2               		lda #%00010000					; SPR = $0000, BG = $1000
-000AC8r 2               		sta ppu_ctrl1_cpy
-000AC8r 2               		jsr Subfunc::_restorePPUSet
-000AC8r 2               
-000AC8r 2               		; Clear VRAM
-000AC8r 2               		lda #$20
-000AC8r 2               		sta PPU_ADDR
-000AC8r 2               		lda #$00
-000AC8r 2               		sta PPU_ADDR
-000AC8r 2               
-000AC8r 2               		ldy #8
-000AC8r 2               		tax
-000AC8r 2               @CLR_VRAM:
-000AC8r 2               		sta PPU_DATA
-000AC8r 2               		inx
-000AC8r 2               		bne @CLR_VRAM
-000AC8r 2               		dey
-000AC8r 2               		bne @CLR_VRAM
-000AC8r 2               
-000AC8r 2               
-000AC8r 2               		jsr Subfunc::_waitVblank
-000AC8r 2               
-000AC8r 2               
-000AC8r 2               		tfrPlt
-000AC8r 2               
-000AC8r 2               		; Change bg color (black)
-000AC8r 2               		lda #$3f
-000AC8r 2               		sta PPU_ADDR
-000AC8r 2               		lda #$00
-000AC8r 2               		sta PPU_ADDR
-000AC8r 2               		lda #$0f
-000AC8r 2               		sta PPU_DATA
-000AC8r 2               		; 画面OFF中は最後に指定したアドレスの色が背景になる（指定なし→3f01の色が使用される）
-000AC8r 2               		lda #$3f
-000AC8r 2               		sta PPU_ADDR
-000AC8r 2               		lda #$00
-000AC8r 2               		sta PPU_ADDR
-000AC8r 2               
-000AC8r 2               	lda #'G'
-000AC8r 2               	sta DrawMap::fill_ground_block
-000AC8r 2               
-000AC8r 2               	lda #0
-000AC8r 2               	sta is_scroll_locked
-000AC8r 2               
-000AC8r 2               		jsr Subfunc::_dispStatus
-000AC8r 2               
-000AC8r 2               	; sprite
-000AC8r 2               	lda #$20
-000AC8r 2               	sta spr_posX_arr+0
-000AC8r 2               	lda #$c0
-000AC8r 2               	sta spr_posY_arr+0
-000AC8r 2               	ldx #PLAYER_SPR_ID					; spr id
-000AC8r 2               	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
-000AC8r 2               	jsr Sprite::_tfrToChrBuff
-000AC8r 2               
-000AC8r 2               		lda #0
-000AC8r 2               		sta is_updated_map
-000AC8r 2               
-000AC8r 2               		lda ppu_ctrl1_cpy				; NMI ON
-000AC8r 2               		ora #%10000000
-000AC8r 2               		sta ppu_ctrl1_cpy
-000AC8r 2               		jsr Subfunc::_restorePPUSet
-000AC8r 2               
-000AC8r 2               		jsr Subfunc::_sleepOneFrame		; draw disp status
-000AC8r 2               
-000AC8r 2               		ldy #0
-000AC8r 2               		jsr DrawMap::_changeStage
-000AC8r 2               
-000AC8r 2               .endmacro
-000AC8r 2               
-000AC8r 1               .include "./asm/func.asm"				; いくつかのファイルのインクルードが必要な関数群
-000AC8r 2               .scope Func
-000AC8r 2               
-000AC8r 2               ;*------------------------------------------------------------------------------
-000AC8r 2               ; スクロール
-000AC8r 2               ; @PARAMS		A: amount of scroll
-000AC8r 2               ; @CLOBBERS		A, tmp1, tmp2
-000AC8r 2               ; @RETURNS		None
-000AC8r 2               ;*------------------------------------------------------------------------------
-000AC8r 2               
-000AC8r 2               .proc _scroll
-000AC8r 2  A5 rr        		lda is_scroll_locked
-000ACAr 2  D0 28        		bne @SKIP_UPDATE_LINE
-000ACCr 2               
-000ACCr 2  A5 rr        		lda scroll_x
-000ACEr 2  29 F0        		and #BYT_GET_HI
-000AD0r 2  85 rr        		sta tmp1
-000AD2r 2               
-000AD2r 2  A5 rr        		lda scroll_x
-000AD4r 2  18 65 rr     		add scroll_amount
-000AD7r 2  85 rr        		sta scroll_x
-000AD9r 2  29 F0        		and #BYT_GET_HI						; Not clobber carry
-000ADBr 2  85 rr        		sta tmp2
-000ADDr 2               
-000ADDr 2  90 0C        		bcc @SKIP_CHANGE_DISP
-000ADFr 2  A5 rr        		lda main_disp
-000AE1r 2  49 01        		eor #%0000_0001
-000AE3r 2  85 rr        		sta main_disp
-000AE5r 2               
-000AE5r 2  A5 rr        		lda ppu_ctrl1_cpy
-000AE7r 2  49 01        		eor #%0000_0001
-000AE9r 2  85 rr        		sta ppu_ctrl1_cpy
-000AEBr 2               
-000AEBr 2               @SKIP_CHANGE_DISP:
-000AEBr 2  A5 rr        		lda tmp1
-000AEDr 2  C5 rr        		cmp tmp2
-000AEFr 2  F0 03        		beq @SKIP_UPDATE_LINE
-000AF1r 2  20 rr rr     		jsr DrawMap::_updateOneLine
-000AF4r 2               @SKIP_UPDATE_LINE:
-000AF4r 2               
-000AF4r 2  60           		rts
-000AF5r 2               		; ------------------------------
-000AF5r 2               .endproc
-000AF5r 2               
-000AF5r 2               
-000AF5r 2               .endscope
-000AF5r 2               
-000AF5r 1               .include "main.asm"
-000AF5r 2               ;*------------------------------------------------------------------------------
-000AF5r 2               ; メインルーチン
-000AF5r 2               ;*------------------------------------------------------------------------------
-000AF5r 2               
-000AF5r 2               .code									; ----- code -----
-000AF5r 2               
-000AF5r 2               .proc _main
-000AF5r 2               		; -------- Vblank終了待ち --------
-000AF5r 2  A5 rr        		lda is_processing_main
-000AF7r 2  F0 FC        		beq _main
-000AF9r 2               
-000AF9r 2               		; ----------- 0爆弾前 -----------
-000AF9r 2               
-000AF9r 2  A5 rr        		lda ppu_ctrl1_cpy				; ステータス表示の為$2000の画面を表示
-000AFBr 2  29 FC        		and #%1111_1100
-000AFDr 2  8D 00 20     		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない -> ??? 分かったら書き換えておいて
-000B00r 2               
-000B00r 2  A9 00        		lda #0							; ステータス表示の為リセット
-000B02r 2  8D 05 20     		sta PPU_SCROLL
-000B05r 2  8D 05 20     		sta PPU_SCROLL
-000B08r 2               
-000B08r 2               @WAIT_FINISH_VBLANK:
-000B08r 2  2C 02 20     		bit PPU_STATUS
-000B0Br 2  70 FB        		bvs @WAIT_FINISH_VBLANK
-000B0Dr 2               
-000B0Dr 2  20 rr rr     		jsr Joypad::_getJoyData
-000B10r 2               
-000B10r 2               @WAIT_ZERO_BOMB:
-000B10r 2  2C 02 20     		bit PPU_STATUS
-000B13r 2  50 FB        		bvc @WAIT_ZERO_BOMB
-000B15r 2               
-000B15r 2  A0 14        		ldy #20							; 10ぐらいまで乱れる，余裕もって20に
-000B17r 2               :
-000B17r 2  88           		dey
-000B18r 2  D0 FD        		bne :-
-000B1Ar 2               
-000B1Ar 2               		; ----------- 0爆弾後 -----------
-000B1Ar 2               
-000B1Ar 2  20 rr rr     		jsr Subfunc::_setScroll
-000B1Dr 2               
-000B1Dr 2               	; inc timer
-000B1Dr 2  EE rr rr     	inc spr_anime_timer+$0
-000B20r 2               
-000B20r 2               	; chr move
-000B20r 2  A2 01        	ldx #PLAYER_SPR_ID					; spr id
-000B22r 2  20 rr rr     	jsr Sprite::_moveSprite
-000B25r 2  A2 01        	ldx #PLAYER_SPR_ID					; spr id
-000B27r 2  A0 00        	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
-000B29r 2  20 rr rr     	jsr Sprite::_tfrToChrBuff
-000B2Cr 2               
-000B2Cr 2  20 rr rr     	jsr Func::_scroll
-000B2Fr 2               
-000B2Fr 2               		; Aボタン
-000B2Fr 2  A5 rr        		lda Joypad::joy1_pushstart
-000B31r 2  29 80        		and #Joypad::BTN_A
-000B33r 2  F0 00        		beq @NO_PUSHED_BTN_A
-000B35r 2               
-000B35r 2               		; jsr DrawMap::_updateOneLine
-000B35r 2               @NO_PUSHED_BTN_A:
-000B35r 2               		; Bボタン
-000B35r 2  A5 rr        		lda Joypad::joy1
-000B37r 2  29 40        		and #Joypad::BTN_B
-000B39r 2  F0 00        		beq @NO_PUSHED_BTN_B
-000B3Br 2               
-000B3Br 2               		; ldy #1
-000B3Br 2               		; jsr DrawMap::_changeStage
-000B3Br 2               @NO_PUSHED_BTN_B:
-000B3Br 2               		; ↑ボタン
-000B3Br 2  A5 rr        		lda Joypad::joy1_pushstart
-000B3Dr 2  29 08        		and #Joypad::BTN_U
-000B3Fr 2  F0 00        		beq @NO_PUSHED_BTN_U
-000B41r 2               
-000B41r 2               @NO_PUSHED_BTN_U:
-000B41r 2               		; ↓ボタン
-000B41r 2  A5 rr        		lda Joypad::joy1_pushstart
-000B43r 2  29 04        		and #Joypad::BTN_D
-000B45r 2  F0 00        		beq @NO_PUSHED_BTN_D
-000B47r 2               
-000B47r 2               @NO_PUSHED_BTN_D:
-000B47r 2               
-000B47r 2  20 rr rr     		jsr Player::_physicsX
-000B4Ar 2  20 rr rr     		jsr Player::_jumpCheck
-000B4Dr 2  20 rr rr     		jsr Player::_moveProcess
-000B50r 2  20 rr rr     		jsr Player::_animate
-000B53r 2               
-000B53r 2               
-000B53r 2               		; ----- End main -----
-000B53r 2  A9 00        		lda #0
-000B55r 2  85 rr        		sta is_processing_main
-000B57r 2  4C rr rr     		jmp _main
-000B5Ar 2               		; ------------------------------
-000B5Ar 2               .endproc
-000B5Ar 2               
-000B5Ar 1               
-000B5Ar 1               
-000B5Ar 1               .segment "DMA_MEM"
+0008B9r 2  D0 08        		bne :++		; ------------------
+0008BBr 2               :
+0008BBr 2  AD rr rr     		lda spr_attr_arr+$0				; 速度が負のとき向きフラグを0に
+0008BEr 2  29 FE        		and #%1111_1110
+0008C0r 2  8D rr rr     		sta spr_attr_arr+$0
+0008C3r 2               :
+0008C3r 2               		; 速度調整
+0008C3r 2  A5 rr        		lda tmp1
+0008C5r 2  C9 10        		cmp #$10
+0008C7r 2  B0 07        		bcs EXIT
+0008C9r 2  C9 06        		cmp #$06
+0008CBr 2  90 03        		bcc EXIT
+0008CDr 2  EE rr rr     		inc spr_velocity_x_arr+$0
+0008D0r 2               EXIT:
+0008D0r 2  AD rr rr     		lda spr_posX_arr+$0
+0008D3r 2  18 6D rr rr  		add spr_velocity_x_arr+$0
+0008D7r 2  8D rr rr     		sta spr_posX_tmp_arr+$0
+0008DAr 2  60           		rts
+0008DBr 2               		; ------------------------------
+0008DBr 2               .endproc
+0008DBr 2               
+0008DBr 2               
+0008DBr 2               ;*------------------------------------------------------------------------------
+0008DBr 2               ; player animate
+0008DBr 2               ; @PARAMS		None
+0008DBr 2               ; @CLOBBERS		A tmp1
+0008DBr 2               ; @RETURNS		None
+0008DBr 2               ;*------------------------------------------------------------------------------
+0008DBr 2               .proc _animate
+0008DBr 2  A5 rr        		lda Player::is_jumping
+0008DDr 2  F0 06        		beq :+
+0008DFr 2  A9 04        		lda #4							; ジャンプ時のアニメーション番号
+0008E1r 2  8D rr rr     		sta spr_anime_num
+0008E4r 2  60           		rts
+0008E5r 2               		; ------------------------------
+0008E5r 2               :
+0008E5r 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
+0008E8r 2  D0 06        		bne :+
+0008EAr 2  A9 00        		lda #0
+0008ECr 2  8D rr rr     		sta spr_anime_num+$0
+0008EFr 2  60           		rts
+0008F0r 2               		; ------------------------------
+0008F0r 2               :										; 速度が0でないとき
+0008F0r 2  A5 rr        		lda Joypad::joy1
+0008F2r 2  29 03        		and #(Joypad::BTN_L|Joypad::BTN_R)
+0008F4r 2  F0 29        		beq @NORMAL_MOVE
+0008F6r 2  29 02        		and #Joypad::BTN_L
+0008F8r 2  4A           		shr #1							; 左ボタンのフラグを最下位ビットに
+0008F9r 2  85 rr        		sta tmp1
+0008FBr 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
+0008FEr 2  0A           		asl								; 速度の最上位ビットを最下位ビットに入れる
+0008FFr 2  A9 00        		lda #0
+000901r 2  2A           		rol
+000902r 2  C5 rr        		cmp tmp1
+000904r 2  F0 19        		beq @NORMAL_MOVE
+000906r 2               		; ブレーキ時の動作
+000906r 2  C9 00        		cmp #0
+000908r 2  F0 07        		beq @RIGHT
+00090Ar 2  AD rr rr     		lda spr_attr_arr+$0				; 左ボタンが押されているとき
+00090Dr 2  09 01        		ora #%0000_0001
+00090Fr 2  D0 05        		bne :+		; ------------------
+000911r 2               @RIGHT:
+000911r 2  AD rr rr     		lda spr_attr_arr+$0
+000914r 2  29 FE        		and #%1111_1110
+000916r 2               :
+000916r 2  8D rr rr     		sta spr_attr_arr+$0
+000919r 2  A9 05        		lda #5							; ブレーキ時のアニメーション番号
+00091Br 2  8D rr rr     		sta spr_anime_num+$0
+00091Er 2  60           		rts
+00091Fr 2               		; ------------------------------
+00091Fr 2               @NORMAL_MOVE:							; 通常の進み方（ブレーキでない）をしているとき
+00091Fr 2               		; MEMO: 工夫すればバイト数削れそうなプログラム
+00091Fr 2  AD rr rr     		lda spr_float_velocity_x_arr+$0
+000922r 2  10 05        		bpl :+
+000924r 2  49 FF 18 69  		cnn								; 速度の絶対値を取る
+000928r 2  01           
+000929r 2               :
+000929r 2  C9 10        		cmp #$10
+00092Br 2  10 04        		bpl :+
+00092Dr 2               		; スピードが$10以下
+00092Dr 2  A9 04        		lda #4
+00092Fr 2  D0 16        		bne @ANIMATE
+000931r 2               :
+000931r 2  C9 18        		cmp #$18
+000933r 2  10 04        		bpl :+
+000935r 2  A9 03        		lda #3
+000937r 2  D0 0E        		bne @ANIMATE
+000939r 2               :
+000939r 2  C9 20        		cmp #$20
+00093Br 2  10 04        		bpl :+
+00093Dr 2  A9 02        		lda #2
+00093Fr 2  D0 06        		bne @ANIMATE
+000941r 2               :
+000941r 2  C9 28        		cmp #$28
+000943r 2  10 02        		bpl @ANIMATE
+000945r 2  A9 01        		lda #1
+000947r 2               @ANIMATE:								; タイマーと速度に応じた値を比較しアニメーションを進める
+000947r 2  CD rr rr     		cmp spr_anime_timer+$0
+00094Ar 2  10 14        		bpl @NO_CHANGE_CHR
+00094Cr 2               
+00094Cr 2  A9 00        		lda #0							; アニメーション変更
+00094Er 2  8D rr rr     		sta spr_anime_timer+$0
+000951r 2               
+000951r 2  EE rr rr     		inc spr_anime_num+$0
+000954r 2  AD rr rr     		lda spr_anime_num+$0
+000957r 2  C9 04        		cmp #4
+000959r 2  90 05        		bcc @NO_CHANGE_CHR
+00095Br 2  A9 01        		lda #1							; アニメーション番号が超えたので最初に戻す
+00095Dr 2  8D rr rr     		sta spr_anime_num+$0
+000960r 2               @NO_CHANGE_CHR:
+000960r 2  AD rr rr     		lda spr_anime_num+$0
+000963r 2  D0 0A        		bne @EXIT
+000965r 2               		; 歩き始め（止まっている状態から進み出した時）
+000965r 2  A9 01        		lda #1							; 1F目から歩いているアニメーションにする
+000967r 2  8D rr rr     		sta spr_anime_num+$0
+00096Ar 2  A9 00        		lda #0							; タイマーリセット
+00096Cr 2  8D rr rr     		sta spr_anime_timer+$0
+00096Fr 2               @EXIT:
+00096Fr 2  60           		rts
+000970r 2               		; ------------------------------
+000970r 2               
+000970r 2               .endproc
+000970r 2               
+000970r 2               
+000970r 2               ;*------------------------------------------------------------------------------
+000970r 2               ; ジャンプするかの確認
+000970r 2               ; @PARAMS		None
+000970r 2               ; @CLOBBERS		A
+000970r 2               ; @RETURNS		None
+000970r 2               ;*------------------------------------------------------------------------------
+000970r 2               .proc _jumpCheck
+000970r 2  A5 rr        		lda Joypad::joy1
+000972r 2  29 80        		and #Joypad::BTN_A
+000974r 2  D0 01        		bne @SKIP1
+000976r 2               		; 初めてAボタンが押されてないとき終了
+000976r 2  60           		rts
+000977r 2               		; ------------------------------
+000977r 2               @SKIP1:
+000977r 2  A5 rr        		lda Player::is_fly
+000979r 2  D0 03        		bne @SKIP2
+00097Br 2               		; 地面にいるときジャンプ開始準備
+00097Br 2  20 rr rr     		jsr Player::_prepareJumping
+00097Er 2               @SKIP2:
+00097Er 2  60           		rts
+00097Fr 2               		; ------------------------------
+00097Fr 2               .endproc
+00097Fr 2               
+00097Fr 2               
+00097Fr 2               ;*------------------------------------------------------------------------------
+00097Fr 2               ; ジャンプの初期設定
+00097Fr 2               ; @PARAMS		None
+00097Fr 2               ; @CLOBBERS		A X
+00097Fr 2               ; @RETURNS		None
+00097Fr 2               ;*------------------------------------------------------------------------------
+00097Fr 2               .proc _prepareJumping
+00097Fr 2  A2 01        		ldx #1
+000981r 2  86 rr        		stx Player::is_fly				; 空中にいるかつ
+000983r 2  86 rr        		stx Player::is_jumping			; ジャンプ中
+000985r 2               
+000985r 2  CA           		dex
+000986r 2  8E rr rr     		stx spr_decimal_part_velocity_y_arr+$0	; 補正値を0に
+000989r 2               
+000989r 2  AD rr rr     		lda spr_posY_arr+$0				; 現在のY座標を保存
+00098Cr 2  85 rr        		sta Player::posY_origin
+00098Er 2               
+00098Er 2               		; X = 0
+00098Er 2  AD rr rr     		lda spr_velocity_x_arr+$0
+000991r 2  10 05        		bpl :+
+000993r 2  49 FF 18 69  		cnn								; X方向のスピードの絶対値を求める
+000997r 2  01           
+000998r 2               :
+000998r 2  C9 1C        		cmp #$1c
+00099Ar 2  30 01        		bmi @SKIP1
+00099Cr 2  E8           		inx								; x = 1
+00099Dr 2               @SKIP1:
+00099Dr 2  C9 19        		cmp #$19
+00099Fr 2  30 01        		bmi @SKIP2
+0009A1r 2  E8           		inx								; x = 2
+0009A2r 2               @SKIP2:
+0009A2r 2  C9 10        		cmp #$10
+0009A4r 2  30 01        		bmi @SKIP3
+0009A6r 2  E8           		inx								; x = 3
+0009A7r 2               @SKIP3:
+0009A7r 2  C9 09        		cmp #$09
+0009A9r 2  30 01        		bmi @SKIP4
+0009ABr 2  E8           		inx								; x = 4
+0009ACr 2               @SKIP4:
+0009ACr 2               		; 現在の速度に応じた初期データを格納
+0009ACr 2  BD rr rr     		lda VER_FORCE_DECIMAL_PART_DATA, x
+0009AFr 2  8D rr rr     		sta spr_decimal_part_force_y+$0
+0009B2r 2  BD rr rr     		lda VER_FALL_FORCE_DATA, x
+0009B5r 2  8D rr rr     		sta spr_force_fall_y+$0
+0009B8r 2  BD rr rr     		lda INITIAL_VER_FORCE_DATA, x
+0009BBr 2  8D rr rr     		sta spr_decimal_part_velocity_y_arr+$0
+0009BEr 2  BD rr rr     		lda INITIAL_VER_SPEED_DATA, x
+0009C1r 2  8D rr rr     		sta spr_velocity_y_arr+$0
+0009C4r 2               
+0009C4r 2  60           		rts
+0009C5r 2               		; ------------------------------
+0009C5r 2               .endproc
+0009C5r 2               
+0009C5r 2               
+0009C5r 2               ;*------------------------------------------------------------------------------
+0009C5r 2               ; Y方向の速度決定前のちょっとした動作（よくわかんない）
+0009C5r 2               ; @PARAMS		None
+0009C5r 2               ; @CLOBBERS		A
+0009C5r 2               ; @RETURNS		None
+0009C5r 2               ;*------------------------------------------------------------------------------
+0009C5r 2               .proc _moveYProcess
+0009C5r 2  AD rr rr     		lda spr_velocity_y_arr+$0
+0009C8r 2  10 0C        		bpl @SKIP1						; 速度が正（落下中）はスキップ
+0009CAr 2  A5 rr        		lda Joypad::joy1
+0009CCr 2  29 80        		and #Joypad::BTN_A
+0009CEr 2  D0 0C        		bne @SKIP2						; Aボタンが押されているとき
+0009D0r 2  A5 rr        		lda Joypad::joy1_prev
+0009D2r 2  29 80        		and #Joypad::BTN_A
+0009D4r 2  F0 06        		beq @SKIP2						; 今も1F前もAボタンが押されていないとき
+0009D6r 2               @SKIP1:
+0009D6r 2  AD rr rr     		lda spr_force_fall_y+$0
+0009D9r 2  8D rr rr     		sta spr_decimal_part_force_y+$0	; 初期化
+0009DCr 2               @SKIP2:
+0009DCr 2  20 rr rr     		jsr Player::_physicsY
+0009DFr 2  60           		rts
+0009E0r 2               		; ------------------------------
+0009E0r 2               .endproc
+0009E0r 2               
+0009E0r 2               
+0009E0r 2               ;*------------------------------------------------------------------------------
+0009E0r 2               ; Y方向の速度決定，仮Y座標決定
+0009E0r 2               ; @PARAMS		None
+0009E0r 2               ; @CLOBBERS		A X
+0009E0r 2               ; @RETURNS		None
+0009E0r 2               ;*------------------------------------------------------------------------------
+0009E0r 2               .proc _physicsY
+0009E0r 2  A2 00        		ldx #0
+0009E2r 2  8E rr rr     		stx spr_fix_val_y+$0			; 初期化
+0009E5r 2               
+0009E5r 2  AD rr rr     		lda spr_pos_y_decimal_part+$0
+0009E8r 2  18 6D rr rr  		add spr_decimal_part_force_y+$0
+0009ECr 2  8D rr rr     		sta spr_pos_y_decimal_part+$0
+0009EFr 2  90 07        		bcc @SKIP_OVERFLOW
+0009F1r 2               		; オーバーフローしてたら
+0009F1r 2  8E rr rr     		stx spr_pos_y_decimal_part+$0	; x = 0
+0009F4r 2  E8           		inx								; x = 1
+0009F5r 2  8E rr rr     		stx spr_fix_val_y+$0			; 補正値があったらここで修正
+0009F8r 2               @SKIP_OVERFLOW:
+0009F8r 2  AD rr rr     		lda spr_decimal_part_velocity_y_arr+$0
+0009FBr 2  18 6D rr rr  		add spr_decimal_part_force_y+$0
+0009FFr 2  8D rr rr     		sta spr_decimal_part_velocity_y_arr+$0
+000A02r 2  90 17        		bcc @EXIT
+000A04r 2               
+000A04r 2  A9 00        		lda #0
+000A06r 2  8D rr rr     		sta spr_decimal_part_velocity_y_arr+$0
+000A09r 2  AE rr rr     		ldx spr_velocity_y_arr+$0
+000A0Cr 2  E8           		inx
+000A0Dr 2  E0 04        		cpx #DOWN_SPEED_LIMIT
+000A0Fr 2  30 07        		bmi @STORE_VER_SPEED
+000A11r 2               
+000A11r 2  A2 04        		ldx #DOWN_SPEED_LIMIT
+000A13r 2  A9 00        		lda #0
+000A15r 2  8D rr rr     		sta spr_decimal_part_velocity_y_arr+$0
+000A18r 2               @STORE_VER_SPEED:
+000A18r 2  8E rr rr     		stx spr_velocity_y_arr+$0
+000A1Br 2               
+000A1Br 2               @EXIT:
+000A1Br 2  AD rr rr     		lda spr_posY_arr+$0
+000A1Er 2  18 6D rr rr  		add spr_velocity_y_arr+$0
+000A22r 2  8D rr rr     		sta spr_posY_tmp_arr+$0			; 仮Y座標
+000A25r 2  60           		rts
+000A26r 2               		; ------------------------------
+000A26r 2               .endproc
+000A26r 2               
+000A26r 2               
+000A26r 2               ;*------------------------------------------------------------------------------
+000A26r 2               ; あたり判定
+000A26r 2               ; @PARAMS		None
+000A26r 2               ; @CLOBBERS		A X
+000A26r 2               ; @RETURNS		None
+000A26r 2               ;*------------------------------------------------------------------------------
+000A26r 2               .proc _checkCollision
+000A26r 2               	; スクロール量と画面を考慮してマリオのX座標を取得
+000A26r 2  AD rr rr     	lda spr_posX_tmp_arr+$0
+000A29r 2  18 65 rr     	add scroll_x
+000A2Cr 2  A5 rr        	lda main_disp
+000A2Er 2  18 69 00     	add #0
+000A31r 2  29 01        	and #%0000_0001
+000A33r 2  85 rr        	sta tmp2
+000A35r 2               
+000A35r 2  AD rr rr     	lda spr_posX_tmp_arr+$0
+000A38r 2  18 65 rr     	add scroll_x
+000A3Br 2  4A 4A 4A 4A  	shr #4
+000A3Fr 2  85 rr        	sta mario_block_x
+000A41r 2               
+000A41r 2               	; マリオのY座標を取得してブロック単位に変換
+000A41r 2  AD rr rr     	lda spr_posY_tmp_arr+$0
+000A44r 2  18           	clc
+000A45r 2  69 08        	adc #8 ; 中心点に変換
+000A47r 2  4A 4A 4A 4A  	shr #4
+000A4Br 2  C9 02        	cmp #2
+000A4Dr 2  B0 01        	bcs :+
+000A4Fr 2  60           	rts									; 上二列にマリオがいるとき
+000A50r 2               	; ------------------------------
+000A50r 2               :
+000A50r 2  38 E9 02     	sub #2
+000A53r 2  85 rr        	sta mario_block_y
+000A55r 2               
+000A55r 2               	; 各方向の衝突判定
+000A55r 2               	; 上方向
+000A55r 2  A5 rr        	lda mario_block_y
+000A57r 2  38 E9 01     	sub #1
+000A5Ar 2  85 rr        	sta tmp_y
+000A5Cr 2  A5 rr        	lda mario_block_x
+000A5Er 2  85 rr        	sta tmp_x
+000A60r 2  A9 01        	lda #1
+000A62r 2  85 rr        	sta tmp1
+000A64r 2  20 rr rr     	jsr _checkBlock
+000A67r 2               
+000A67r 2               	; 下方向
+000A67r 2  A5 rr        	lda mario_block_y
+000A69r 2  18 69 01     	add #1
+000A6Cr 2  85 rr        	sta tmp_y
+000A6Er 2  A5 rr        	lda mario_block_x
+000A70r 2  85 rr        	sta tmp_x
+000A72r 2  A9 02        	lda #2
+000A74r 2  85 rr        	sta tmp1
+000A76r 2  20 rr rr     	jsr _checkBlock
+000A79r 2               
+000A79r 2               	; 左方向
+000A79r 2  A5 rr        	lda mario_block_y
+000A7Br 2  85 rr        	sta tmp_y
+000A7Dr 2  A5 rr        	lda mario_block_x
+000A7Fr 2  38 E9 01     	sub #1
+000A82r 2  85 rr        	sta tmp_x
+000A84r 2  A9 03        	lda #3
+000A86r 2  85 rr        	sta tmp1
+000A88r 2  20 rr rr     	jsr _checkBlock
+000A8Br 2               
+000A8Br 2               	; 右方向
+000A8Br 2  A5 rr        	lda mario_block_y
+000A8Dr 2  85 rr        	sta tmp_y
+000A8Fr 2  A5 rr        	lda mario_block_x
+000A91r 2  18 69 01     	add #1
+000A94r 2  85 rr        	sta tmp_x
+000A96r 2  A9 04        	lda #4
+000A98r 2  85 rr        	sta tmp1
+000A9Ar 2  20 rr rr     	jsr _checkBlock
+000A9Dr 2               
+000A9Dr 2  60           	rts
+000A9Er 2               	; ------------------------------
+000A9Er 2               .endproc
+000A9Er 2               
+000A9Er 2               
+000A9Er 2               .proc _checkBlock
+000A9Er 2               	; ブロックの位置を取得
+000A9Er 2  A5 rr        	lda tmp_y
+000AA0r 2  0A 0A 0A 0A  	shl #4
+000AA4r 2  18           	clc
+000AA5r 2  65 rr        	adc tmp_x
+000AA7r 2  AA           	tax
+000AA8r 2               
+000AA8r 2               	; 画面が$2000番台か$2400番台かを確認
+000AA8r 2  A5 rr        	lda tmp2
+000AAAr 2  F0 06        	beq @LOAD_MAP_0400
+000AACr 2               
+000AACr 2               	; $0500番台のブロックデータを確認
+000AACr 2               @LOAD_MAP_0500:
+000AACr 2  BD 00 05     	lda $0500, x
+000AAFr 2  4C rr rr     	jmp @CHECK_COLLISION
+000AB2r 2               
+000AB2r 2               	; $0400番台のブロックデータを確認
+000AB2r 2               @LOAD_MAP_0400:
+000AB2r 2  BD 00 04     	lda $0400, x
+000AB5r 2               
+000AB5r 2               @CHECK_COLLISION:
+000AB5r 2               	; ブロックが存在するか確認
+000AB5r 2  C9 00        	cmp #$00
+000AB7r 2  F0 4C        	beq @EXIT
+000AB9r 2               
+000AB9r 2               	; 衝突がある場合の処理
+000AB9r 2  A5 rr        	lda tmp1
+000ABBr 2  C9 01        	cmp #1
+000ABDr 2  F0 0E        	beq @COLLISION_UP
+000ABFr 2  C9 02        	cmp #2
+000AC1r 2  F0 18        	beq @COLLISION_DOWN
+000AC3r 2  C9 03        	cmp #3
+000AC5r 2  F0 25        	beq @COLLISION_LEFT
+000AC7r 2  C9 04        	cmp #4
+000AC9r 2  F0 2F        	beq @COLLISION_RIGHT
+000ACBr 2  D0 38        	bne @EXIT
+000ACDr 2               
+000ACDr 2               @COLLISION_UP:
+000ACDr 2               	; 上方向の衝突判定
+000ACDr 2  AD rr rr     	lda spr_posY_tmp_arr+$0
+000AD0r 2  29 F0        	and #BYT_GET_HI
+000AD2r 2  18 69 10     	add #$10
+000AD5r 2  8D rr rr     	sta spr_posY_tmp_arr+$0
+000AD8r 2  4C rr rr     	jmp @EXIT
+000ADBr 2               
+000ADBr 2               @COLLISION_DOWN:
+000ADBr 2               	; 下方向の衝突判定
+000ADBr 2  AD rr rr     	lda spr_posY_tmp_arr+$0
+000ADEr 2  29 F0        	and #BYT_GET_HI
+000AE0r 2  8D rr rr     	sta spr_posY_tmp_arr+$0
+000AE3r 2  A9 00        	lda #0
+000AE5r 2  85 rr        	sta Player::is_fly
+000AE7r 2  85 rr        	sta Player::is_jumping
+000AE9r 2  4C rr rr     	jmp @EXIT
+000AECr 2               
+000AECr 2               @COLLISION_LEFT:
+000AECr 2               	; 左方向の衝突判定
+000AECr 2  AD rr rr     	lda spr_posX_tmp_arr+$0
+000AEFr 2  29 F0        	and #BYT_GET_HI
+000AF1r 2  18 69 10     	add #$10
+000AF4r 2  8D rr rr     	sta spr_posX_tmp_arr+$0
+000AF7r 2  4C rr rr     	jmp @EXIT
+000AFAr 2               
+000AFAr 2               @COLLISION_RIGHT:
+000AFAr 2               	; 右方向の衝突判定
+000AFAr 2  AD rr rr     	lda spr_posX_tmp_arr+$0
+000AFDr 2  29 F0        	and #BYT_GET_HI
+000AFFr 2  8D rr rr     	sta spr_posX_tmp_arr+$0
+000B02r 2  4C rr rr     	jmp @EXIT
+000B05r 2               
+000B05r 2               @EXIT:
+000B05r 2  60           	rts
+000B06r 2               .endproc
+000B06r 2               
+000B06r 2               .endscope
+000B06r 2               
+000B06r 1               .include "./asm/nmi.asm"
+000B06r 2               ;*------------------------------------------------------------------------------
+000B06r 2               ; bg_buffを読み取り，指定アドレスに書き込んでカウンタをインクリメント
+000B06r 2               ; Unused
+000B06r 2               ; @PARAMS		ADDR: Forwarding address
+000B06r 2               ; @CLOBBERS		A X
+000B06r 2               ; @RETURNS		None
+000B06r 2               ;*------------------------------------------------------------------------------
+000B06r 2               
+000B06r 2               .code									; ----- code -----
+000B06r 2               
+000B06r 2               .macro tfrDataToPPU ADDR
+000B06r 2               	lda bg_buff, x
+000B06r 2               	sta ADDR
+000B06r 2               	inx
+000B06r 2               .endmacro
+000B06r 2               
+000B06r 2               ; memo
+000B06r 2               ; ----- PPU buff data structure -----
+000B06r 2               ; r: Direction
+000B06r 2               ; 	Bit0 is a flag, others are 1.
+000B06r 2               ; 	-> 0b1111_111[0/1]
+000B06r 2               ; 	-> 0xFE（Horizontal）/0xFF（Vertical）
+000B06r 2               ; a: Addr
+000B06r 2               ; d: Data
+000B06r 2               ; r [a a] [d d d ... d] r [a a] [d d ... d]
+000B06r 2               
+000B06r 2               
+000B06r 2               ;*------------------------------------------------------------------------------
+000B06r 2               ; NMI (Interrupt)
+000B06r 2               ; @CLOBBERS	 X Y (When end main process.)
+000B06r 2               ; To shorten the clock, put the buffer data on the stack
+000B06r 2               ; 	(Shorten clock by buff data length)
+000B06r 2               ; 	pla -> 3 clc
+000B06r 2               ; 	lda ZP/ABSORUTE, x -> 4 clc
+000B06r 2               ;*------------------------------------------------------------------------------
+000B06r 2               
+000B06r 2               .code									; ----- code -----
+000B06r 2               
+000B06r 2               .proc _nmi
+000B06r 2  48           		pha
+000B07r 2  E6 rr        		inc nmi_cnt
+000B09r 2  A5 rr        		lda is_processing_main
+000B0Br 2  F0 05        		beq @NMI_MAIN
+000B0Dr 2  68           		pla
+000B0Er 2  20 rr rr     		jsr Subfunc::_setScroll
+000B11r 2  40           		rti	; --------------------------
+000B12r 2               
+000B12r 2               @NMI_MAIN:
+000B12r 2  A5 rr        		lda is_updated_map
+000B14r 2  F0 5E        		beq @PRINT
+000B16r 2  A2 00        		ldx #0
+000B18r 2  86 rr        		stx tmp1
+000B1Ar 2               @PLT_STORE_LOOP:
+000B1Ar 2  A5 rr        		lda plt_addr+1
+000B1Cr 2  8D 06 20     		sta PPU_ADDR
+000B1Fr 2               
+000B1Fr 2  A5 rr        		lda plt_addr+0
+000B21r 2  18 69 08     		add #8
+000B24r 2  18 65 rr     		add tmp1
+000B27r 2  8D 06 20     		sta PPU_ADDR
+000B2Ar 2               
+000B2Ar 2  BD 34 01     		lda bg_plt_buff, x
+000B2Dr 2  8D 07 20     		sta PPU_DATA
+000B30r 2               
+000B30r 2  A5 rr        		lda tmp1
+000B32r 2  18 69 08     		add #8
+000B35r 2  85 rr        		sta tmp1
+000B37r 2               
+000B37r 2  E8           		inx
+000B38r 2  E0 07        		cpx #7
+000B3Ar 2  90 DE        		bcc @PLT_STORE_LOOP
+000B3Cr 2               
+000B3Cr 2  A5 rr        		lda ppu_ctrl1_cpy
+000B3Er 2  09 04        		ora #%0000_0100					; Vertical mode
+000B40r 2  85 rr        		sta ppu_ctrl1_cpy
+000B42r 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
+000B45r 2               
+000B45r 2               		; line 1
+000B45r 2  A5 rr        		lda ppu_bg_addr+HI
+000B47r 2  8D 06 20     		sta PPU_ADDR
+000B4Ar 2  A5 rr        		lda ppu_bg_addr+LO
+000B4Cr 2  8D 06 20     		sta PPU_ADDR
+000B4Fr 2               
+000B4Fr 2  A2 00        		ldx #0
+000B51r 2               @STORE_MAP_LOOP:
+000B51r 2  BD 00 01     		lda bg_map_buff, x
+000B54r 2  8D 07 20     		sta PPU_DATA
+000B57r 2  E8           		inx
+000B58r 2  E0 1A        		cpx #$1a
+000B5Ar 2  D0 F5        		bne @STORE_MAP_LOOP
+000B5Cr 2               
+000B5Cr 2               		; line 2
+000B5Cr 2  A5 rr        		lda ppu_bg_addr+HI
+000B5Er 2  8D 06 20     		sta PPU_ADDR
+000B61r 2  A6 rr        		ldx ppu_bg_addr+LO
+000B63r 2  E8           		inx
+000B64r 2  8E 06 20     		stx PPU_ADDR
+000B67r 2               
+000B67r 2  A2 00        		ldx #0
+000B69r 2               @STORE_MAP_LOOP2:
+000B69r 2  BD 1A 01     		lda bg_map_buff+$1a, x
+000B6Cr 2  8D 07 20     		sta PPU_DATA
+000B6Fr 2  E8           		inx
+000B70r 2  E0 1A        		cpx #$1a
+000B72r 2  D0 F5        		bne @STORE_MAP_LOOP2
+000B74r 2               
+000B74r 2               @PRINT:
+000B74r 2  A9 00        		lda #0
+000B76r 2  C5 rr        		cmp bg_buff_pointer
+000B78r 2  F0 35        		beq @STORE_CHR
+000B7Ar 2  AA           		tax
+000B7Br 2  BD 49 01     		lda bg_buff, x
+000B7Er 2               @SET_MODE:
+000B7Er 2  29 01        		and #%00000001					; Get flag
+000B80r 2  0A 0A        		shl #2							; Move flag to Bit2
+000B82r 2  85 rr        		sta tmp1						; Start using tmp1
+000B84r 2  A5 rr        		lda ppu_ctrl1_cpy
+000B86r 2  29 FB        		and #%11111011					; Mask direction flag(Horizontal(+1)/Vertical(+32))
+000B88r 2  05 rr        		ora tmp1						; End using tmp1
+000B8Ar 2  85 rr        		sta ppu_ctrl1_cpy
+000B8Cr 2  8D 00 20     		sta PPU_CTRL1					; Not use restorePPUSet()
+000B8Fr 2               @SET_ADDR:
+000B8Fr 2  E8           		inx								; Not do inx when go to @EXIT
+000B90r 2  BD 49 01     		lda bg_buff, x
+000B93r 2  8D 06 20     		sta PPU_ADDR
+000B96r 2  E8           		inx
+000B97r 2  BD 49 01     		lda bg_buff, x
+000B9Ar 2  8D 06 20     		sta PPU_ADDR
+000B9Dr 2  E8           		inx
+000B9Er 2               @STORE_DATA:
+000B9Er 2  BD 49 01     		lda bg_buff, x
+000BA1r 2  A8           		tay
+000BA2r 2  C9 FE        		cmp #$fe
+000BA4r 2  B0 D8        		bcs @SET_MODE					; no inx
+000BA6r 2  98           		tya
+000BA7r 2  8D 07 20     		sta PPU_DATA
+000BAAr 2  E8           		inx
+000BABr 2  E4 rr        		cpx bg_buff_pointer
+000BADr 2  D0 EF        		bne @STORE_DATA
+000BAFr 2               
+000BAFr 2               		; @SET_MODE + @SET_ADDR = 51 cycle
+000BAFr 2               		; @STORE_DATA (return @STORE_DATA) = 24 cycle
+000BAFr 2               		; @STORE_DATA (return @SET_MODE) = 13 cycle
+000BAFr 2               
+000BAFr 2               		; str1 = "A  B"
+000BAFr 2               		; 	=> 51 + space_len * 24 cycle
+000BAFr 2               		; 	=> mode(1) + addr(2) + data(2 + space_len) = (5 + space_len) bytes
+000BAFr 2               		; 	|  len  || 1  | 2  |  3  |  4  |
+000BAFr 2               		; 	| cycle || 75 | 99 | 123 | 147 |
+000BAFr 2               		;	| bytes || 6  | 7  |  8  |  9  |
+000BAFr 2               		; str2 = 'A', str3 = 'B'
+000BAFr 2               		; 	=> (51 + 13) * 2 = 64 * 2 = 128 cycle
+000BAFr 2               		; 	=> (mode(1) + addr(2) + data(1)) * 2 = 8 bytes
+000BAFr 2               		; space length:
+000BAFr 2               		; 	1: 75 cycle,	6 bytes (str1)
+000BAFr 2               		; 	2: 99 cycle,	7 bytes
+000BAFr 2               		; 	3: 123 cycle,	8 bytes
+000BAFr 2               		; 	4~: 128 cycle,	8 bytes (str2)
+000BAFr 2               @STORE_CHR:
+000BAFr 2  A9 00        		lda #0
+000BB1r 2  8D 03 20     		sta OAM_ADDR
+000BB4r 2  A9 03        		lda #>CHR_BUFF
+000BB6r 2  8D 14 40     		sta OAM_DMA
+000BB9r 2               
+000BB9r 2               @EXIT:
+000BB9r 2  A9 01        		lda #1
+000BBBr 2  85 rr        		sta is_processing_main
+000BBDr 2  4A           		shr #1							; A = 0
+000BBEr 2  85 rr        		sta bg_buff_pointer
+000BC0r 2  85 rr        		sta is_updated_map
+000BC2r 2  E6 rr        		inc frm_cnt
+000BC4r 2  68           		pla
+000BC5r 2  40           		rti	; --------------------------
+000BC6r 2               .endproc
+000BC6r 2               
+000BC6r 1               .include "./asm/init.asm"
+000BC6r 2               .code									; ----- code -----
+000BC6r 2               
+000BC6r 2               .macro init
+000BC6r 2               		sei								; Ban IRQ
+000BC6r 2               		cld								; Ban BCD
+000BC6r 2               		ldx #$40
+000BC6r 2               		stx JOYPAD2
+000BC6r 2               		ldx #$ff
+000BC6r 2               		txs
+000BC6r 2               		inx								; X = 0
+000BC6r 2               		stx PPU_CTRL1
+000BC6r 2               		stx PPU_CTRL2
+000BC6r 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
+000BC6r 2               		stx SOUND_CHANNEL
+000BC6r 2               
+000BC6r 2               		/*
+000BC6r 2               		A & $2002 -> set Z(zero flag)
+000BC6r 2               		$2002 bit7(vblank) -> N(negative), bit6(sprite 0 hit) -> V(overflow)
+000BC6r 2               		Reset vblank & sprite 0 hit flag
+000BC6r 2               		(The state of this flag after reset is undefined.)
+000BC6r 2               		*/
+000BC6r 2               		bit $2002
+000BC6r 2               		jsr Subfunc::_waitVblank		; 1st time
+000BC6r 2               
+000BC6r 2               		txa								; A = 0
+000BC6r 2               @CLR_MEM:
+000BC6r 2               		sta $00, x
+000BC6r 2               		sta $0100, x
+000BC6r 2               		sta $0200, x
+000BC6r 2               		sta $0400, x
+000BC6r 2               		sta $0500, x
+000BC6r 2               		sta $0600, x
+000BC6r 2               		sta $0700, x
+000BC6r 2               		inx
+000BC6r 2               		bne @CLR_MEM
+000BC6r 2               
+000BC6r 2               		lda #$ff
+000BC6r 2               @CLR_CHR_MEM:
+000BC6r 2               		sta $0300, x
+000BC6r 2               		inx
+000BC6r 2               		bne @CLR_CHR_MEM
+000BC6r 2               
+000BC6r 2               		; Zero sprite
+000BC6r 2               		lda #$10-2-1
+000BC6r 2               		sta CHR_BUFF+0
+000BC6r 2               		lda #$ff
+000BC6r 2               		sta CHR_BUFF+1
+000BC6r 2               		lda #%0000_0010
+000BC6r 2               		sta CHR_BUFF+2
+000BC6r 2               		lda #$0f
+000BC6r 2               		sta CHR_BUFF+3
+000BC6r 2               
+000BC6r 2               		jsr Subfunc::_waitVblank		; 2nd time
+000BC6r 2               
+000BC6r 2               		; ------- PPU stabilizes -------
+000BC6r 2               
+000BC6r 2               		lda #%00010000					; SPR = $0000, BG = $1000
+000BC6r 2               		sta ppu_ctrl1_cpy
+000BC6r 2               		jsr Subfunc::_restorePPUSet
+000BC6r 2               
+000BC6r 2               		; Clear VRAM
+000BC6r 2               		lda #$20
+000BC6r 2               		sta PPU_ADDR
+000BC6r 2               		lda #$00
+000BC6r 2               		sta PPU_ADDR
+000BC6r 2               
+000BC6r 2               		ldy #8
+000BC6r 2               		tax
+000BC6r 2               @CLR_VRAM:
+000BC6r 2               		sta PPU_DATA
+000BC6r 2               		inx
+000BC6r 2               		bne @CLR_VRAM
+000BC6r 2               		dey
+000BC6r 2               		bne @CLR_VRAM
+000BC6r 2               
+000BC6r 2               
+000BC6r 2               		jsr Subfunc::_waitVblank
+000BC6r 2               
+000BC6r 2               
+000BC6r 2               		tfrPlt
+000BC6r 2               
+000BC6r 2               		; Change bg color (black)
+000BC6r 2               		lda #$3f
+000BC6r 2               		sta PPU_ADDR
+000BC6r 2               		lda #$00
+000BC6r 2               		sta PPU_ADDR
+000BC6r 2               		lda #$0f
+000BC6r 2               		sta PPU_DATA
+000BC6r 2               		; 画面OFF中は最後に指定したアドレスの色が背景になる（指定なし→3f01の色が使用される）
+000BC6r 2               		lda #$3f
+000BC6r 2               		sta PPU_ADDR
+000BC6r 2               		lda #$00
+000BC6r 2               		sta PPU_ADDR
+000BC6r 2               
+000BC6r 2               	lda #'G'
+000BC6r 2               	sta DrawMap::fill_ground_block
+000BC6r 2               
+000BC6r 2               	lda #0
+000BC6r 2               	sta is_scroll_locked
+000BC6r 2               
+000BC6r 2               		jsr Subfunc::_dispStatus
+000BC6r 2               
+000BC6r 2               	; sprite
+000BC6r 2               	lda #$20
+000BC6r 2               	sta spr_posX_arr+0
+000BC6r 2               	lda #$c0
+000BC6r 2               	sta spr_posY_arr+0
+000BC6r 2               	ldx #PLAYER_SPR_ID					; spr id
+000BC6r 2               	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
+000BC6r 2               	jsr Sprite::_tfrToChrBuff
+000BC6r 2               
+000BC6r 2               		lda #0
+000BC6r 2               		sta is_updated_map
+000BC6r 2               
+000BC6r 2               		lda ppu_ctrl1_cpy				; NMI ON
+000BC6r 2               		ora #%10000000
+000BC6r 2               		sta ppu_ctrl1_cpy
+000BC6r 2               		jsr Subfunc::_restorePPUSet
+000BC6r 2               
+000BC6r 2               		jsr Subfunc::_sleepOneFrame		; draw disp status
+000BC6r 2               
+000BC6r 2               		ldy #0
+000BC6r 2               		jsr DrawMap::_changeStage
+000BC6r 2               
+000BC6r 2               .endmacro
+000BC6r 2               
+000BC6r 1               .include "./asm/func.asm"				; いくつかのファイルのインクルードが必要な関数群
+000BC6r 2               .scope Func
+000BC6r 2               
+000BC6r 2               ;*------------------------------------------------------------------------------
+000BC6r 2               ; スクロール
+000BC6r 2               ; @PARAMS		A: amount of scroll
+000BC6r 2               ; @CLOBBERS		A, tmp1, tmp2
+000BC6r 2               ; @RETURNS		None
+000BC6r 2               ;*------------------------------------------------------------------------------
+000BC6r 2               
+000BC6r 2               .proc _scroll
+000BC6r 2  A5 rr        		lda is_scroll_locked
+000BC8r 2  D0 28        		bne @SKIP_UPDATE_LINE
+000BCAr 2               
+000BCAr 2  A5 rr        		lda scroll_x
+000BCCr 2  29 F0        		and #BYT_GET_HI
+000BCEr 2  85 rr        		sta tmp1
+000BD0r 2               
+000BD0r 2  A5 rr        		lda scroll_x
+000BD2r 2  18 65 rr     		add scroll_amount
+000BD5r 2  85 rr        		sta scroll_x
+000BD7r 2  29 F0        		and #BYT_GET_HI						; Not clobber carry
+000BD9r 2  85 rr        		sta tmp2
+000BDBr 2               
+000BDBr 2  90 0C        		bcc @SKIP_CHANGE_DISP
+000BDDr 2  A5 rr        		lda main_disp
+000BDFr 2  49 01        		eor #%0000_0001
+000BE1r 2  85 rr        		sta main_disp
+000BE3r 2               
+000BE3r 2  A5 rr        		lda ppu_ctrl1_cpy
+000BE5r 2  49 01        		eor #%0000_0001
+000BE7r 2  85 rr        		sta ppu_ctrl1_cpy
+000BE9r 2               
+000BE9r 2               @SKIP_CHANGE_DISP:
+000BE9r 2  A5 rr        		lda tmp1
+000BEBr 2  C5 rr        		cmp tmp2
+000BEDr 2  F0 03        		beq @SKIP_UPDATE_LINE
+000BEFr 2  20 rr rr     		jsr DrawMap::_updateOneLine
+000BF2r 2               @SKIP_UPDATE_LINE:
+000BF2r 2               
+000BF2r 2  60           		rts
+000BF3r 2               		; ------------------------------
+000BF3r 2               .endproc
+000BF3r 2               
+000BF3r 2               
+000BF3r 2               .endscope
+000BF3r 2               
+000BF3r 1               .include "main.asm"
+000BF3r 2               ;*------------------------------------------------------------------------------
+000BF3r 2               ; メインルーチン
+000BF3r 2               ;*------------------------------------------------------------------------------
+000BF3r 2               
+000BF3r 2               .code									; ----- code -----
+000BF3r 2               
+000BF3r 2               .proc _main
+000BF3r 2               		; -------- Vblank終了待ち --------
+000BF3r 2  A5 rr        		lda is_processing_main
+000BF5r 2  F0 FC        		beq _main
+000BF7r 2               
+000BF7r 2               		; ----------- 0爆弾前 -----------
+000BF7r 2               
+000BF7r 2  A5 rr        		lda ppu_ctrl1_cpy				; ステータス表示の為$2000の画面を表示
+000BF9r 2  29 FC        		and #%1111_1100
+000BFBr 2  8D 00 20     		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない -> ??? 分かったら書き換えておいて
+000BFEr 2               
+000BFEr 2  A9 00        		lda #0							; ステータス表示の為リセット
+000C00r 2  8D 05 20     		sta PPU_SCROLL
+000C03r 2  8D 05 20     		sta PPU_SCROLL
+000C06r 2               
+000C06r 2               @WAIT_FINISH_VBLANK:
+000C06r 2  2C 02 20     		bit PPU_STATUS
+000C09r 2  70 FB        		bvs @WAIT_FINISH_VBLANK
+000C0Br 2               
+000C0Br 2  20 rr rr     		jsr Joypad::_getJoyData
+000C0Er 2               
+000C0Er 2               @WAIT_ZERO_BOMB:
+000C0Er 2  2C 02 20     		bit PPU_STATUS
+000C11r 2  50 FB        		bvc @WAIT_ZERO_BOMB
+000C13r 2               
+000C13r 2  A0 14        		ldy #20							; 10ぐらいまで乱れる，余裕もって20に
+000C15r 2               :
+000C15r 2  88           		dey
+000C16r 2  D0 FD        		bne :-
+000C18r 2               
+000C18r 2               		; ----------- 0爆弾後 -----------
+000C18r 2               
+000C18r 2  20 rr rr     		jsr Subfunc::_setScroll
+000C1Br 2               
+000C1Br 2               	; inc timer
+000C1Br 2  EE rr rr     	inc spr_anime_timer+$0
+000C1Er 2               
+000C1Er 2               	; chr move
+000C1Er 2  A2 01        	ldx #PLAYER_SPR_ID					; spr id
+000C20r 2  20 rr rr     	jsr Sprite::_moveSprite
+000C23r 2  A2 01        	ldx #PLAYER_SPR_ID					; spr id
+000C25r 2  A0 00        	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
+000C27r 2  20 rr rr     	jsr Sprite::_tfrToChrBuff
+000C2Ar 2               
+000C2Ar 2  20 rr rr     	jsr Func::_scroll
+000C2Dr 2               
+000C2Dr 2               		; Aボタン
+000C2Dr 2  A5 rr        		lda Joypad::joy1_pushstart
+000C2Fr 2  29 80        		and #Joypad::BTN_A
+000C31r 2  F0 00        		beq @NO_PUSHED_BTN_A
+000C33r 2               
+000C33r 2               		; jsr DrawMap::_updateOneLine
+000C33r 2               @NO_PUSHED_BTN_A:
+000C33r 2               		; Bボタン
+000C33r 2  A5 rr        		lda Joypad::joy1
+000C35r 2  29 40        		and #Joypad::BTN_B
+000C37r 2  F0 00        		beq @NO_PUSHED_BTN_B
+000C39r 2               
+000C39r 2               		; ldy #1
+000C39r 2               		; jsr DrawMap::_changeStage
+000C39r 2               @NO_PUSHED_BTN_B:
+000C39r 2               		; ↑ボタン
+000C39r 2  A5 rr        		lda Joypad::joy1_pushstart
+000C3Br 2  29 08        		and #Joypad::BTN_U
+000C3Dr 2  F0 00        		beq @NO_PUSHED_BTN_U
+000C3Fr 2               
+000C3Fr 2               @NO_PUSHED_BTN_U:
+000C3Fr 2               		; ↓ボタン
+000C3Fr 2  A5 rr        		lda Joypad::joy1_pushstart
+000C41r 2  29 04        		and #Joypad::BTN_D
+000C43r 2  F0 00        		beq @NO_PUSHED_BTN_D
+000C45r 2               
+000C45r 2               @NO_PUSHED_BTN_D:
+000C45r 2               
+000C45r 2  20 rr rr     		jsr Player::_physicsX
+000C48r 2  20 rr rr     		jsr Player::_jumpCheck
+000C4Br 2  20 rr rr     		jsr Player::_moveYProcess
+000C4Er 2  20 rr rr     		jsr Player::_checkCollision
+000C51r 2  20 rr rr     		jsr Player::_animate
+000C54r 2               
+000C54r 2               
+000C54r 2               		; ----- End main -----
+000C54r 2  A9 00        		lda #0
+000C56r 2  85 rr        		sta is_processing_main
+000C58r 2  4C rr rr     		jmp _main
+000C5Br 2               		; ------------------------------
+000C5Br 2               .endproc
+000C5Br 2               
+000C5Br 1               
+000C5Br 1               
+000C5Br 1               .segment "DMA_MEM"
 000000r 1  xx xx xx xx  		.tag SPR_TBL
 000004r 1  xx xx xx xx  
 000008r 1  xx xx xx xx  
 000100r 1               
 000100r 1               
 000100r 1               .code									; ----- code -----
-000B5Ar 1               .segment "STARTUP"
+000C5Br 1               .segment "STARTUP"
 000000r 1               
 000000r 1               .proc _reset
 000000r 1  78 D8 A2 40  		init
