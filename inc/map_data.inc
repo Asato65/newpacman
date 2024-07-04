@@ -18,6 +18,7 @@ MAP_11_1:
 	.byte 'B'
 	.byte %00000000, %00000000
 	.byte (GET_OBJ_POS $0, $3), 'B'
+	.byte (GET_OBJ_POS $5, $2), 'B'
 	.byte (GET_OBJ_POS $8, $5), 'B'
 	.byte (GET_OBJ_POS $9, $8), 'B'
 	.byte (GET_OBJ_POS $9, $5), 'Q'

@@ -95,58 +95,100 @@ AMOUNT_INC_SPD_R:
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _moveSprite
-		dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
-		lda spr_velocity_x_arr, x
-		bne :+
-		sta scroll_amount
+; 		dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
+; 		lda spr_velocity_x_arr, x
+; 		bne :+
+; 		sta scroll_amount
+; :
+; 		clc
+; 		adc spr_posX_arr, x
+; 		cmp #$f0
+; 		bcc :+
+; 		pha
+; 		lda spr_posX_tmp_arr, x
+; 		sec
+; 		sbc spr_posX_arr, x
+; 		tay								; move_dxを求める（移動量）
+; 		pla
+; 		cpy #$80
+; 		bcc :+
+; 		; posX < 0 && move_dx < 0
+; 		lda #0
+; :
+
+; ; スクロールロック時の処理
+; 		ldy is_scroll_locked
+; 		bne @STORE_POSX
+
+; 		cmp #PLAYER_MAX_POSX
+; 		bcs @MOVE_SCROLL
+
+; @STORE_POSX:
+; 		cmp #($100-(PLAYER_WIDTH+PLAYER_PADDING))
+; 		bcc @STOP_MOVE
+; 		beq @STOP_MOVE
+
+; 		lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
+; @STOP_MOVE:
+; 		sta spr_posX_arr, x
+; 		jmp @MOVE_Y
+; 		; ------------------------------
+
+; @MOVE_SCROLL:
+; 		sub #PLAYER_MAX_POSX
+; 		sta scroll_amount
+
+; 		lda #PLAYER_MAX_POSX
+; 		sta spr_posX_arr, x
+
+; @MOVE_Y:
+; 		lda spr_posY_tmp_arr, x
+; 		sta spr_posY_arr, x
+
+; 		rts
+; 		; ------------------------------
+
+	dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
+
+	; Y方向
+	lda spr_posY_tmp_arr, x
+	sta spr_posY_arr, x
+
+	; X方向
+	lda spr_posX_tmp_arr, x
+	cmp #$f8
+	bcc :+
+	; マリオが左端を超えた時
+	lda #0
+	sta spr_posX_arr, x
+	rts
+	; ------------------------------
 :
-		clc
-		adc spr_posX_arr, x
-		cmp #$f0
-		bcc :+
-		pha
-		lda spr_posX_tmp_arr, x
-		sec
-		sbc spr_posX_arr, x
-		tay								; move_dxを求める（移動量）
-		pla
-		cpy #$80
-		bcc :+
-		; posX < 0 && move_dx < 0
-		lda #0
+	; 右端チェック
+	ldy is_scroll_locked
+	beq :++
+	; スクロールロック時
+	cmp #($100-PLAYER_WIDTH-PLAYER_PADDING)
+	bcc :+
+	; 右端を超えた時
+	lda #($100-PLAYER_WIDTH-PLAYER_PADDING)
 :
+	sta spr_posX_arr, x
+	rts
+	; ------------------------------
+:
+	cmp #PLAYER_MAX_POSX
+	bcc :+
+	; マリオが右端を超えた時
+	sub #PLAYER_MAX_POSX
+	sta scroll_amount
+	lda #PLAYER_MAX_POSX
+:
+	sta spr_posX_arr, x
 
-		; スクロールロック時の処理
-		ldy is_scroll_locked
-		bne @STORE_POSX
+	rts
+	; ------------------------------
 
-		cmp #PLAYER_MAX_POSX
-		bcs @MOVE_SCROLL
-
-@STORE_POSX:
-		cmp #($100-(PLAYER_WIDTH+PLAYER_PADDING))
-		bcc @STOP_MOVE
-		beq @STOP_MOVE
-
-		lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
-@STOP_MOVE:
-		sta spr_posX_arr, x
-		jmp @MOVE_Y
-		; ------------------------------
-
-@MOVE_SCROLL:
-		sub #PLAYER_MAX_POSX
-		sta scroll_amount
-
-		lda #PLAYER_MAX_POSX
-		sta spr_posX_arr, x
-
-@MOVE_Y:
-		lda spr_posY_tmp_arr, x
-		sta spr_posY_arr, x
-
-		rts
-		; ------------------------------
 .endproc
 
 

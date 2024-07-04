@@ -104,7 +104,7 @@
 	lda #$20
 	sta spr_posX_arr+0
 	lda #$c0
-	sta spr_posY_arr+0
+	sta spr_posY_tmp_arr+0
 	ldx #PLAYER_SPR_ID					; spr id
 	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
 	jsr Sprite::_tfrToChrBuff
