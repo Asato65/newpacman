@@ -183,6 +183,10 @@ AMOUNT_INC_SPD_R:
 	sub #PLAYER_MAX_POSX
 	sta scroll_amount
 	lda #PLAYER_MAX_POSX
+	bne :++
+:
+	ldy #0
+	sty scroll_amount
 :
 	sta spr_posX_arr, x
 

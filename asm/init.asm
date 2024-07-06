@@ -103,6 +103,7 @@
 	; sprite
 	lda #$20
 	sta spr_posX_arr+0
+	sta spr_posX_tmp_arr+0
 	lda #$c0
 	sta spr_posY_tmp_arr+0
 	ldx #PLAYER_SPR_ID					; spr id
