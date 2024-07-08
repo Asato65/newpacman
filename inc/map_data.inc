@@ -18,7 +18,8 @@ MAP_11_1:
 	.byte 'B'
 	.byte %00000000, %00000000
 	.byte (GET_OBJ_POS $0, $3), 'B'
-	.byte (GET_OBJ_POS $5, $2), 'B'
+	.byte (GET_OBJ_POS $5, $2), 'H'
+	.byte (GET_OBJ_POS $5, $3), 'H'
 	.byte (GET_OBJ_POS $8, $5), 'B'
 	.byte (GET_OBJ_POS $9, $8), 'B'
 	.byte (GET_OBJ_POS $9, $5), 'Q'
@@ -43,10 +44,15 @@ MAP_11_2:
 	.byte (GET_OBJ_POS $0, $6), 'Q'
 	.byte (GET_OBJ_POS $0, $7), 'B'
 	.byte (GET_OBJ_POS $1, $5), 'Q'
-	.byte (GET_OBJ_POS $1, $6), 'Q'
-	.byte (GET_OBJ_POS $1, $7), 'Q'
 	.byte (GET_OBJ_POS $2, $5), 'Q'
-	.byte (GET_OBJ_POS $3, $5), 'Q'
+	.byte (GET_OBJ_POS $2, $6), 'B'
+	.byte (GET_OBJ_POS $2, $7), 'B'
+	.byte (GET_OBJ_POS $a, $4), 'B'
+	.byte (GET_OBJ_POS $a, $5), 'B'
+	.byte (GET_OBJ_POS $a, $6), 'B'
+	.byte (GET_OBJ_POS $a, $7), 'B'
+	.byte (GET_OBJ_POS $a, $8), 'B'
+	.byte (GET_OBJ_POS $f, $6), 'B'
 	.byte OBJMAP_END
 
 MAP_12_1:
@@ -110,7 +116,7 @@ BROCK_ID_ARR:
 	.addr $0000							; E
 	.addr $0000							; F
 	.addr OBJ_GROUND					; G
-	.addr $0000							; H
+	.addr OBJ_HARD_BROCK				; H
 	.addr $0000							; I
 	.addr $0000							; J
 	.addr $0000							; K
@@ -189,4 +195,8 @@ OBJ_COIN:
 OBJ_GROUND:
 	.byte $80, $81
 	.byte $82, $83
+
+OBJ_HARD_BROCK:
+	.byte $8c, $8d
+	.byte $8e, $8f
 

@@ -1,0 +1,5 @@
+[Compile] : testmus.mml 		
+[Assemble] : testmus.s 		
+[Link] : test.nes 		
+ld65: Warning: nesa.cfg:68: Segment 'CHARS' does not exist
+ld65: Warning: nesa.cfg:54: Segment 'PCMDATA' isn't aligned properly; the resulting executable might not be functional.

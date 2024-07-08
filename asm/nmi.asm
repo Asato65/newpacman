@@ -8,6 +8,8 @@
 
 .code									; ----- code -----
 
+.import _nsd_main_bgm
+
 .macro tfrDataToPPU ADDR
 	lda bg_buff, x
 	sta ADDR

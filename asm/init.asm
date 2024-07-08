@@ -1,5 +1,9 @@
 .code									; ----- code -----
 
+.import DQBGM0
+
+bgm0:		.addr	DQBGM0
+
 .macro init
 		sei								; Ban IRQ
 		cld								; Ban BCD
@@ -27,16 +31,16 @@
 		sta $00, x
 		sta $0100, x
 		sta $0200, x
+		sta $0300, x
 		sta $0400, x
 		sta $0500, x
 		sta $0600, x
-		sta $0700, x
 		inx
 		bne @CLR_MEM
 
 		lda #$ff
 @CLR_CHR_MEM:
-		sta $0300, x
+		sta $0700, x
 		inx
 		bne @CLR_CHR_MEM
 
@@ -112,7 +116,21 @@
 
 	lda #1							; Y方向の加速度が正（下向き）の場合
 	sta spr_velocity_y_arr+$0
-	sta spr_decimal_part_velocity_y_arr+$0
+	sta spr_decimal_part_velocity_y_arr+$0\
+
+	lda APU_CHANCTRL
+	ora #%00000001
+	sta APU_CHANCTRL
+	lda #%10011111
+	sta APU_PULSE1CTRL						; Duty50%(2)、ループ無し、音響固定、ボリューム最大(4)
+	lda #%00000000
+	sta APU_PULSE1RAMP						; 周波数変化なし（bit7）、他は設定せず
+
+	jsr _nsd_init
+
+	lda	bgm0
+	ldx	bgm0 + 1
+	jsr	_nsd_play_bgm
 
 		lda #0
 		sta is_updated_map

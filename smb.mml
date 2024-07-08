@@ -1,0 +1,143 @@
+#title "DQ"
+#Label "DQ"
+#bgm	1
+#timebase 24
+
+
+Sub(0) {
+	// intro
+	o5	eere rcer gr8. r4
+	// A
+	[2
+	o5	cr8<gr8er rarb rb-ar l12 g>eg l16 arfg rerc d<br8
+	]
+	// B
+	[2
+	o5	r8gg-fd#re r<g#a>c r<a>cd r8gg-fd#re >rcrc cr8.< r8gg-fd#re r<g#a>c r<a>cd r8e-r8dr8cr8.r4
+	]
+	// C
+	o5	ccrc rcdr ecr<a gr8.> ccrc rcde r2 ccrc rcdr ecr<a gr8.
+	// intro
+	o5	eere rcer gr8. r4
+	// A
+	[2
+	o5	cr8<gr8er rarb rb-ar l12 g>eg l16 arfg rerc d<br8
+	]
+	// D
+	[2
+	o5	ecr<g r8g#r a>frf< ar8. l12 b>aa agf l16 ecr<a gr8.>
+		ecr<g r8g#r a>frf< ar8. b>frf l12 fed l16 cr8.r4
+	]
+	// C
+	o5	ccrc rcdr ecr<a gr8.> ccrc rcde r2 ccrc rcdr ecr<a gr8.
+	// intro
+	o5	eere rcer gr8. r4
+	// D
+	[2
+	o5	ecr<g r8g#r a>frf< ar8. l12 b>aa agf l16 ecr<a gr8.>
+		ecr<g r8g#r a>frf< ar8. b>frf l12 fed l16 cr8.r4
+	]
+}
+
+Sub(1) {
+	// intro
+	o4	f#f#rf# rf#f#r br8.gr8.
+	// A
+	[2
+	o4	er8cr8<gr >rcrd rd-cr l12 cg>c l16 cr<ab rare fdr8
+	]
+	// B
+	[2
+	o4	r8ee-d<b>rc r<efa rcef> r8ee-d<b>rc rfrf fr8. r8ee-d<b>rc r<efa rcef r8a-r8fr8er8.r4
+	]
+	// C
+	o4	a-a-ra- ra-b-r gere cr8.  a-a-ra- ra-b-g r2 a-a-ra- ra-b-r gere cr8.
+	// intro
+	o4	f#f#rf# rf#f#r br8.gr8.
+	// A
+	[2
+	o4	er8cr8<gr >rcrd rd-cr l12 cg>c l16 cr<ab rare fdr8
+	]
+	// D
+	[2
+	o5	c<gre r8er f>drd< fr8. l12 g>ff fed l16 c<arf er8.>
+		c<gre r8er f>drd< fr8. g>drd l12 dc<b l16 gere cr8.
+	]
+	// C
+	o4	a-a-ra- ra-b-r gere cr8.  a-a-ra- ra-b-g r2 a-a-ra- ra-b-r gere cr8.
+	// intro
+	o4	f#f#rf# rf#f#r br8.gr8.
+	// D
+	[2
+	o5	c<gre r8er f>drd< fr8. l12 g>ff fed l16 c<arf er8.>
+		c<gre r8er f>drd< fr8. g>drd l12 dc<b l16 gere cr8.
+	]
+}
+
+Sub(2) {
+	// intro
+	o4	ddrd rddr >gr8. < gr8.
+	// A
+	[2
+	o4	gr8er8cr rfrg rg-fr l12 e>ce l16 frde rcr<a bgr8
+	]
+	// B
+	[2
+	o4	cr8gr8>cr <fr8>ccr<fr cr8er8g>c r>grggr <<gr
+		cr8gr8>cr <fr8>ccr<fr cra-r rb-r8> cr8<g grcr
+	]
+	// C
+	[3
+	o3	a-r8>e-r8a-r gr8cr8<gr
+	]
+	// intro
+	o4	ddrd rddr >gr8. < gr8.
+	// A
+	[2
+	o4	gr8er8cr rfrg rg-fr l12 e>ce l16 frde rcr<a bgr8
+	]
+	// D
+	[2
+	o4	crrf# gr>cr< frfr >cc<fr drrf grbr grgr >cc<gr
+		crrf# gr>cr< frfr >cc<fr grrg l12 gab l16 >cr<gr cr8.
+	]
+	// C
+	[3
+	o3	a-r8>e-r8a-r gr8cr8<gr
+	]
+	// intro
+	o4	ddrd rddr >gr8. < gr8.
+	// D
+	[2
+	o4	crrf# gr>cr< frfr >cc<fr drrf grbr grgr >cc<gr
+		crrf# gr>cr< frfr >cc<fr grrg l12 gab l16 >cr<gr cr8.
+	]
+}
+
+Sub(3) {
+	; l4 @0 o6c	; o5c o5c+ o5d o5d+ o5e o5f o5f+ o5g o5g+ o5a o5a+ o5b o6c o6c+ o6d o6d+
+	; l4 @1 o5b	; o5c o5c+ o5d o5d+ o5e o5f o5f+ o5g o5g+ o5a o5a+ o5b o6c o6c+ o6d o6d+
+	; l4 o2 g
+	o6c r
+}
+
+BGM(0) {
+	TR1 t100 v15 o4 l16 @2 q8 s46 Rv0 L
+	TR2 t100 v15 o4 l16 @2 q8 s46 Rv0 L
+	TR3 t100     o4 l16    q8     Rv0 L
+	; TR4 t150 v12    l16           Rv0 L
+	TR1 S0
+	TR2 S1
+	TR3 S2
+	;TR4 S3
+}
+
+; @t1, x
+; 14400 / t = x (x: int)
+; tempo=100のときx=144 -> @t1, 144
+; v0~15
+; @1 duty 0~3 (12.5%, 25%, 50%, 75%)
+; o4 -> オクターブ
+; l8 -> long，8分音符を基準に
+; c1 -> cを全音符で鳴らす
+; b4 -> bを4分音符で鳴らす

@@ -9,6 +9,7 @@ OBJMAP_END								= $ff
 PPU_CTRL1_STD							= %10010000			; |NMION|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCRN$2000(2)|
 PPU_CTRL2_STD							= %00011110			; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8SPR|SHOW-L8BG|MODE=COLOR|
 
+
 BIT0									= %00000001
 BIT1									= %00000010
 BIT2									= %00000100
@@ -24,7 +25,7 @@ BYT_GET_LO								= %00001111
 LO										= 0
 HI										= 1
 
-INIT									= 0
+INIT = 0
 
 PLAYER_SPR_ID							= $1				; スプライトID
 PLAYER_CHR_BUFF_INDEX					= $0				; スプライトRAMのインデックス（0爆弾の次に配置する）

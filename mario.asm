@@ -17,25 +17,27 @@
 
 .rodata									; ----- data -----
 
-.include "./inc/const.inc"
-.include "./inc/const_addr.inc"
-.include "./inc/var_addr.inc"
-.include "./inc/defmacro.inc"
-.include "./inc/palette.inc"
-.include "./inc/struct.inc"
-.include "./inc/map_data.inc"
+.include "const.inc"
+.include "const_addr.inc"
+.include "var_addr.inc"
+.include "defmacro.inc"
+.include "palette.inc"
+.include "struct.inc"
+.include "map_data.inc"
 
 .code									; ----- code -----
 
-.include "./asm/joypad.asm"
-.include "./asm/macro.asm"
-.include "./asm/subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
-.include "./asm/draw_map.asm"
-.include "./asm/sprite.asm"
-.include "./asm/player_move.asm"
-.include "./asm/nmi.asm"
-.include "./asm/init.asm"
-.include "./asm/func.asm"				; いくつかのファイルのインクルードが必要な関数群
+.include "joypad.asm"
+.include "macro.asm"
+.include "subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
+.include "draw_map.asm"
+.include "sprite.asm"
+.include "player_move.asm"
+.include "nes.inc"
+.include "nsd.inc"
+.include "nmi.asm"
+.include "init.asm"
+.include "func.asm"				; いくつかのファイルのインクルードが必要な関数群
 .include "main.asm"
 
 

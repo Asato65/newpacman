@@ -1,4 +1,4 @@
-ca65 V2.19 - Git 8aa59e4
+ca65 V2.19 - Git de30a57
 Main file   : mario.asm
 Current file: mario.asm
 
@@ -21,7 +21,7 @@ Current file: mario.asm
 000010r 1               
 000010r 1               .rodata									; ----- data -----
 000000r 1               
-000000r 1               .include "./inc/const.inc"
+000000r 1               .include "const.inc"
 000000r 2               PPU_VERTICAL_MODE						= %11111110
 000000r 2               PPU_HORIZONTAL_MODE						= %11111111
 000000r 2               
@@ -32,6 +32,7 @@ Current file: mario.asm
 000000r 2               
 000000r 2               PPU_CTRL1_STD							= %10010000			; |NMION|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCRN$2000(2)|
 000000r 2               PPU_CTRL2_STD							= %00011110			; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8SPR|SHOW-L8BG|MODE=COLOR|
+000000r 2               
 000000r 2               
 000000r 2               BIT0									= %00000001
 000000r 2               BIT1									= %00000010
@@ -48,7 +49,7 @@ Current file: mario.asm
 000000r 2               LO										= 0
 000000r 2               HI										= 1
 000000r 2               
-000000r 2               INIT									= 0
+000000r 2               INIT = 0
 000000r 2               
 000000r 2               PLAYER_SPR_ID							= $1				; スプライトID
 000000r 2               PLAYER_CHR_BUFF_INDEX					= $0				; スプライトRAMのインデックス（0爆弾の次に配置する）
@@ -57,22 +58,22 @@ Current file: mario.asm
 000000r 2               
 000000r 2               PLAYER_MAX_POSX							= $70				; マリオの行ける最大X座標（スクロールロックが無いとき）
 000000r 2               
-000000r 1               .include "./inc/const_addr.inc"
+000000r 1               .include "const_addr.inc"
 000000r 2               ZP					= $00
 000000r 2               ; Unused $0200
 000000r 2               bg_map_buff			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
 000000r 2               bg_plt_buff			= $0134				; size = 8
 000000r 2               fill_block_arr		= $013c				; size = 13 ($d)
 000000r 2               bg_buff				= $0149
-000000r 2               CHR_BUFF			= $0300
+000000r 2               CHR_BUFF			= $0700
 000000r 2               MAP1				= $0400
 000000r 2               MAP2				= $0500
 000000r 2               USER_MEM			= $0700
 000000r 2               
 000000r 2               PLT_TABLE_ADDR		= $3f00
 000000r 2               
-000000r 2               PPU_CTRL1			= $2000
-000000r 2               PPU_CTRL2			= $2001
+000000r 2               ; PPU_CTRL1			= $2000		; nes.incで定義済み
+000000r 2               ; PPU_CTRL2			= $2001
 000000r 2               PPU_STATUS			= $2002
 000000r 2               OAM_ADDR			= $2003
 000000r 2               OAM_DATA			= $2004
@@ -106,7 +107,7 @@ Current file: mario.asm
 000000r 2               JOYPAD1				= $4016
 000000r 2               JOYPAD2				= $4017
 000000r 2               
-000000r 1               .include "./inc/var_addr.inc"
+000000r 1               .include "var_addr.inc"
 000000r 2               ; ZeroPage
 000000r 2               .segment "ZEROPAGE"
 000000r 2  00           tmp1					: .byte 0
@@ -195,7 +196,7 @@ Current file: mario.asm
 00006Cr 2               
 00006Cr 2               .code
 000000r 2               
-000000r 1               .include "./inc/defmacro.inc"
+000000r 1               .include "defmacro.inc"
 000000r 2               ;*------------------------------------------------------------------------------
 000000r 2               ; Calcurate BG address
 000000r 2               ; @PARAMS	 ptx: X coordinate
@@ -244,7 +245,7 @@ Current file: mario.asm
 000000r 2               
 000000r 2               .define NEGATIVE(val)	256 - (val)
 000000r 2               
-000000r 1               .include "./inc/palette.inc"
+000000r 1               .include "palette.inc"
 000000r 2               DEFAULT_PLT:
 000000r 2               		; BG
 000000r 2  36 17 0F     		.byte $36, $17, $0f
@@ -271,7 +272,7 @@ Current file: mario.asm
 00002Dr 2  0C 3C 1C     		.byte $0c, $3c, $1c
 000030r 2               
 000030r 2               
-000030r 1               .include "./inc/struct.inc"
+000030r 1               .include "struct.inc"
 000030r 2               .struct	SPR_STRUCT
 000030r 2               		pty		.byte					; PosiTion Y
 000030r 2               		num		.byte					; Tile(8*8) number
@@ -284,7 +285,7 @@ Current file: mario.asm
 000030r 2               		spr		.tag SPR_STRUCT 64
 000030r 2               .endstruct
 000030r 2               
-000030r 1               .include "./inc/map_data.inc"
+000030r 1               .include "map_data.inc"
 000030r 2               ; MAP_DATA[stage][map_num][index]
 000030r 2               
 000030r 2               STAGE_ARR:
@@ -481,7 +482,7 @@ Current file: mario.asm
 000164r 1               
 000164r 1               .code									; ----- code -----
 000164r 1               
-000164r 1               .include "./asm/joypad.asm"
+000164r 1               .include "joypad.asm"
 000164r 2               .scope Joypad
 000164r 2               
 000164r 2               BTN_A									= %10000000
@@ -582,7 +583,7 @@ Current file: mario.asm
 0001B3r 2               
 0001B3r 2               .endscope
 0001B3r 2               
-0001B3r 1               .include "./asm/macro.asm"
+0001B3r 1               .include "macro.asm"
 0001B3r 2               ; ------------------------------------------------------------------------------
 0001B3r 2               ; Load array
 0001B3r 2               ; A = Arr[X][Y]
@@ -879,7 +880,7 @@ Current file: mario.asm
 0001B3r 2               		sta PPU_DATA
 0001B3r 2               .endmacro
 0001B3r 2               
-0001B3r 1               .include "./asm/subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
+0001B3r 1               .include "subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
 0001B3r 2               .scope Subfunc
 0001B3r 2               
 0001B3r 2               ;*------------------------------------------------------------------------------
@@ -1007,7 +1008,7 @@ Current file: mario.asm
 000028r 2               
 000028r 2               .endscope
 000028r 2               
-000028r 1               .include "./asm/draw_map.asm"
+000028r 1               .include "draw_map.asm"
 000028r 2               .include "draw_map_macro.asm"
 000028r 3               .code									; ----- code -----
 0001EDr 3               
@@ -1673,7 +1674,7 @@ Current file: mario.asm
 00044Br 2               
 00044Br 2               .endscope
 00044Br 2               
-00044Br 1               .include "./asm/sprite.asm"
+00044Br 1               .include "sprite.asm"
 00044Br 2               /***************** メモ *****************
 00044Br 2               
 00044Br 2               キャラクター情報を，キャラクターごとにまとめる
@@ -1886,18 +1887,18 @@ Current file: mario.asm
 0004F7r 2               .proc _tfrSprToBuffNormal
 0004F7r 2               		; Upper left
 0004F7r 2  A5 rr        		lda tmp1
-0004F9r 2  99 00 03     		sta CHR_BUFF+$0, y
-0004FCr 2  99 04 03     		sta CHR_BUFF+$4, y
+0004F9r 2  99 00 07     		sta CHR_BUFF+$0, y
+0004FCr 2  99 04 07     		sta CHR_BUFF+$4, y
 0004FFr 2  18 69 08     		add #8
-000502r 2  99 08 03     		sta CHR_BUFF+$8, y
-000505r 2  99 0C 03     		sta CHR_BUFF+$c, y
+000502r 2  99 08 07     		sta CHR_BUFF+$8, y
+000505r 2  99 0C 07     		sta CHR_BUFF+$c, y
 000508r 2               
 000508r 2  A5 rr        		lda tmp2
-00050Ar 2  99 03 03     		sta CHR_BUFF+$3, y
-00050Dr 2  99 0B 03     		sta CHR_BUFF+$b, y
+00050Ar 2  99 03 07     		sta CHR_BUFF+$3, y
+00050Dr 2  99 0B 07     		sta CHR_BUFF+$b, y
 000510r 2  18 69 08     		add #8
-000513r 2  99 07 03     		sta CHR_BUFF+$7, y
-000516r 2  99 0F 03     		sta CHR_BUFF+$f, y
+000513r 2  99 07 07     		sta CHR_BUFF+$7, y
+000516r 2  99 0F 07     		sta CHR_BUFF+$f, y
 000519r 2               
 000519r 2               
 000519r 2  84 rr        		sty tmp_rgstY
@@ -1909,50 +1910,50 @@ Current file: mario.asm
 000525r 2  A8 B9 rr rr  
 000529r 2  85 rr B9 rr  
 000534r 2  A4 rr        		ldy tmp_rgstY
-000536r 2  99 02 03     		sta CHR_BUFF+$2, y
+000536r 2  99 02 07     		sta CHR_BUFF+$2, y
 000539r 2  A0 01        		ldy #1
 00053Br 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
 00053Fr 2  A8 B9 rr rr  
 000543r 2  85 rr B9 rr  
 00054Er 2  A4 rr        		ldy tmp_rgstY
-000550r 2  99 06 03     		sta CHR_BUFF+$6, y
+000550r 2  99 06 07     		sta CHR_BUFF+$6, y
 000553r 2  A0 02        		ldy #2
 000555r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
 000559r 2  A8 B9 rr rr  
 00055Dr 2  85 rr B9 rr  
 000568r 2  A4 rr        		ldy tmp_rgstY
-00056Ar 2  99 0A 03     		sta CHR_BUFF+$a, y
+00056Ar 2  99 0A 07     		sta CHR_BUFF+$a, y
 00056Dr 2  A0 03        		ldy #3
 00056Fr 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
 000573r 2  A8 B9 rr rr  
 000577r 2  85 rr B9 rr  
 000582r 2  A4 rr        		ldy tmp_rgstY
-000584r 2  99 0E 03     		sta CHR_BUFF+$e, y
+000584r 2  99 0E 07     		sta CHR_BUFF+$e, y
 000587r 2               
 000587r 2  A0 00        		ldy #0
 000589r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
 00058Dr 2  A8 B9 rr rr  
 000591r 2  85 rr B9 rr  
 00059Cr 2  A4 rr        		ldy tmp_rgstY
-00059Er 2  99 01 03     		sta CHR_BUFF+$1, y
+00059Er 2  99 01 07     		sta CHR_BUFF+$1, y
 0005A1r 2  A0 01        		ldy #1
 0005A3r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
 0005A7r 2  A8 B9 rr rr  
 0005ABr 2  85 rr B9 rr  
 0005B6r 2  A4 rr        		ldy tmp_rgstY
-0005B8r 2  99 05 03     		sta CHR_BUFF+$5, y
+0005B8r 2  99 05 07     		sta CHR_BUFF+$5, y
 0005BBr 2  A0 02        		ldy #2
 0005BDr 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
 0005C1r 2  A8 B9 rr rr  
 0005C5r 2  85 rr B9 rr  
 0005D0r 2  A4 rr        		ldy tmp_rgstY
-0005D2r 2  99 09 03     		sta CHR_BUFF+$9, y
+0005D2r 2  99 09 07     		sta CHR_BUFF+$9, y
 0005D5r 2  A0 03        		ldy #3
 0005D7r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
 0005DBr 2  A8 B9 rr rr  
 0005DFr 2  85 rr B9 rr  
 0005EAr 2  A4 rr        		ldy tmp_rgstY
-0005ECr 2  99 0D 03     		sta CHR_BUFF+$d, y
+0005ECr 2  99 0D 07     		sta CHR_BUFF+$d, y
 0005EFr 2               
 0005EFr 2  60           		rts
 0005F0r 2               		; ------------------------------
@@ -1970,18 +1971,18 @@ Current file: mario.asm
 0005F0r 2               ;*------------------------------------------------------------------------------
 0005F0r 2               .proc _tfrSprToBuffFlipX
 0005F0r 2  A5 rr        		lda tmp1
-0005F2r 2  99 00 03     		sta CHR_BUFF+$0, y
-0005F5r 2  99 04 03     		sta CHR_BUFF+$4, y
+0005F2r 2  99 00 07     		sta CHR_BUFF+$0, y
+0005F5r 2  99 04 07     		sta CHR_BUFF+$4, y
 0005F8r 2  18 69 08     		add #8
-0005FBr 2  99 08 03     		sta CHR_BUFF+$8, y
-0005FEr 2  99 0C 03     		sta CHR_BUFF+$c, y
+0005FBr 2  99 08 07     		sta CHR_BUFF+$8, y
+0005FEr 2  99 0C 07     		sta CHR_BUFF+$c, y
 000601r 2               
 000601r 2  A5 rr        		lda tmp2
-000603r 2  99 07 03     		sta CHR_BUFF+$7, y
-000606r 2  99 0F 03     		sta CHR_BUFF+$f, y
+000603r 2  99 07 07     		sta CHR_BUFF+$7, y
+000606r 2  99 0F 07     		sta CHR_BUFF+$f, y
 000609r 2  18 69 08     		add #8
-00060Cr 2  99 03 03     		sta CHR_BUFF+$3, y
-00060Fr 2  99 0B 03     		sta CHR_BUFF+$b, y
+00060Cr 2  99 03 07     		sta CHR_BUFF+$3, y
+00060Fr 2  99 0B 07     		sta CHR_BUFF+$b, y
 000612r 2               
 000612r 2  84 rr        		sty tmp_rgstY
 000614r 2  BD rr rr     		lda spr_anime_num, x
@@ -1993,53 +1994,53 @@ Current file: mario.asm
 000622r 2  85 rr B9 rr  
 00062Dr 2  49 40        		eor #%0100_0000						; 左右反転
 00062Fr 2  A4 rr        		ldy tmp_rgstY
-000631r 2  99 02 03     		sta CHR_BUFF+$2, y
+000631r 2  99 02 07     		sta CHR_BUFF+$2, y
 000634r 2  A0 01        		ldy #1
 000636r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
 00063Ar 2  A8 B9 rr rr  
 00063Er 2  85 rr B9 rr  
 000649r 2  49 40        		eor #%0100_0000
 00064Br 2  A4 rr        		ldy tmp_rgstY
-00064Dr 2  99 06 03     		sta CHR_BUFF+$6, y
+00064Dr 2  99 06 07     		sta CHR_BUFF+$6, y
 000650r 2  A0 02        		ldy #2
 000652r 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
 000656r 2  A8 B9 rr rr  
 00065Ar 2  85 rr B9 rr  
 000665r 2  49 40        		eor #%0100_0000
 000667r 2  A4 rr        		ldy tmp_rgstY
-000669r 2  99 0A 03     		sta CHR_BUFF+$a, y
+000669r 2  99 0A 07     		sta CHR_BUFF+$a, y
 00066Cr 2  A0 03        		ldy #3
 00066Er 2  84 rr 8A 0A  		ldarr CHR_ATTR_TABLE
 000672r 2  A8 B9 rr rr  
 000676r 2  85 rr B9 rr  
 000681r 2  49 40        		eor #%0100_0000
 000683r 2  A4 rr        		ldy tmp_rgstY
-000685r 2  99 0E 03     		sta CHR_BUFF+$e, y
+000685r 2  99 0E 07     		sta CHR_BUFF+$e, y
 000688r 2               
 000688r 2  A0 00        		ldy #0
 00068Ar 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
 00068Er 2  A8 B9 rr rr  
 000692r 2  85 rr B9 rr  
 00069Dr 2  A4 rr        		ldy tmp_rgstY
-00069Fr 2  99 01 03     		sta CHR_BUFF+$1, y
+00069Fr 2  99 01 07     		sta CHR_BUFF+$1, y
 0006A2r 2  A0 01        		ldy #1
 0006A4r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
 0006A8r 2  A8 B9 rr rr  
 0006ACr 2  85 rr B9 rr  
 0006B7r 2  A4 rr        		ldy tmp_rgstY
-0006B9r 2  99 05 03     		sta CHR_BUFF+$5, y
+0006B9r 2  99 05 07     		sta CHR_BUFF+$5, y
 0006BCr 2  A0 02        		ldy #2
 0006BEr 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
 0006C2r 2  A8 B9 rr rr  
 0006C6r 2  85 rr B9 rr  
 0006D1r 2  A4 rr        		ldy tmp_rgstY
-0006D3r 2  99 09 03     		sta CHR_BUFF+$9, y
+0006D3r 2  99 09 07     		sta CHR_BUFF+$9, y
 0006D6r 2  A0 03        		ldy #3
 0006D8r 2  84 rr 8A 0A  		ldarr CHR_ID_TABLE
 0006DCr 2  A8 B9 rr rr  
 0006E0r 2  85 rr B9 rr  
 0006EBr 2  A4 rr        		ldy tmp_rgstY
-0006EDr 2  99 0D 03     		sta CHR_BUFF+$d, y
+0006EDr 2  99 0D 07     		sta CHR_BUFF+$d, y
 0006F0r 2               
 0006F0r 2  60           		rts
 0006F1r 2               		; ------------------------------
@@ -2059,46 +2060,46 @@ Current file: mario.asm
 0006F1r 2               	; Lower left
 0006F1r 2  A5 rr        	lda tmp1
 0006F3r 2  18 69 08     	add #8
-0006F6r 2  99 00 03     	sta CHR_BUFF+$0, y
+0006F6r 2  99 00 07     	sta CHR_BUFF+$0, y
 0006F9r 2  BD rr rr     	lda CHR_ID, x
-0006FCr 2  99 01 03     	sta CHR_BUFF+$1, y
+0006FCr 2  99 01 07     	sta CHR_BUFF+$1, y
 0006FFr 2  BD rr rr     	lda CHR_ATTR, x
-000702r 2  99 02 03     	sta CHR_BUFF+$2, y
+000702r 2  99 02 07     	sta CHR_BUFF+$2, y
 000705r 2  A5 rr        	lda tmp2
-000707r 2  99 03 03     	sta CHR_BUFF+$3, y
+000707r 2  99 03 07     	sta CHR_BUFF+$3, y
 00070Ar 2               	; Lower right
 00070Ar 2  E8           	inx
 00070Br 2  A5 rr        	lda tmp1
 00070Dr 2  18 69 08     	add #8
-000710r 2  99 04 03     	sta CHR_BUFF+$4, y
+000710r 2  99 04 07     	sta CHR_BUFF+$4, y
 000713r 2  BD rr rr     	lda CHR_ID, x
-000716r 2  99 05 03     	sta CHR_BUFF+$5, y
+000716r 2  99 05 07     	sta CHR_BUFF+$5, y
 000719r 2  BD rr rr     	lda CHR_ATTR, x
-00071Cr 2  99 06 03     	sta CHR_BUFF+$6, y
+00071Cr 2  99 06 07     	sta CHR_BUFF+$6, y
 00071Fr 2  A5 rr        	lda tmp2
 000721r 2  18 69 08     	add #8
-000724r 2  99 07 03     	sta CHR_BUFF+$7, y
+000724r 2  99 07 07     	sta CHR_BUFF+$7, y
 000727r 2               	; Upper left
 000727r 2  E8           	inx
 000728r 2  A5 rr        	lda tmp1
-00072Ar 2  99 08 03     	sta CHR_BUFF+$8, y
+00072Ar 2  99 08 07     	sta CHR_BUFF+$8, y
 00072Dr 2  BD rr rr     	lda CHR_ID, x
-000730r 2  99 09 03     	sta CHR_BUFF+$9, y
+000730r 2  99 09 07     	sta CHR_BUFF+$9, y
 000733r 2  BD rr rr     	lda CHR_ATTR, x
-000736r 2  99 0A 03     	sta CHR_BUFF+$a, y
+000736r 2  99 0A 07     	sta CHR_BUFF+$a, y
 000739r 2  A5 rr        	lda tmp2
-00073Br 2  99 0B 03     	sta CHR_BUFF+$b, y
+00073Br 2  99 0B 07     	sta CHR_BUFF+$b, y
 00073Er 2               	; Upper right
 00073Er 2  E8           	inx
 00073Fr 2  A5 rr        	lda tmp1
-000741r 2  99 0C 03     	sta CHR_BUFF+$c, y
+000741r 2  99 0C 07     	sta CHR_BUFF+$c, y
 000744r 2  BD rr rr     	lda CHR_ID, x
-000747r 2  99 0D 03     	sta CHR_BUFF+$d, y
+000747r 2  99 0D 07     	sta CHR_BUFF+$d, y
 00074Ar 2  BD rr rr     	lda CHR_ATTR, x
-00074Dr 2  99 0E 03     	sta CHR_BUFF+$e, y
+00074Dr 2  99 0E 07     	sta CHR_BUFF+$e, y
 000750r 2  A5 rr        	lda tmp2
 000752r 2  18 69 08     	add #8
-000755r 2  99 0F 03     	sta CHR_BUFF+$f, y
+000755r 2  99 0F 07     	sta CHR_BUFF+$f, y
 000758r 2  60           	rts
 000759r 2               	; ------------------------------
 000759r 2               .endproc
@@ -2141,7 +2142,7 @@ Current file: mario.asm
 00077Er 2               
 00077Er 2               .endscope
 00077Er 2               
-00077Er 1               .include "./asm/player_move.asm"
+00077Er 1               .include "player_move.asm"
 00077Er 2               .scope Player							; スコープ名注意！
 00077Er 2               
 00077Er 2               DOWN_SPEED_LIMIT = $04					; 落下の最高速度
@@ -3089,7 +3090,1087 @@ Current file: mario.asm
 000D1Ar 2               
 000D1Ar 2               .endscope
 000D1Ar 2               
-000D1Ar 1               .include "./asm/nmi.asm"
+000D1Ar 1               .include "nes.inc"
+000D1Ar 2               ;
+000D1Ar 2               ; NES definitions
+000D1Ar 2               ;
+000D1Ar 2               
+000D1Ar 2               .ifndef	__NES_INC__
+000D1Ar 2               
+000D1Ar 2               .define	__NES_INC__
+000D1Ar 2               
+000D1Ar 2               ;; PPU defines
+000D1Ar 2               PPU_CTRL1	= $2000
+000D1Ar 2               PPU_CTRL2	= $2001
+000D1Ar 2               ;PPU_STATUS	= $2002
+000D1Ar 2               PPU_SPR_ADDR	= $2003
+000D1Ar 2               PPU_SPR_IO  	= $2004
+000D1Ar 2               PPU_VRAM_ADDR1	= $2005
+000D1Ar 2               PPU_VRAM_ADDR2	= $2006
+000D1Ar 2               PPU_VRAM_IO	= $2007
+000D1Ar 2               
+000D1Ar 2               ;; APU defines
+000D1Ar 2               APU_PULSE1CTRL  = $4000         ; Pulse #1 Control Register (W)
+000D1Ar 2               APU_PULSE1RAMP  = $4001         ; Pulse #1 Ramp Control Register (W)
+000D1Ar 2               APU_PULSE1FTUNE = $4002         ; Pulse #1 Fine Tune (FT) Register (W)
+000D1Ar 2               APU_PULSE1CTUNE = $4003         ; Pulse #1 Coarse Tune (CT) Register (W)
+000D1Ar 2               APU_PULSE2CTRL  = $4004         ; Pulse #2 Control Register (W)
+000D1Ar 2               APU_PULSE2RAMP  = $4005         ; Pulse #2 Ramp Control Register (W)
+000D1Ar 2               APU_PULSE2FTUNE = $4006         ; Pulse #2 Fine Tune Register (W)
+000D1Ar 2               APU_PULSE2STUNE = $4007         ; Pulse #2 Coarse Tune Register (W)
+000D1Ar 2               APU_TRICTRL1    = $4008         ; Triangle Control Register #1 (W)
+000D1Ar 2               APU_TRICTRL2    = $4009         ; Triangle Control Register #2 (?)
+000D1Ar 2               APU_TRIFREQ1    = $400A         ; Triangle Frequency Register #1 (W)
+000D1Ar 2               APU_TRIFREQ2    = $400B         ; Triangle Frequency Register #2 (W)
+000D1Ar 2               APU_NOISECTRL   = $400C         ; Noise Control Register #1 (W)
+000D1Ar 2               ;;APU_ = $400D  ; Unused (???)
+000D1Ar 2               APU_NOISEFREQ1  = $400E         ; Noise Frequency Register #1 (W)
+000D1Ar 2               APU_NOISEFREQ2  = $400F         ; Noise Frequency Register #2 (W)
+000D1Ar 2               APU_MODCTRL     = $4010         ; Delta Modulation Control Register (W)
+000D1Ar 2               APU_MODDA       = $4011         ; Delta Modulation D/A Register (W)
+000D1Ar 2               APU_MODADDR     = $4012         ; Delta Modulation Address Register (W)
+000D1Ar 2               APU_MODLEN      = $4013         ; Delta Modulation Data Length Register (W)
+000D1Ar 2               APU_SPR_DMA    	= $4014         ; Sprite DMA Register (W)
+000D1Ar 2               APU_CHANCTRL   	= $4015         ; Sound/Vertical Clock Signal Register (R)
+000D1Ar 2               APU_PAD1       	= $4016         ; Joypad #1 (RW)
+000D1Ar 2               APU_PAD2	= $4017         ; Joypad #2/SOFTCLK (RW)
+000D1Ar 2               
+000D1Ar 2               .endif
+000D1Ar 2               
+000D1Ar 1               .include "nsd.inc"
+000D1Ar 2               ;===============================================================================|
+000D1Ar 2               ;										|
+000D1Ar 2               ;		NES Sound Driver & library	(NSD.lib)			|
+000D1Ar 2               ;										|
+000D1Ar 2               ;-------------------------------------------------------------------------------|
+000D1Ar 2               ;										|
+000D1Ar 2               ;  Copyright (c) 2012 A.Watanabe (S.W.)						|
+000D1Ar 2               ;  All rights reserved.								|
+000D1Ar 2               ;										|
+000D1Ar 2               ;  Redistribution and use in source and binary forms, with or without		|
+000D1Ar 2               ;  modification, are permitted provided that the following conditions		|
+000D1Ar 2               ;  are met:									|
+000D1Ar 2               ;										|
+000D1Ar 2               ;    1. Redistributions of source code must retain the above copyright		|
+000D1Ar 2               ;       notice, this list of conditions and the following disclaimer.		|
+000D1Ar 2               ;										|
+000D1Ar 2               ;    2. Redistributions in binary form must reproduce the above copyright	|
+000D1Ar 2               ;       notice, this list of conditions and the following disclaimer in the	|
+000D1Ar 2               ;       documentation and/or other materials provided with the distribution.	|
+000D1Ar 2               ;										|
+000D1Ar 2               ;  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS		|
+000D1Ar 2               ;  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT		|
+000D1Ar 2               ;  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR	|
+000D1Ar 2               ;  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER	|
+000D1Ar 2               ;  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,	|
+000D1Ar 2               ;  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,		|
+000D1Ar 2               ;  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR		|
+000D1Ar 2               ;  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF	|
+000D1Ar 2               ;  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING		|
+000D1Ar 2               ;  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS		|
+000D1Ar 2               ;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.			|
+000D1Ar 2               ;										|
+000D1Ar 2               ;===============================================================================|
+000D1Ar 2               
+000D1Ar 2               	.include	"nsddef.inc"
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               ;
+000D1Ar 3               ;	NES Sound Driver & library (NSD.lib)	Define file
+000D1Ar 3               ;
+000D1Ar 3               ;-----------------------------------------------------------------------
+000D1Ar 3               ;
+000D1Ar 3               ;	Copyright (c) 2012 A.Watanabe (S.W.), All rights reserved.
+000D1Ar 3               ;	For conditions of distribution and use, see copyright notice
+000D1Ar 3               ;	  in "nsd.h" or "nsd.inc".
+000D1Ar 3               ;
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               ;*	NTSC / PAL						*
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               
+000D1Ar 3               .ifndef PAL
+000D1Ar 3               Tempo_Sub		= 150
+000D1Ar 3               .else
+000D1Ar 3               Tempo_Sub		= 125
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               Tempo_Cmp		= 256 - Tempo_Sub
+000D1Ar 3               
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               ;*	Sound I/O Device address defines			*
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;FDS define
+000D1Ar 3               
+000D1Ar 3               FDS_Control		= $4023
+000D1Ar 3               FDS_Wave_Table		= $4040		; to $407F
+000D1Ar 3               FDS_Volume		= $4080
+000D1Ar 3               FDS_FTUNE		= $4082
+000D1Ar 3               FDS_CTUNE		= $4083
+000D1Ar 3               FDS_Sweep_Envelope	= $4084
+000D1Ar 3               FDS_Sweep_Bias		= $4085
+000D1Ar 3               FDS_Mod_FTUNE		= $4086
+000D1Ar 3               FDS_Mod_CTUNE		= $4087
+000D1Ar 3               FDS_Mod_Append		= $4088
+000D1Ar 3               FDS_Write_Enable	= $4089
+000D1Ar 3               FDS_Envelope_Speed	= $408A
+000D1Ar 3               FDS_Volume_Gain		= $4090		;$4080's value
+000D1Ar 3               FDS_Sweep_Gain		= $4092		;$4084's value
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;VRC6 define
+000D1Ar 3               
+000D1Ar 3               VRC6_Frequency		= $9003		;.... .ABH	Normally you should write $00 to this register on startup to initialize it.
+000D1Ar 3               VRC6_Pulse1_CTRL	= $9000		;MDDD vvvv	mode DT vol
+000D1Ar 3               VRC6_Pulse1_FTUNE	= $9001		;FFFF FFFF
+000D1Ar 3               VRC6_Pulse1_CTUNE	= $9002		;E... FFFF
+000D1Ar 3               VRC6_Pulse2_CTRL	= $A000
+000D1Ar 3               VRC6_Pulse2_FTUNE	= $A001
+000D1Ar 3               VRC6_Pulse2_CTUNE	= $A002
+000D1Ar 3               VRC6_SAW_CTRL		= $B000		;..AA AAAA	volume
+000D1Ar 3               VRC6_SAW_FTUNE		= $B001		;FFFF FFFF
+000D1Ar 3               VRC6_SAW_CTUNE		= $B002		;E... FFFF
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;VRC7 define
+000D1Ar 3               
+000D1Ar 3               VRC7_Resister		= $9010		;wait  6 clk
+000D1Ar 3               VRC7_Data		= $9030		;wait 42 clk
+000D1Ar 3               
+000D1Ar 3               VRC7_Patch0		= $00
+000D1Ar 3               VRC7_Patch1		= $01
+000D1Ar 3               VRC7_Patch2		= $02
+000D1Ar 3               VRC7_Patch3		= $03
+000D1Ar 3               VRC7_Patch4		= $04
+000D1Ar 3               VRC7_Patch5		= $05
+000D1Ar 3               VRC7_Patch6		= $06
+000D1Ar 3               VRC7_Patch7		= $07
+000D1Ar 3               
+000D1Ar 3               VRC7_Frequency		= $10
+000D1Ar 3               VRC7_Octave		= $20
+000D1Ar 3               VRC7_Volume		= $30
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;OPLL define
+000D1Ar 3               
+000D1Ar 3               .ifdef	HFX4
+000D1Ar 3               OPLL_Resister		= $5F90		;wait  6 clk
+000D1Ar 3               OPLL_Data		= $5FB0		;wait 42 clk
+000D1Ar 3               .else
+000D1Ar 3               OPLL_Resister		= $9010		;wait  6 clk
+000D1Ar 3               OPLL_Data		= $9030		;wait 42 clk
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               OPLL_Patch0		= $00
+000D1Ar 3               OPLL_Patch1		= $01
+000D1Ar 3               OPLL_Patch2		= $02
+000D1Ar 3               OPLL_Patch3		= $03
+000D1Ar 3               OPLL_Patch4		= $04
+000D1Ar 3               OPLL_Patch5		= $05
+000D1Ar 3               OPLL_Patch6		= $06
+000D1Ar 3               OPLL_Patch7		= $07
+000D1Ar 3               
+000D1Ar 3               OPLL_RHYTHM		= $0E
+000D1Ar 3               OPLL_Frequency		= $10
+000D1Ar 3               OPLL_Octave		= $20
+000D1Ar 3               OPLL_Volume		= $30
+000D1Ar 3               
+000D1Ar 3               OPLL_Frequency_BD	= $16
+000D1Ar 3               OPLL_Frequency_HH_SD	= $17
+000D1Ar 3               OPLL_Frequency_TOM_CYM	= $18
+000D1Ar 3               
+000D1Ar 3               OPLL_Octave_BD		= $26
+000D1Ar 3               OPLL_Octave_HH_SD	= $27
+000D1Ar 3               OPLL_Octave_TOM_CYM	= $28
+000D1Ar 3               
+000D1Ar 3               OPLL_BD			= $36
+000D1Ar 3               OPLL_HH_SD		= $37
+000D1Ar 3               OPLL_TOM_CYM		= $38
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;MMC5 define
+000D1Ar 3               
+000D1Ar 3               MMC5_Pulse1_CTRL	= $5000         ; Pulse_ #1 Control Register (W)
+000D1Ar 3               MMC5_Pulse1_FTUNE	= $5002         ; Pulse_ #1 Fine Tune (FT) Register (W)
+000D1Ar 3               MMC5_Pulse1_CTUNE	= $5003         ; Pulse_ #1 Coarse Tune (CT) Register (W)
+000D1Ar 3               MMC5_Pulse2_CTRL	= $5004         ; Pulse_ #2 Control Register (W)
+000D1Ar 3               MMC5_Pulse2_FTUNE	= $5006         ; Pulse_ #2 Fine Tune Register (W)
+000D1Ar 3               MMC5_Pulse2_CTUNE	= $5007         ; Pulse_ #2 Coarse Tune Register (W)
+000D1Ar 3               MMC5_CHANCTRL		= $5015         ;
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;N163 define
+000D1Ar 3               
+000D1Ar 3               N163_Resister		= $F800
+000D1Ar 3               N163_Data		= $4800
+000D1Ar 3               
+000D1Ar 3               N163_Frequency_Low	= $78
+000D1Ar 3               N163_Frequency_Middle	= $7A
+000D1Ar 3               N163_Frequency_High	= $7C
+000D1Ar 3               N163_Waveform		= $7E
+000D1Ar 3               N163_Volume		= $7F
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;PSG define
+000D1Ar 3               
+000D1Ar 3               .ifdef	HFE4
+000D1Ar 3               PSG_Register		= $5FE0
+000D1Ar 3               PSG_Data		= $5FE1
+000D1Ar 3               .else
+000D1Ar 3               PSG_Register		= $C000
+000D1Ar 3               PSG_Data		= $E000
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               PSG_1_Frequency_Low	= $00
+000D1Ar 3               PSG_1_Frequency_High	= $01
+000D1Ar 3               PSG_2_Frequency_Low	= $02
+000D1Ar 3               PSG_2_Frequency_High	= $03
+000D1Ar 3               PSG_3_Frequency_Low	= $04
+000D1Ar 3               PSG_3_Frequency_High	= $05
+000D1Ar 3               PSG_Noise_Frequency	= $06
+000D1Ar 3               PSG_Switch		= $07	;00ABCabc
+000D1Ar 3               PSG_1_Volume		= $08
+000D1Ar 3               PSG_2_Volume		= $09
+000D1Ar 3               PSG_3_Volume		= $0A
+000D1Ar 3               PSG_Envelope_Low	= $0B
+000D1Ar 3               PSG_Envelope_High	= $0C
+000D1Ar 3               PSG_Envelope_Form	= $0D
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               ;*	NSD.lib General Define					*
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               
+000D1Ar 3               .scope	nsd
+000D1Ar 3               	APU_Track	= 5			;
+000D1Ar 3               
+000D1Ar 3               	TR_FDS		= APU_Track * 2
+000D1Ar 3               	.ifdef	FDS
+000D1Ar 3               		FDS_Track	= 1		;
+000D1Ar 3               	.else
+000D1Ar 3               		FDS_Track	= 0		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	TR_VRC6		= TR_FDS + FDS_Track * 2
+000D1Ar 3               	.ifdef	VRC6
+000D1Ar 3               		VRC6_Track	= 3		;
+000D1Ar 3               	.else
+000D1Ar 3               		VRC6_Track	= 0		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	TR_VRC7		= TR_VRC6 + VRC6_Track * 2
+000D1Ar 3               	.ifdef	VRC7
+000D1Ar 3               		VRC7_Track	= 6		;
+000D1Ar 3               	.else
+000D1Ar 3               		VRC7_Track	= 0		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	TR_OPLL		= TR_VRC7 + VRC7_Track * 2
+000D1Ar 3               	.ifdef	OPLL
+000D1Ar 3               		OPLL_Track_FM		= 9
+000D1Ar 3               		OPLL_Track_Rhythm	= 5
+000D1Ar 3               		OPLL_Track	= OPLL_Track_FM + OPLL_Track_Rhythm
+000D1Ar 3               	.else
+000D1Ar 3               		OPLL_Track	= 0		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	TR_MMC5		= TR_OPLL + OPLL_Track * 2
+000D1Ar 3               	.ifdef	MMC5
+000D1Ar 3               		MMC5_Track	= 2		; (without DPCM)
+000D1Ar 3               	.else
+000D1Ar 3               		MMC5_Track	= 0		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	TR_N163		= TR_MMC5 + MMC5_Track * 2
+000D1Ar 3               	.ifdef	N163
+000D1Ar 3               		N163_Track	= 8		;
+000D1Ar 3               	.else
+000D1Ar 3               		N163_Track	= 0		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	TR_PSG		= TR_N163 + N163_Track * 2
+000D1Ar 3               	.ifdef	PSG
+000D1Ar 3               		PSG_Track	= 3		;
+000D1Ar 3               	.else
+000D1Ar 3               		PSG_Track	= 0		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	TR_NULL		= TR_PSG + PSG_Track * 2
+000D1Ar 3               	.ifdef	NULL
+000D1Ar 3               		NULL_Track	= 1		;
+000D1Ar 3               	.else
+000D1Ar 3               		NULL_Track	= 0		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	BGM_Track	= APU_Track + FDS_Track + VRC6_Track + VRC7_Track + OPLL_Track + MMC5_Track + N163_Track + PSG_Track + NULL_Track
+000D1Ar 3               	.ifdef	SE
+000D1Ar 3               	  SE_Track	= 5		;
+000D1Ar 3               	.else
+000D1Ar 3               	  SE_Track	= 2		;
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               	Track		= BGM_Track + SE_Track
+000D1Ar 3               
+000D1Ar 3               	TR_BGM1		= 0
+000D1Ar 3               	TR_BGM2		= 2
+000D1Ar 3               	TR_BGM3		= 4
+000D1Ar 3               	TR_BGM4		= 6
+000D1Ar 3               	TR_BGM5		= 8
+000D1Ar 3               	TR_SE		= BGM_Track * 2
+000D1Ar 3               	.ifdef	SE
+000D1Ar 3               	TR_SE_Pluse1	= TR_SE + 0
+000D1Ar 3               	TR_SE_Pluse2	= TR_SE + 2
+000D1Ar 3               	TR_SE_Tri	= TR_SE + 4
+000D1Ar 3               	TR_SE_Noise	= TR_SE + 6
+000D1Ar 3               	TR_SE_Dpcm	= TR_SE + 8
+000D1Ar 3               	.else
+000D1Ar 3               	TR_SE_Pluse2	= TR_SE + 0
+000D1Ar 3               	TR_SE_Noise	= TR_SE + 2
+000D1Ar 3               	.endif
+000D1Ar 3               
+000D1Ar 3               .endscope
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               ;*	Struct Define						*
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               ;	Working Struct define in Zero-page area
+000D1Ar 3               ;-----------------------------------------------------------------------
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Envelop
+000D1Ar 3               	V		.byte		;Volume & Voice (ch3:Tempo / ch5:Tempo_ctr)
+000D1Ar 3               	F		.byte		;Frequency & Note
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Length_Cnt
+000D1Ar 3               	counter		.byte		;now length of note
+000D1Ar 3               	gate		.byte		;length - u
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_work_zp
+000D1Ar 3               	_ptr		.word					;00 General pointer value
+000D1Ar 3               	_tmp		.word					;02 General value
+000D1Ar 3               	channel		.byte					;04 channel (x resister)
+000D1Ar 3               	flag		.byte					;05 flag
+000D1Ar 3               	Sequence_ptr	.word			nsd::Track	;06 Address of playing sequence
+000D1Ar 3               .ifndef	HFX4
+000D1Ar 3               	LengthCnt	.tag	NSD_Length_Cnt	nsd::Track	;16 Length Counter
+000D1Ar 3               .endif
+000D1Ar 3               	Envelop		.tag	NSD_Envelop	nsd::Track	;26 Envelop counter
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               ; 6 + ( 6 [Byte] * 28 [ch] ) = 174
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;	Defines for work structures
+000D1Ar 3               
+000D1Ar 3               .scope	nsd_flag
+000D1Ar 3               	BGM		= $01	;Playing BGM
+000D1Ar 3               	SE		= $02	;Playing SE
+000D1Ar 3               	Jump		= $10	;
+000D1Ar 3               	Priority	= $0C	;Priority of now SE
+000D1Ar 3               	Disable		= $80	;Disable of sound driver
+000D1Ar 3               .endscope
+000D1Ar 3               
+000D1Ar 3               ;Zero Page Works
+000D1Ar 3               .define	__ptr		nsd_work_zp + NSD_work_zp::_ptr
+000D1Ar 3               .define	__tmp		nsd_work_zp + NSD_work_zp::_tmp
+000D1Ar 3               .define	__flag		nsd_work_zp + NSD_work_zp::flag
+000D1Ar 3               .define	__channel	nsd_work_zp + NSD_work_zp::channel
+000D1Ar 3               .define	__Sequence_ptr	nsd_work_zp + NSD_work_zp::Sequence_ptr
+000D1Ar 3               
+000D1Ar 3               .define	__Envelop_V	nsd_work_zp + NSD_work_zp::Envelop + NSD_Envelop::V	;upper 4bit Voice / lower 4bit:Volume
+000D1Ar 3               .define	__Envelop_F	nsd_work_zp + NSD_work_zp::Envelop + NSD_Envelop::F	;upper 4bit:Note  / lower 4bit:Frequency
+000D1Ar 3               
+000D1Ar 3               ;.define	__flag		nsd_work_zp + NSD_work_zp::Envelop + NSD_Envelop::V + nsd::TR_BGM3
+000D1Ar 3               .define	__Tempo		nsd_work_zp + NSD_work_zp::Envelop + NSD_Envelop::F + nsd::TR_BGM5
+000D1Ar 3               .define	__Tempo_ctr	nsd_work_zp + NSD_work_zp::Envelop + NSD_Envelop::V + nsd::TR_BGM5
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               ;	Working  Struct define in RAM area
+000D1Ar 3               ;-----------------------------------------------------------------------
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Flag
+000D1Ar 3               	flag		.byte		;flag
+000D1Ar 3               	gatemode	.byte		;gate mode
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_length
+000D1Ar 3               	length		.byte		;`l' command value
+000D1Ar 3               	tai		.byte		;flag of Tai & Slur
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_gatetime
+000D1Ar 3               	q		.byte		;`q' command value
+000D1Ar 3               	u		.byte		;`u' command value
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_note
+000D1Ar 3               	note		.byte		;`note' command value (bit 7 = `H' : rest)
+000D1Ar 3               	octave		.byte		;`o' command value
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Detune
+000D1Ar 3               	cent		.byte		;`D' command value
+000D1Ar 3               	fine		.byte		;`D%' command value
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Por_Lv		;(ch5 : BGM1 & BGM2 Frequency)
+000D1Ar 3               	target		.byte		;`P' target
+000D1Ar 3               	depth		.byte		;`P' add value
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Por_Co		;(ch5 : BGM3 & SE  Frequency)
+000D1Ar 3               	count		.byte		;rate control
+000D1Ar 3               	rate		.byte		;now depth
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Trans
+000D1Ar 3               	trans		.byte		;`_' command value
+000D1Ar 3               	onetime		.byte		;`'', `"' command value
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Repeat
+000D1Ar 3               	count1		.byte		;counter of repeat(A)
+000D1Ar 3               	count2		.byte		;counter of repeat(B)
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_volume
+000D1Ar 3               	volume		.byte		;`v' & `vR' command value
+000D1Ar 3               	volume_env	.byte		;now envelop volume	(ch3,5 : sweep value of ch1,2)
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               ;.Struct		NSD_voice
+000D1Ar 3               ;	voice		.byte		;`@R' command value (upper 4bit)	;���p�~
+000D1Ar 3               ;	voice_set	.byte		;deveice setting value
+000D1Ar 3               ;.Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Env_V_Ptr		;(ch5 : pointer of ��PCM information)
+000D1Ar 3               	Volume		.byte		;Volume
+000D1Ar 3               	Voice		.byte		;Voice
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Env_F_Ptr
+000D1Ar 3               	Frequency	.byte		;Freeuqncy
+000D1Ar 3               	Note		.byte		;Note
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_Env_F_Now
+000D1Ar 3               	Frequency	.byte		;now envelop Freeuqncy
+000D1Ar 3               	Note		.byte		;now envelop Note
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               .Struct		NSD_work
+000D1Ar 3               	Flag		.tag	NSD_Flag	nsd::Track	;flag
+000D1Ar 3               .ifdef	HFX4
+000D1Ar 3               	LengthCnt	.tag	NSD_Length_Cnt	nsd::Track	;16 Length Counter
+000D1Ar 3               .endif
+000D1Ar 3               	Length		.tag	NSD_length	nsd::Track	;note length [tick]
+000D1Ar 3               	Gatetime	.tag	NSD_gatetime	nsd::Track	;gate time [tick]
+000D1Ar 3               	Note		.tag	NSD_note	nsd::Track	;octave and note command
+000D1Ar 3               	Detune		.tag	NSD_Detune	nsd::Track	;detune
+000D1Ar 3               	Por_Lv		.tag	NSD_Por_Lv	nsd::Track	;Portamento / TR5: BGM1 & BGM2 frequency
+000D1Ar 3               	Por_Co		.tag	NSD_Por_Co	nsd::Track	;Portamento / TR5: BGM3 & SE1  frequency
+000D1Ar 3               	Por_now		.word			nsd::Track	;Portamento / TR5: SE2  & SE3  frequency
+000D1Ar 3               	Trans		.tag	NSD_Trans	nsd::Track	;Transpose
+000D1Ar 3               	Repeat		.tag	NSD_Repeat	nsd::Track	;Repeat
+000D1Ar 3               	Volume		.tag	NSD_volume	nsd::Track	;volume	/ TR3: BGM1 sweep / TR5: BGM2 sweep
+000D1Ar 3               	Env_F_Now	.tag	NSD_Env_F_Now	nsd::Track	;Now value of envelop
+000D1Ar 3               	Env_V_Ptr	.tag	NSD_Env_V_Ptr	nsd::Track	;Address of envelop / TR5:DPCM info
+000D1Ar 3               	Env_F_Ptr	.tag	NSD_Env_F_Ptr	nsd::Track	;Address of envelop
+000D1Ar 3               	Envelop_Volume	.word			nsd::Track	;Pointer of envelop
+000D1Ar 3               	Envelop_Voice	.word			nsd::Track	;Pointer of envelop
+000D1Ar 3               	Envelop_Freq	.word			nsd::Track	;Pointer of envelop
+000D1Ar 3               	Envelop_Note	.word			nsd::Track	;Pointer of envelop
+000D1Ar 3               	Frequency	.word			nsd::Track	;Setting frequency
+000D1Ar 3               	SubRoutine	.word			nsd::Track	;Pointer of sub-routine return address
+000D1Ar 3               	Repeat2		.word			nsd::Track	;Pointer of repeat2 goto point
+000D1Ar 3               
+000D1Ar 3               ;.ifdef	MMC5
+000D1Ar 3               ;	MMC5_Frequency	.byte			nsd::MMC5_Track	;MMC5 frequency
+000D1Ar 3               ;.endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	FDS
+000D1Ar 3               	FDS_Frequency	.byte					;FDS frequency
+000D1Ar 3               	FDS_SweepBias	.byte					;FDS Sweep bias
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	MMC5
+000D1Ar 3               	MMC5_VoiceSet	.byte			nsd::MMC5_Track
+000D1Ar 3               	MMC5_Frequency	.byte			nsd::MMC5_Track	;MMC5 frequecny
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	VRC7
+000D1Ar 3               	VRC7_VoiceSet	.byte			nsd::VRC7_Track
+000D1Ar 3               	VRC7_Freq_old	.byte			nsd::VRC7_Track
+000D1Ar 3               	VRC7_Frequency	.word			nsd::VRC7_Track	;VRC7 frequecny
+000D1Ar 3               	VRC7_Reg	.word					;
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	OPLL
+000D1Ar 3               	OPLL_VoiceSet	.byte			nsd::OPLL_Track_FM
+000D1Ar 3               	OPLL_Freq_old	.byte			nsd::OPLL_Track_FM
+000D1Ar 3               	OPLL_Frequency	.word			nsd::OPLL_Track_FM	;OPLL frequency (FM)
+000D1Ar 3               	OPLL_Reg	.word
+000D1Ar 3               	OPLL_Rhythm	.byte						;OPLL Rhythm
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	N163
+000D1Ar 3               	N163_num	.byte					;N163 ch number
+000D1Ar 3               	N163_Frequency	.byte			nsd::N163_Track	;N163 frequency
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	PSG
+000D1Ar 3               	PSG_switch	.byte					;PSG switch
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               ;	Defines for work structures
+000D1Ar 3               
+000D1Ar 3               .scope	nsd_chflag
+000D1Ar 3               .ifdef	MASK
+000D1Ar 3               	Mask	= $80
+000D1Ar 3               .endif
+000D1Ar 3               	Sustain	= $20		;for VRC7
+000D1Ar 3               	KeyOn	= $10		;for VRC7
+000D1Ar 3               	Envelop	= $10		;for PSG
+000D1Ar 3               	FDSVOL	= $0C
+000D1Ar 3               	NoKeyOff= $04		;for VRC7
+000D1Ar 3               	KeyOff	= $03		;00	Key Off	: Vol = 0
+000D1Ar 3               				;01	Key Off	: Release command
+000D1Ar 3               				;10	Key Off	:  envelop
+000D1Ar 3               				;11	Note On	: (envelop)
+000D1Ar 3               .endscope
+000D1Ar 3               
+000D1Ar 3               .scope	nsd_mode
+000D1Ar 3               	voiceR		= $F0	;1111 0000	Release Volume
+000D1Ar 3               	voice		= $08	;0000 1000
+000D1Ar 3               	RetSE		= $04	;0000 0100	Key On (Ch.3)
+000D1Ar 3               	gatemode	= $03	;0000 0011	Gate mode
+000D1Ar 3               .endscope
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;RAM Works
+000D1Ar 3               .ifdef	HFX4
+000D1Ar 3               .define	__Length_ctr	nsd_work + NSD_work::LengthCnt + NSD_Length_Cnt::counter
+000D1Ar 3               .define	__Gate		nsd_work + NSD_work::LengthCnt + NSD_Length_Cnt::gate
+000D1Ar 3               .else
+000D1Ar 3               .define	__Length_ctr	nsd_work_zp + NSD_work_zp::LengthCnt + NSD_Length_Cnt::counter
+000D1Ar 3               .define	__Gate		nsd_work_zp + NSD_work_zp::LengthCnt + NSD_Length_Cnt::gate
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .define	__chflag	nsd_work + NSD_work::Flag + NSD_Flag::flag
+000D1Ar 3               .define	__gatemode	nsd_work + NSD_work::Flag + NSD_Flag::gatemode
+000D1Ar 3               .define	__tai		nsd_work + NSD_work::Length + NSD_length::tai
+000D1Ar 3               .define	__length	nsd_work + NSD_work::Length + NSD_length::length
+000D1Ar 3               .define	__gate_q	nsd_work + NSD_work::Gatetime + NSD_gatetime::q
+000D1Ar 3               .define	__gate_u	nsd_work + NSD_work::Gatetime + NSD_gatetime::u
+000D1Ar 3               .define __note		nsd_work + NSD_work::Note + NSD_note::note
+000D1Ar 3               .define	__octave	nsd_work + NSD_work::Note + NSD_note::octave
+000D1Ar 3               .define	__detune_cent	nsd_work + NSD_work::Detune + NSD_Detune::cent
+000D1Ar 3               .define	__detune_fine	nsd_work + NSD_work::Detune + NSD_Detune::fine
+000D1Ar 3               .define	__por_target	nsd_work + NSD_work::Por_Lv + NSD_Por_Lv::target
+000D1Ar 3               .define	__por_depth	nsd_work + NSD_work::Por_Lv + NSD_Por_Lv::depth
+000D1Ar 3               .define	__por_ctr	nsd_work + NSD_work::Por_Co + NSD_Por_Co::count
+000D1Ar 3               .define	__por_rate	nsd_work + NSD_work::Por_Co + NSD_Por_Co::rate
+000D1Ar 3               .define __por_now	nsd_work + NSD_work::Por_now
+000D1Ar 3               .define	__trans		nsd_work + NSD_work::Trans + NSD_Trans::trans
+000D1Ar 3               .define	__trans_one	nsd_work + NSD_work::Trans + NSD_Trans::onetime
+000D1Ar 3               .define	__repeat_ctr	nsd_work + NSD_work::Repeat + NSD_Repeat::count1
+000D1Ar 3               .define	__repeat_ctr2	nsd_work + NSD_work::Repeat + NSD_Repeat::count2
+000D1Ar 3               .define	__volume	nsd_work + NSD_work::Volume + NSD_volume::volume
+000D1Ar 3               .define	__frequency	nsd_work + NSD_work::Frequency
+000D1Ar 3               .define	__subroutine	nsd_work + NSD_work::SubRoutine
+000D1Ar 3               .define	__repeat2	nsd_work + NSD_work::Repeat2
+000D1Ar 3               .define	__env_volume	nsd_work + NSD_work::Envelop_Volume
+000D1Ar 3               .define	__env_voice	nsd_work + NSD_work::Envelop_Voice
+000D1Ar 3               .define	__env_frequency	nsd_work + NSD_work::Envelop_Freq
+000D1Ar 3               .define	__env_note	nsd_work + NSD_work::Envelop_Note
+000D1Ar 3               .define	__env_vol_ptr	nsd_work + NSD_work::Env_V_Ptr + NSD_Env_V_Ptr::Volume
+000D1Ar 3               .define	__env_voi_ptr	nsd_work + NSD_work::Env_V_Ptr + NSD_Env_V_Ptr::Voice
+000D1Ar 3               .define	__env_freq_ptr	nsd_work + NSD_work::Env_F_Ptr + NSD_Env_F_Ptr::Frequency
+000D1Ar 3               .define	__env_note_ptr	nsd_work + NSD_work::Env_F_Ptr + NSD_Env_F_Ptr::Note
+000D1Ar 3               ;	voice�Ɋւ��ẮA���̌�̉��Z�͖����̂ŁA�X�V����Ȃ��ꍇ�̓G���x���[�v�������I������B
+000D1Ar 3               .define	__env_vol_now	nsd_work + NSD_work::Volume + NSD_volume::volume_env
+000D1Ar 3               .define	__env_freq_now	nsd_work + NSD_work::Env_F_Now + NSD_Env_F_Now::Frequency
+000D1Ar 3               .define	__env_note_now	nsd_work + NSD_work::Env_F_Now + NSD_Env_F_Now::Note
+000D1Ar 3               
+000D1Ar 3               ;---------------
+000D1Ar 3               ;��PCM
+000D1Ar 3               .define	__dpcm_info		nsd_work + NSD_work::Env_V_Ptr + nsd::TR_BGM5		;.word
+000D1Ar 3               
+000D1Ar 3               ;Sweep
+000D1Ar 3               .define	__sweep_ch1		nsd_work + NSD_work::Envelop_Voice  + nsd::TR_BGM3
+000D1Ar 3               .define	__sweep_ch2		nsd_work + NSD_work::Envelop_Voice  + nsd::TR_BGM3 + 1
+000D1Ar 3               ;.define	__sweep_ch1		nsd_work + NSD_work::Volume + NSD_volume::volume     + nsd::TR_BGM5
+000D1Ar 3               ;.define	__sweep_ch2		nsd_work + NSD_work::Volume + NSD_volume::volume_env + nsd::TR_BGM5
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;Voice
+000D1Ar 3               ;.define	__apu_tri_time		nsd_work + NSD_work::Envelop_Voice  + nsd::TR_BGM5
+000D1Ar 3               ;.define	__apu_voice_set4	nsd_work + NSD_work::Envelop_Voice  + nsd::TR_BGM5 + 1
+000D1Ar 3               ;.define	__se_voice_set1		nsd_work + NSD_work::Env_F_Ptr + NSD_Env_F_Ptr::Frequency  + nsd::TR_BGM5
+000D1Ar 3               ;.define	__se_voice_set2		nsd_work + NSD_work::Env_F_Ptr + NSD_Env_F_Ptr::Note       + nsd::TR_BGM5
+000D1Ar 3               .define	__apu_voice_set1	nsd_work + NSD_work::Envelop_Volume + nsd::TR_BGM5
+000D1Ar 3               .define	__apu_voice_set2	nsd_work + NSD_work::Envelop_Volume + nsd::TR_BGM5 + 1
+000D1Ar 3               .define	__apu_tri_time		nsd_work + NSD_work::Envelop_Freq   + nsd::TR_BGM5
+000D1Ar 3               .define	__apu_voice_set4	nsd_work + NSD_work::Envelop_Freq   + nsd::TR_BGM5 + 1
+000D1Ar 3               
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               .define	__se_voice_set1		nsd_work + NSD_work::Frequency      + nsd::TR_BGM5
+000D1Ar 3               .endif
+000D1Ar 3               .define	__se_voice_set2		nsd_work + NSD_work::Frequency      + nsd::TR_BGM5 + 1
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               .define	__se_tri_time		nsd_work + NSD_work::Envelop_Voice  + nsd::TR_BGM5
+000D1Ar 3               .endif
+000D1Ar 3               .define	__se_voice_set4		nsd_work + NSD_work::Envelop_Voice  + nsd::TR_BGM5 + 1
+000D1Ar 3               
+000D1Ar 3               ;Frequency	�i�v�`�m�C�Y�h�~�j
+000D1Ar 3               .define	__apu_frequency1	nsd_work + NSD_work::Por_Lv    + nsd::TR_BGM5		;.byte
+000D1Ar 3               .define	__apu_frequency2	nsd_work + NSD_work::Por_Lv    + nsd::TR_BGM5 + 1	;.byte
+000D1Ar 3               .define	__apu_frequency3	nsd_work + NSD_work::Por_Co    + nsd::TR_BGM5		;.byte
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               .define	__se_frequency1		nsd_work + NSD_work::Por_Co    + nsd::TR_BGM5 + 1	;.byte
+000D1Ar 3               .endif
+000D1Ar 3               .define	__se_frequency2		nsd_work + NSD_work::Por_now   + nsd::TR_BGM5		;.byte
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               .define	__se_frequency3		nsd_work + NSD_work::Por_now   + nsd::TR_BGM5 + 1	;.byte
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	FDS
+000D1Ar 3               .define	__fds_frequency		nsd_work + NSD_work::FDS_Frequency
+000D1Ar 3               .define	__fds_sweepbias		nsd_work + NSD_work::FDS_SweepBias
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	MMC5
+000D1Ar 3               ;.define	__mmc5_voice_set1	nsd_work + NSD_work::Envelop_Freq   + nsd::TR_BGM5	;.byte
+000D1Ar 3               ;.define	__mmc5_voice_set2	nsd_work + NSD_work::Envelop_Freq   + nsd::TR_BGM5 + 1	;.byte
+000D1Ar 3               .define	__mmc5_voice_set1	nsd_work + NSD_work::MMC5_VoiceSet
+000D1Ar 3               .define	__mmc5_voice_set2	nsd_work + NSD_work::MMC5_VoiceSet + 1
+000D1Ar 3               .define	__mmc5_frequency1	nsd_work + NSD_work::MMC5_Frequency
+000D1Ar 3               .define	__mmc5_frequency2	nsd_work + NSD_work::MMC5_Frequency + 1
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	VRC6
+000D1Ar 3               .define	__vrc6_voice_set1	nsd_work + NSD_work::Envelop_Note   + nsd::TR_BGM5	;.byte
+000D1Ar 3               .define	__vrc6_voice_set2	nsd_work + NSD_work::Envelop_Note   + nsd::TR_BGM5 + 1	;.byte
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	VRC7
+000D1Ar 3               .define	__vrc7_voice_set	nsd_work + NSD_work::VRC7_VoiceSet
+000D1Ar 3               .define	__vrc7_frequency	nsd_work + NSD_work::VRC7_Frequency
+000D1Ar 3               .define	__vrc7_freq_old		nsd_work + NSD_work::VRC7_Freq_old
+000D1Ar 3               .define	__vrc7_reg		nsd_work + NSD_work::VRC7_Reg
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	OPLL
+000D1Ar 3               .define	__opll_voice_set	nsd_work + NSD_work::OPLL_VoiceSet
+000D1Ar 3               .define	__opll_frequency	nsd_work + NSD_work::OPLL_Frequency
+000D1Ar 3               .define	__opll_freq_old		nsd_work + NSD_work::OPLL_Freq_old
+000D1Ar 3               .define	__opll_reg		nsd_work + NSD_work::OPLL_Reg
+000D1Ar 3               .define	__opll_ryhthm		nsd_work + NSD_work::OPLL_Rhythm
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	N163
+000D1Ar 3               .define	__n163_num		nsd_work + NSD_work::N163_num
+000D1Ar 3               .define	__n163_frequency	nsd_work + NSD_work::N163_Frequency
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               .ifdef	PSG
+000D1Ar 3               .define	__psg_switch		nsd_work + NSD_work::PSG_switch
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               ;		Struct of DPCM
+000D1Ar 3               ;-----------------------------------------------------------------------
+000D1Ar 3               .Struct		nsd_dpcm
+000D1Ar 3               	Control		.byte		;I/O 0x4010
+000D1Ar 3               	DA		.byte		;I/O 0x4011
+000D1Ar 3               	Address		.byte		;I/O 0x4012
+000D1Ar 3               	Size		.byte		;I/O 0x4013
+000D1Ar 3               .ifdef	DPCMBank
+000D1Ar 3               	Bank		.byte		;Bank number
+000D1Ar 3               	Next		.byte		;Next number(note)
+000D1Ar 3               .endif
+000D1Ar 3               .Endstruct
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               ;*	Macros							*
+000D1Ar 3               ;****************************************************************
+000D1Ar 3               
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               ;	void	NSD_MAIN_BGM()
+000D1Ar 3               ;-----------------------------------------------------------------------
+000D1Ar 3               ;<<Contents>>
+000D1Ar 3               ;	BGM main routine
+000D1Ar 3               ;<<Input>>
+000D1Ar 3               ;	none
+000D1Ar 3               ;<<Output>>
+000D1Ar 3               ;	none
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               .macro	NSD_MAIN_BGM
+000D1Ar 3               	.local	BGM_Begin
+000D1Ar 3               	.local	BGM_SEQ_Exit
+000D1Ar 3               	.local	BGM_Exit
+000D1Ar 3               
+000D1Ar 3               	lda	#nsd_flag::BGM
+000D1Ar 3               	bit	__flag
+000D1Ar 3               	jne	BGM_Exit		;BGM disable ?
+000D1Ar 3               
+000D1Ar 3               	;-------------------------------
+000D1Ar 3               	;Tempo
+000D1Ar 3               	lda	__Tempo_ctr
+000D1Ar 3               	add	__Tempo
+000D1Ar 3               	sta	__Tempo_ctr
+000D1Ar 3               	jcc	BGM_SEQ_Exit
+000D1Ar 3               
+000D1Ar 3               	;-------------------------------
+000D1Ar 3               	;BGM
+000D1Ar 3               BGM_Begin:
+000D1Ar 3               	.repeat	nsd::BGM_Track, I
+000D1Ar 3               		ldx	#I*2 + nsd::TR_BGM1
+000D1Ar 3               		jsr	nsd_sequence
+000D1Ar 3               	.endrepeat
+000D1Ar 3               
+000D1Ar 3               	lda	#nsd_flag::Jump
+000D1Ar 3               	bit	__flag
+000D1Ar 3               	jne	BGM_Begin
+000D1Ar 3               
+000D1Ar 3               	lda	__Tempo_ctr
+000D1Ar 3               	sub	#Tempo_Sub
+000D1Ar 3               	sta	__Tempo_ctr
+000D1Ar 3               	cmp	#Tempo_Cmp
+000D1Ar 3               	jcc	BGM_Begin
+000D1Ar 3               
+000D1Ar 3               BGM_SEQ_Exit:
+000D1Ar 3               
+000D1Ar 3               	;-------
+000D1Ar 3               	;Envelop
+000D1Ar 3               	.repeat	nsd::BGM_Track, I
+000D1Ar 3               	  ;No envelope: DPCM, NULL
+000D1Ar 3               	  .if	(I <> 4) && (!(.defined(NULL) && (I = (nsd::TR_NULL / 2))))
+000D1Ar 3               		ldx	#I*2 + nsd::TR_BGM1
+000D1Ar 3               		jsr	nsd_envelop
+000D1Ar 3               	  .endif
+000D1Ar 3               	.endrepeat
+000D1Ar 3               
+000D1Ar 3               BGM_Exit:
+000D1Ar 3               
+000D1Ar 3               .endmacro
+000D1Ar 3               
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               ;	void	NSD_MAIN_SE()
+000D1Ar 3               ;-----------------------------------------------------------------------
+000D1Ar 3               ;<<Contents>>
+000D1Ar 3               ;	SE main routine
+000D1Ar 3               ;<<Input>>
+000D1Ar 3               ;	none
+000D1Ar 3               ;<<Output>>
+000D1Ar 3               ;	none
+000D1Ar 3               ;=======================================================================
+000D1Ar 3               .macro	NSD_MAIN_SE
+000D1Ar 3               	.local	SE1
+000D1Ar 3               	.local	SE2
+000D1Ar 3               	.local	SE3
+000D1Ar 3               	.local	SE4
+000D1Ar 3               	.local	SE5
+000D1Ar 3               	.local	SE_Exit
+000D1Ar 3               
+000D1Ar 3               	lda	#nsd_flag::SE
+000D1Ar 3               	bit	__flag
+000D1Ar 3               	bne	SE_Exit			;SE disable ?
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               SE1:
+000D1Ar 3               	ldx	#nsd::TR_SE_Pluse1
+000D1Ar 3               	lda	__Sequence_ptr + 1,x
+000D1Ar 3               .ifdef	DPCMBank
+000D1Ar 3               	ora	__Sequence_ptr,x
+000D1Ar 3               .endif
+000D1Ar 3               	beq	@L
+000D1Ar 3               	jsr	nsd_sequence
+000D1Ar 3               	jsr	nsd_envelop
+000D1Ar 3               @L:
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               SE2:
+000D1Ar 3               	ldx	#nsd::TR_SE_Pluse2
+000D1Ar 3               	lda	__Sequence_ptr + 1,x
+000D1Ar 3               .ifdef	DPCMBank
+000D1Ar 3               	ora	__Sequence_ptr,x
+000D1Ar 3               .endif
+000D1Ar 3               	beq	@L
+000D1Ar 3               	jsr	nsd_sequence
+000D1Ar 3               	jsr	nsd_envelop
+000D1Ar 3               @L:
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               SE3:
+000D1Ar 3               	ldx	#nsd::TR_SE_Tri
+000D1Ar 3               	lda	__Sequence_ptr + 1,x
+000D1Ar 3               .ifdef	DPCMBank
+000D1Ar 3               	ora	__Sequence_ptr,x
+000D1Ar 3               .endif
+000D1Ar 3               	beq	@L
+000D1Ar 3               	jsr	nsd_sequence
+000D1Ar 3               	jsr	nsd_envelop
+000D1Ar 3               @L:
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               SE4:
+000D1Ar 3               	ldx	#nsd::TR_SE_Noise
+000D1Ar 3               	lda	__Sequence_ptr + 1,x
+000D1Ar 3               .ifdef	DPCMBank
+000D1Ar 3               	ora	__Sequence_ptr,x
+000D1Ar 3               .endif
+000D1Ar 3               	beq	@L
+000D1Ar 3               	jsr	nsd_sequence
+000D1Ar 3               	jsr	nsd_envelop
+000D1Ar 3               @L:
+000D1Ar 3               
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               SE5:
+000D1Ar 3               	ldx	#nsd::TR_SE_Dpcm
+000D1Ar 3               	lda	__Sequence_ptr + 1,x
+000D1Ar 3               .ifdef	DPCMBank
+000D1Ar 3               	ora	__Sequence_ptr,x
+000D1Ar 3               .endif
+000D1Ar 3               	beq	@L
+000D1Ar 3               	jsr	nsd_sequence
+000D1Ar 3               @L:
+000D1Ar 3               .endif
+000D1Ar 3               ;---------------------------------------
+000D1Ar 3               
+000D1Ar 3               	lda	__Sequence_ptr + 1 + nsd::TR_SE_Pluse2
+000D1Ar 3               	ora	__Sequence_ptr + 1 + nsd::TR_SE_Noise
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               	ora	__Sequence_ptr + 1 + nsd::TR_SE_Pluse1
+000D1Ar 3               	ora	__Sequence_ptr + 1 + nsd::TR_SE_Tri
+000D1Ar 3               	ora	__Sequence_ptr + 1 + nsd::TR_SE_Dpcm
+000D1Ar 3               .endif
+000D1Ar 3               .ifdef	DPCMBank
+000D1Ar 3               	ora	__Sequence_ptr + nsd::TR_SE_Pluse2
+000D1Ar 3               	ora	__Sequence_ptr + nsd::TR_SE_Noise
+000D1Ar 3               .ifdef	SE
+000D1Ar 3               	ora	__Sequence_ptr + nsd::TR_SE_Pluse1
+000D1Ar 3               	ora	__Sequence_ptr + nsd::TR_SE_Tri
+000D1Ar 3               	ora	__Sequence_ptr + nsd::TR_SE_Dpcm
+000D1Ar 3               .endif
+000D1Ar 3               .endif
+000D1Ar 3               
+000D1Ar 3               	bne	SE_Exit
+000D1Ar 3               
+000D1Ar 3               ;-----------------------------------------------------------
+000D1Ar 3               ;
+000D1Ar 3               ;	ldx	#nsd::TR_SE_Pluse2
+000D1Ar 3               ;	lda	__Sequence_ptr + 1,x
+000D1Ar 3               ;.ifdef	DPCMBank
+000D1Ar 3               ;	ora	__Sequence_ptr,x
+000D1Ar 3               ;.endif
+000D1Ar 3               ;	beq	SE0
+000D1Ar 3               ;	jsr	nsd_sequence
+000D1Ar 3               ;	jsr	nsd_envelop
+000D1Ar 3               ;SE0:
+000D1Ar 3               ;	ldx	#nsd::TR_SE_Noise
+000D1Ar 3               ;	lda	__Sequence_ptr + 1,x
+000D1Ar 3               ;.ifdef	DPCMBank
+000D1Ar 3               ;	ora	__Sequence_ptr,x
+000D1Ar 3               ;.endif
+000D1Ar 3               ;	beq	SE1
+000D1Ar 3               ;	jsr	nsd_sequence
+000D1Ar 3               ;	jsr	nsd_envelop
+000D1Ar 3               ;	jmp	SE_Exit
+000D1Ar 3               ;SE1:
+000D1Ar 3               ;	ora	__Sequence_ptr + nsd::TR_SE_Pluse2 + 1
+000D1Ar 3               ;.ifdef	DPCMBank
+000D1Ar 3               ;	ora	__Sequence_ptr + nsd::TR_SE_Pluse2
+000D1Ar 3               ;.endif
+000D1Ar 3               ;	bne	SE_Exit
+000D1Ar 3               ;
+000D1Ar 3               ;-----------------------------------------------------------
+000D1Ar 3               
+000D1Ar 3               	;SE Disable
+000D1Ar 3               	lda	#nsd_flag::SE
+000D1Ar 3               	ora	__flag
+000D1Ar 3               	sta	__flag
+000D1Ar 3               SE_Exit:
+000D1Ar 3               
+000D1Ar 3               .endmacro
+000D1Ar 3               
+000D1Ar 2               
+000D1Ar 2               ;****************************************************************
+000D1Ar 2               ;*		Function of Library				*
+000D1Ar 2               ;****************************************************************
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_main(void);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		main routine of this sound driver
+000D1Ar 2               ;	Arguments :		None
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;	Useage :		Call by 60[Hz].  e.g. V-Blank
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_main
+000D1Ar 2               	.import		_nsd_main_bgm
+000D1Ar 2               	.import		_nsd_main_se
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_init(void);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Initraize this sound driver.
+000D1Ar 2               ;	Arguments :		None
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;	Useage :		Call when start up.
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_init
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_set_dpcm(nsd_dpcm* dpcm);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Set the Delta PCM information.
+000D1Ar 2               ;	Arguments :	AX	Pointer of the Delta PCM information.
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_set_dpcm
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_play_bgm(void* ptr);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Play the BGM
+000D1Ar 2               ;	Arguments :	AX	Pointer of the BGM data.
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_play_bgm
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_stop_bgm(void);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Stop the BGM
+000D1Ar 2               ;	Arguments :		None
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_stop_bgm
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_pause_bgm(void);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Pause the BGM
+000D1Ar 2               ;	Arguments :		None
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_pause_bgm
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_resume_bgm(void);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Resume the BGM
+000D1Ar 2               ;	Arguments :		None
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_resume_bgm
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	_nsd_save(void* buff);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Save state and pause
+000D1Ar 2               ;	Arguments :	AX	Pointer of Save buff
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_save
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	_nsd_load(void* buff);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Pause and Load state
+000D1Ar 2               ;	Arguments :	AX	Pointer of Save buff
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_load
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_play_se(void* ptr);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Play the SE
+000D1Ar 2               ;	Arguments :	AX	Pointer of the SE data.
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_play_se
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	void	__fastcall__	nsd_stop_se(void);
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Summary :		Stop the SE
+000D1Ar 2               ;	Arguments :		None
+000D1Ar 2               ;	Return :		None
+000D1Ar 2               ;	Modifies :		A X Y
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.import		_nsd_stop_se
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               ;	Work area of nsd.lib
+000D1Ar 2               ;-----------------------------------------------
+000D1Ar 2               	.importzp	nsd_work_zp
+000D1Ar 2               	.import		nsd_work
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 2               
+000D1Ar 1               .include "nmi.asm"
 000D1Ar 2               ;*------------------------------------------------------------------------------
 000D1Ar 2               ; bg_buffを読み取り，指定アドレスに書き込んでカウンタをインクリメント
 000D1Ar 2               ; Unused
@@ -3099,6 +4180,8 @@ Current file: mario.asm
 000D1Ar 2               ;*------------------------------------------------------------------------------
 000D1Ar 2               
 000D1Ar 2               .code									; ----- code -----
+000D1Ar 2               
+000D1Ar 2               .import _nsd_main_bgm
 000D1Ar 2               
 000D1Ar 2               .macro tfrDataToPPU ADDR
 000D1Ar 2               	lda bg_buff, x
@@ -3251,7 +4334,7 @@ Current file: mario.asm
 000DC3r 2               @STORE_CHR:
 000DC3r 2  A9 00        		lda #0
 000DC5r 2  8D 03 20     		sta OAM_ADDR
-000DC8r 2  A9 03        		lda #>CHR_BUFF
+000DC8r 2  A9 07        		lda #>CHR_BUFF
 000DCAr 2  8D 14 40     		sta OAM_DMA
 000DCDr 2               
 000DCDr 2               @EXIT:
@@ -3265,310 +4348,330 @@ Current file: mario.asm
 000DD9r 2  40           		rti	; --------------------------
 000DDAr 2               .endproc
 000DDAr 2               
-000DDAr 1               .include "./asm/init.asm"
+000DDAr 1               .include "init.asm"
 000DDAr 2               .code									; ----- code -----
 000DDAr 2               
-000DDAr 2               .macro init
-000DDAr 2               		sei								; Ban IRQ
-000DDAr 2               		cld								; Ban BCD
-000DDAr 2               		ldx #$40
-000DDAr 2               		stx JOYPAD2
-000DDAr 2               		ldx #$ff
-000DDAr 2               		txs
-000DDAr 2               		inx								; X = 0
-000DDAr 2               		stx PPU_CTRL1
-000DDAr 2               		stx PPU_CTRL2
-000DDAr 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
-000DDAr 2               		stx SOUND_CHANNEL
+000DDAr 2               .import DQBGM0
 000DDAr 2               
-000DDAr 2               		/*
-000DDAr 2               		A & $2002 -> set Z(zero flag)
-000DDAr 2               		$2002 bit7(vblank) -> N(negative), bit6(sprite 0 hit) -> V(overflow)
-000DDAr 2               		Reset vblank & sprite 0 hit flag
-000DDAr 2               		(The state of this flag after reset is undefined.)
-000DDAr 2               		*/
-000DDAr 2               		bit $2002
-000DDAr 2               		jsr Subfunc::_waitVblank		; 1st time
-000DDAr 2               
-000DDAr 2               		txa								; A = 0
-000DDAr 2               @CLR_MEM:
-000DDAr 2               		sta $00, x
-000DDAr 2               		sta $0100, x
-000DDAr 2               		sta $0200, x
-000DDAr 2               		sta $0400, x
-000DDAr 2               		sta $0500, x
-000DDAr 2               		sta $0600, x
-000DDAr 2               		sta $0700, x
-000DDAr 2               		inx
-000DDAr 2               		bne @CLR_MEM
-000DDAr 2               
-000DDAr 2               		lda #$ff
-000DDAr 2               @CLR_CHR_MEM:
-000DDAr 2               		sta $0300, x
-000DDAr 2               		inx
-000DDAr 2               		bne @CLR_CHR_MEM
-000DDAr 2               
-000DDAr 2               		; Zero sprite
-000DDAr 2               		lda #$10-2-1
-000DDAr 2               		sta CHR_BUFF+0
-000DDAr 2               		lda #$ff
-000DDAr 2               		sta CHR_BUFF+1
-000DDAr 2               		lda #%0000_0010
-000DDAr 2               		sta CHR_BUFF+2
-000DDAr 2               		lda #$0f
-000DDAr 2               		sta CHR_BUFF+3
-000DDAr 2               
-000DDAr 2               		jsr Subfunc::_waitVblank		; 2nd time
-000DDAr 2               
-000DDAr 2               		; ------- PPU stabilizes -------
-000DDAr 2               
-000DDAr 2               		lda #%00010000					; SPR = $0000, BG = $1000
-000DDAr 2               		sta ppu_ctrl1_cpy
-000DDAr 2               		jsr Subfunc::_restorePPUSet
-000DDAr 2               
-000DDAr 2               		; Clear VRAM
-000DDAr 2               		lda #$20
-000DDAr 2               		sta PPU_ADDR
-000DDAr 2               		lda #$00
-000DDAr 2               		sta PPU_ADDR
-000DDAr 2               
-000DDAr 2               		ldy #8
-000DDAr 2               		tax
-000DDAr 2               @CLR_VRAM:
-000DDAr 2               		sta PPU_DATA
-000DDAr 2               		inx
-000DDAr 2               		bne @CLR_VRAM
-000DDAr 2               		dey
-000DDAr 2               		bne @CLR_VRAM
-000DDAr 2               
-000DDAr 2               
-000DDAr 2               		jsr Subfunc::_waitVblank
-000DDAr 2               
-000DDAr 2               
-000DDAr 2               		tfrPlt
-000DDAr 2               
-000DDAr 2               		; Change bg color (black)
-000DDAr 2               		lda #$3f
-000DDAr 2               		sta PPU_ADDR
-000DDAr 2               		lda #$00
-000DDAr 2               		sta PPU_ADDR
-000DDAr 2               		lda #$0f
-000DDAr 2               		sta PPU_DATA
-000DDAr 2               		; 画面OFF中は最後に指定したアドレスの色が背景になる（指定なし→3f01の色が使用される）
-000DDAr 2               		lda #$3f
-000DDAr 2               		sta PPU_ADDR
-000DDAr 2               		lda #$00
-000DDAr 2               		sta PPU_ADDR
-000DDAr 2               
-000DDAr 2               	lda #'G'
-000DDAr 2               	sta DrawMap::fill_ground_block
-000DDAr 2               
-000DDAr 2               	lda #0
-000DDAr 2               	sta is_scroll_locked
-000DDAr 2               
-000DDAr 2               		jsr Subfunc::_dispStatus
-000DDAr 2               
-000DDAr 2               	; sprite
-000DDAr 2               	lda #$20
-000DDAr 2               	sta spr_posX_arr+0
-000DDAr 2               	sta spr_posX_tmp_arr+0
-000DDAr 2               	lda #$c0
-000DDAr 2               	sta spr_posY_tmp_arr+0
-000DDAr 2               	ldx #PLAYER_SPR_ID					; spr id
-000DDAr 2               	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
-000DDAr 2               	jsr Sprite::_tfrToChrBuff
-000DDAr 2               
-000DDAr 2               	lda #1							; Y方向の加速度が正（下向き）の場合
-000DDAr 2               	sta spr_velocity_y_arr+$0
-000DDAr 2               	sta spr_decimal_part_velocity_y_arr+$0
-000DDAr 2               
-000DDAr 2               		lda #0
-000DDAr 2               		sta is_updated_map
-000DDAr 2               
-000DDAr 2               		lda ppu_ctrl1_cpy				; NMI ON
-000DDAr 2               		ora #%10000000
-000DDAr 2               		sta ppu_ctrl1_cpy
-000DDAr 2               		jsr Subfunc::_restorePPUSet
-000DDAr 2               
-000DDAr 2               		jsr Subfunc::_sleepOneFrame		; draw disp status
-000DDAr 2               
-000DDAr 2               		ldy #0
-000DDAr 2               		jsr DrawMap::_changeStage
-000DDAr 2               
-000DDAr 2               .endmacro
-000DDAr 2               
-000DDAr 1               .include "./asm/func.asm"				; いくつかのファイルのインクルードが必要な関数群
-000DDAr 2               .scope Func
-000DDAr 2               
-000DDAr 2               ;*------------------------------------------------------------------------------
-000DDAr 2               ; スクロール
-000DDAr 2               ; @PARAMS		A: amount of scroll
-000DDAr 2               ; @CLOBBERS		A, tmp1, tmp2
-000DDAr 2               ; @RETURNS		None
-000DDAr 2               ;*------------------------------------------------------------------------------
-000DDAr 2               
-000DDAr 2               .proc _scroll
-000DDAr 2  A5 rr        		lda is_scroll_locked
-000DDCr 2  D0 28        		bne @SKIP_UPDATE_LINE
-000DDEr 2               
-000DDEr 2  A5 rr        		lda scroll_x
-000DE0r 2  29 F0        		and #BYT_GET_HI
-000DE2r 2  85 rr        		sta tmp1
-000DE4r 2               
-000DE4r 2  A5 rr        		lda scroll_x
-000DE6r 2  18 65 rr     		add scroll_amount
-000DE9r 2  85 rr        		sta scroll_x
-000DEBr 2  29 F0        		and #BYT_GET_HI						; Not clobber carry
-000DEDr 2  85 rr        		sta tmp2
-000DEFr 2               
-000DEFr 2  90 0C        		bcc @SKIP_CHANGE_DISP
-000DF1r 2  A5 rr        		lda main_disp
-000DF3r 2  49 01        		eor #%0000_0001
-000DF5r 2  85 rr        		sta main_disp
-000DF7r 2               
-000DF7r 2  A5 rr        		lda ppu_ctrl1_cpy
-000DF9r 2  49 01        		eor #%0000_0001
-000DFBr 2  85 rr        		sta ppu_ctrl1_cpy
-000DFDr 2               
-000DFDr 2               @SKIP_CHANGE_DISP:
-000DFDr 2  A5 rr        		lda tmp1
-000DFFr 2  C5 rr        		cmp tmp2
-000E01r 2  F0 03        		beq @SKIP_UPDATE_LINE
-000E03r 2  20 rr rr     		jsr DrawMap::_updateOneLine
-000E06r 2               @SKIP_UPDATE_LINE:
-000E06r 2               
-000E06r 2  60           		rts
-000E07r 2               		; ------------------------------
-000E07r 2               .endproc
-000E07r 2               
-000E07r 2               
-000E07r 2               .endscope
-000E07r 2               
-000E07r 1               .include "main.asm"
-000E07r 2               ;*------------------------------------------------------------------------------
-000E07r 2               ; メインルーチン
-000E07r 2               ;*------------------------------------------------------------------------------
-000E07r 2               
-000E07r 2               .code									; ----- code -----
-000E07r 2               
-000E07r 2               .proc _main
-000E07r 2               		; -------- Vblank終了待ち --------
-000E07r 2  A5 rr        		lda is_processing_main
-000E09r 2  F0 FC        		beq _main
-000E0Br 2               
-000E0Br 2               		; ----------- 0爆弾前 -----------
-000E0Br 2               
-000E0Br 2  A5 rr        		lda ppu_ctrl1_cpy				; ステータス表示の為$2000の画面を表示
-000E0Dr 2  29 FC        		and #%1111_1100
-000E0Fr 2  8D 00 20     		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない -> ??? 分かったら書き換えておいて
-000E12r 2               
-000E12r 2  A9 00        		lda #0							; ステータス表示の為リセット
-000E14r 2  8D 05 20     		sta PPU_SCROLL
-000E17r 2  8D 05 20     		sta PPU_SCROLL
-000E1Ar 2               
-000E1Ar 2               @WAIT_FINISH_VBLANK:
-000E1Ar 2  2C 02 20     		bit PPU_STATUS
-000E1Dr 2  70 FB        		bvs @WAIT_FINISH_VBLANK
-000E1Fr 2               
-000E1Fr 2  20 rr rr     		jsr Joypad::_getJoyData
-000E22r 2               
-000E22r 2               @WAIT_ZERO_BOMB:
-000E22r 2  2C 02 20     		bit PPU_STATUS
-000E25r 2  50 FB        		bvc @WAIT_ZERO_BOMB
+000DDAr 2  rr rr        bgm0:		.addr	DQBGM0
+000DDCr 2               
+000DDCr 2               .macro init
+000DDCr 2               		sei								; Ban IRQ
+000DDCr 2               		cld								; Ban BCD
+000DDCr 2               		ldx #$40
+000DDCr 2               		stx JOYPAD2
+000DDCr 2               		ldx #$ff
+000DDCr 2               		txs
+000DDCr 2               		inx								; X = 0
+000DDCr 2               		stx PPU_CTRL1
+000DDCr 2               		stx PPU_CTRL2
+000DDCr 2               		stx SOUND_DP_1					; Ban IRQ of APU DMC (bit7)
+000DDCr 2               		stx SOUND_CHANNEL
+000DDCr 2               
+000DDCr 2               		/*
+000DDCr 2               		A & $2002 -> set Z(zero flag)
+000DDCr 2               		$2002 bit7(vblank) -> N(negative), bit6(sprite 0 hit) -> V(overflow)
+000DDCr 2               		Reset vblank & sprite 0 hit flag
+000DDCr 2               		(The state of this flag after reset is undefined.)
+000DDCr 2               		*/
+000DDCr 2               		bit $2002
+000DDCr 2               		jsr Subfunc::_waitVblank		; 1st time
+000DDCr 2               
+000DDCr 2               		txa								; A = 0
+000DDCr 2               @CLR_MEM:
+000DDCr 2               		sta $00, x
+000DDCr 2               		sta $0100, x
+000DDCr 2               		sta $0200, x
+000DDCr 2               		sta $0300, x
+000DDCr 2               		sta $0400, x
+000DDCr 2               		sta $0500, x
+000DDCr 2               		sta $0600, x
+000DDCr 2               		inx
+000DDCr 2               		bne @CLR_MEM
+000DDCr 2               
+000DDCr 2               		lda #$ff
+000DDCr 2               @CLR_CHR_MEM:
+000DDCr 2               		sta $0700, x
+000DDCr 2               		inx
+000DDCr 2               		bne @CLR_CHR_MEM
+000DDCr 2               
+000DDCr 2               		; Zero sprite
+000DDCr 2               		lda #$10-2-1
+000DDCr 2               		sta CHR_BUFF+0
+000DDCr 2               		lda #$ff
+000DDCr 2               		sta CHR_BUFF+1
+000DDCr 2               		lda #%0000_0010
+000DDCr 2               		sta CHR_BUFF+2
+000DDCr 2               		lda #$0f
+000DDCr 2               		sta CHR_BUFF+3
+000DDCr 2               
+000DDCr 2               		jsr Subfunc::_waitVblank		; 2nd time
+000DDCr 2               
+000DDCr 2               		; ------- PPU stabilizes -------
+000DDCr 2               
+000DDCr 2               		lda #%00010000					; SPR = $0000, BG = $1000
+000DDCr 2               		sta ppu_ctrl1_cpy
+000DDCr 2               		jsr Subfunc::_restorePPUSet
+000DDCr 2               
+000DDCr 2               		; Clear VRAM
+000DDCr 2               		lda #$20
+000DDCr 2               		sta PPU_ADDR
+000DDCr 2               		lda #$00
+000DDCr 2               		sta PPU_ADDR
+000DDCr 2               
+000DDCr 2               		ldy #8
+000DDCr 2               		tax
+000DDCr 2               @CLR_VRAM:
+000DDCr 2               		sta PPU_DATA
+000DDCr 2               		inx
+000DDCr 2               		bne @CLR_VRAM
+000DDCr 2               		dey
+000DDCr 2               		bne @CLR_VRAM
+000DDCr 2               
+000DDCr 2               
+000DDCr 2               		jsr Subfunc::_waitVblank
+000DDCr 2               
+000DDCr 2               
+000DDCr 2               		tfrPlt
+000DDCr 2               
+000DDCr 2               		; Change bg color (black)
+000DDCr 2               		lda #$3f
+000DDCr 2               		sta PPU_ADDR
+000DDCr 2               		lda #$00
+000DDCr 2               		sta PPU_ADDR
+000DDCr 2               		lda #$0f
+000DDCr 2               		sta PPU_DATA
+000DDCr 2               		; 画面OFF中は最後に指定したアドレスの色が背景になる（指定なし→3f01の色が使用される）
+000DDCr 2               		lda #$3f
+000DDCr 2               		sta PPU_ADDR
+000DDCr 2               		lda #$00
+000DDCr 2               		sta PPU_ADDR
+000DDCr 2               
+000DDCr 2               	lda #'G'
+000DDCr 2               	sta DrawMap::fill_ground_block
+000DDCr 2               
+000DDCr 2               	lda #0
+000DDCr 2               	sta is_scroll_locked
+000DDCr 2               
+000DDCr 2               		jsr Subfunc::_dispStatus
+000DDCr 2               
+000DDCr 2               	; sprite
+000DDCr 2               	lda #$20
+000DDCr 2               	sta spr_posX_arr+0
+000DDCr 2               	sta spr_posX_tmp_arr+0
+000DDCr 2               	lda #$c0
+000DDCr 2               	sta spr_posY_tmp_arr+0
+000DDCr 2               	ldx #PLAYER_SPR_ID					; spr id
+000DDCr 2               	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
+000DDCr 2               	jsr Sprite::_tfrToChrBuff
+000DDCr 2               
+000DDCr 2               	lda #1							; Y方向の加速度が正（下向き）の場合
+000DDCr 2               	sta spr_velocity_y_arr+$0
+000DDCr 2               	sta spr_decimal_part_velocity_y_arr+$0\
+000DDCr 2               
+000DDCr 2               	lda APU_CHANCTRL
+000DDCr 2               	ora #%00000001
+000DDCr 2               	sta APU_CHANCTRL
+000DDCr 2               	lda #%10011111
+000DDCr 2               	sta APU_PULSE1CTRL						; Duty50%(2)、ループ無し、音響固定、ボリューム最大(4)
+000DDCr 2               	lda #%00000000
+000DDCr 2               	sta APU_PULSE1RAMP						; 周波数変化なし（bit7）、他は設定せず
+000DDCr 2               
+000DDCr 2               	jsr _nsd_init
+000DDCr 2               
+000DDCr 2               	lda	bgm0
+000DDCr 2               	ldx	bgm0 + 1
+000DDCr 2               	jsr	_nsd_play_bgm
+000DDCr 2               
+000DDCr 2               		lda #0
+000DDCr 2               		sta is_updated_map
+000DDCr 2               
+000DDCr 2               		lda ppu_ctrl1_cpy				; NMI ON
+000DDCr 2               		ora #%10000000
+000DDCr 2               		sta ppu_ctrl1_cpy
+000DDCr 2               		jsr Subfunc::_restorePPUSet
+000DDCr 2               
+000DDCr 2               		jsr Subfunc::_sleepOneFrame		; draw disp status
+000DDCr 2               
+000DDCr 2               		ldy #0
+000DDCr 2               		jsr DrawMap::_changeStage
+000DDCr 2               
+000DDCr 2               .endmacro
+000DDCr 2               
+000DDCr 1               .include "func.asm"				; いくつかのファイルのインクルードが必要な関数群
+000DDCr 2               .scope Func
+000DDCr 2               
+000DDCr 2               ;*------------------------------------------------------------------------------
+000DDCr 2               ; スクロール
+000DDCr 2               ; @PARAMS		A: amount of scroll
+000DDCr 2               ; @CLOBBERS		A, tmp1, tmp2
+000DDCr 2               ; @RETURNS		None
+000DDCr 2               ;*------------------------------------------------------------------------------
+000DDCr 2               
+000DDCr 2               .proc _scroll
+000DDCr 2  A5 rr        		lda is_scroll_locked
+000DDEr 2  D0 28        		bne @SKIP_UPDATE_LINE
+000DE0r 2               
+000DE0r 2  A5 rr        		lda scroll_x
+000DE2r 2  29 F0        		and #BYT_GET_HI
+000DE4r 2  85 rr        		sta tmp1
+000DE6r 2               
+000DE6r 2  A5 rr        		lda scroll_x
+000DE8r 2  18 65 rr     		add scroll_amount
+000DEBr 2  85 rr        		sta scroll_x
+000DEDr 2  29 F0        		and #BYT_GET_HI						; Not clobber carry
+000DEFr 2  85 rr        		sta tmp2
+000DF1r 2               
+000DF1r 2  90 0C        		bcc @SKIP_CHANGE_DISP
+000DF3r 2  A5 rr        		lda main_disp
+000DF5r 2  49 01        		eor #%0000_0001
+000DF7r 2  85 rr        		sta main_disp
+000DF9r 2               
+000DF9r 2  A5 rr        		lda ppu_ctrl1_cpy
+000DFBr 2  49 01        		eor #%0000_0001
+000DFDr 2  85 rr        		sta ppu_ctrl1_cpy
+000DFFr 2               
+000DFFr 2               @SKIP_CHANGE_DISP:
+000DFFr 2  A5 rr        		lda tmp1
+000E01r 2  C5 rr        		cmp tmp2
+000E03r 2  F0 03        		beq @SKIP_UPDATE_LINE
+000E05r 2  20 rr rr     		jsr DrawMap::_updateOneLine
+000E08r 2               @SKIP_UPDATE_LINE:
+000E08r 2               
+000E08r 2  60           		rts
+000E09r 2               		; ------------------------------
+000E09r 2               .endproc
+000E09r 2               
+000E09r 2               
+000E09r 2               .endscope
+000E09r 2               
+000E09r 1               .include "main.asm"
+000E09r 2               ;*------------------------------------------------------------------------------
+000E09r 2               ; メインルーチン
+000E09r 2               ;*------------------------------------------------------------------------------
+000E09r 2               
+000E09r 2               .code									; ----- code -----
+000E09r 2               
+000E09r 2               .proc _main
+000E09r 2               		; -------- Vblank終了待ち --------
+000E09r 2  A5 rr        		lda is_processing_main
+000E0Br 2  F0 FC        		beq _main
+000E0Dr 2               
+000E0Dr 2               		; ----------- 0爆弾前 -----------
+000E0Dr 2               
+000E0Dr 2  A5 rr        		lda ppu_ctrl1_cpy				; ステータス表示の為$2000の画面を表示
+000E0Fr 2  29 FC        		and #%1111_1100
+000E11r 2  8D 00 20     		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない -> ??? 分かったら書き換えておいて
+000E14r 2               
+000E14r 2  A9 00        		lda #0							; ステータス表示の為リセット
+000E16r 2  8D 05 20     		sta PPU_SCROLL
+000E19r 2  8D 05 20     		sta PPU_SCROLL
+000E1Cr 2               
+000E1Cr 2               @WAIT_FINISH_VBLANK:
+000E1Cr 2  2C 02 20     		bit PPU_STATUS
+000E1Fr 2  70 FB        		bvs @WAIT_FINISH_VBLANK
+000E21r 2               
+000E21r 2  20 rr rr     		jsr _nsd_main_bgm
+000E24r 2               
+000E24r 2  20 rr rr     		jsr Joypad::_getJoyData
 000E27r 2               
-000E27r 2  A0 14        		ldy #20							; 10ぐらいまで乱れる，余裕もって20に
-000E29r 2               :
-000E29r 2  88           		dey
-000E2Ar 2  D0 FD        		bne :-
+000E27r 2               @WAIT_ZERO_BOMB:
+000E27r 2  2C 02 20     		bit PPU_STATUS
+000E2Ar 2  50 FB        		bvc @WAIT_ZERO_BOMB
 000E2Cr 2               
-000E2Cr 2               		; ----------- 0爆弾後 -----------
-000E2Cr 2               
-000E2Cr 2  20 rr rr     		jsr Subfunc::_setScroll
-000E2Fr 2               
-000E2Fr 2               	; inc timer
-000E2Fr 2  EE rr rr     	inc spr_anime_timer+$0
-000E32r 2               
-000E32r 2               	; chr move
-000E32r 2  A2 01        	ldx #PLAYER_SPR_ID					; spr id
-000E34r 2  20 rr rr     	jsr Sprite::_moveSprite
+000E2Cr 2  A0 14        		ldy #20							; 10ぐらいまで乱れる，余裕もって20に
+000E2Er 2               :
+000E2Er 2  88           		dey
+000E2Fr 2  D0 FD        		bne :-
+000E31r 2               
+000E31r 2               		; ----------- 0爆弾後 -----------
+000E31r 2               
+000E31r 2  20 rr rr     		jsr Subfunc::_setScroll
+000E34r 2               
+000E34r 2               	; inc timer
+000E34r 2  EE rr rr     	inc spr_anime_timer+$0
+000E37r 2               
+000E37r 2               	; chr move
 000E37r 2  A2 01        	ldx #PLAYER_SPR_ID					; spr id
-000E39r 2  A0 00        	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
-000E3Br 2  20 rr rr     	jsr Sprite::_tfrToChrBuff
-000E3Er 2               
-000E3Er 2  20 rr rr     	jsr Func::_scroll
-000E41r 2               
-000E41r 2               		; Aボタン
-000E41r 2  A5 rr        		lda Joypad::joy1_pushstart
-000E43r 2  29 80        		and #Joypad::BTN_A
-000E45r 2  F0 00        		beq @NO_PUSHED_BTN_A
-000E47r 2               
-000E47r 2               		; jsr DrawMap::_updateOneLine
-000E47r 2               @NO_PUSHED_BTN_A:
-000E47r 2               		; Bボタン
-000E47r 2  A5 rr        		lda Joypad::joy1
-000E49r 2  29 40        		and #Joypad::BTN_B
-000E4Br 2  F0 00        		beq @NO_PUSHED_BTN_B
-000E4Dr 2               
-000E4Dr 2               		; ldy #1
-000E4Dr 2               		; jsr DrawMap::_changeStage
-000E4Dr 2               @NO_PUSHED_BTN_B:
-000E4Dr 2               		; ↑ボタン
-000E4Dr 2  A5 rr        		lda Joypad::joy1_pushstart
-000E4Fr 2  29 08        		and #Joypad::BTN_U
-000E51r 2  F0 00        		beq @NO_PUSHED_BTN_U
-000E53r 2               
-000E53r 2               @NO_PUSHED_BTN_U:
-000E53r 2               		; ↓ボタン
-000E53r 2  A5 rr        		lda Joypad::joy1_pushstart
-000E55r 2  29 04        		and #Joypad::BTN_D
-000E57r 2  F0 00        		beq @NO_PUSHED_BTN_D
-000E59r 2               
-000E59r 2               @NO_PUSHED_BTN_D:
-000E59r 2               
-000E59r 2  20 rr rr     		jsr Player::_physicsX
-000E5Cr 2  20 rr rr     		jsr Player::_jumpCheck
-000E5Fr 2  20 rr rr     		jsr Player::_moveYProcess
-000E62r 2  20 rr rr     		jsr Player::_checkCollision
-000E65r 2  20 rr rr     		jsr Player::_animate
-000E68r 2               
-000E68r 2               
-000E68r 2               		; ----- End main -----
-000E68r 2  A9 00        		lda #0
-000E6Ar 2  85 rr        		sta is_processing_main
-000E6Cr 2  4C rr rr     		jmp _main
-000E6Fr 2               		; ------------------------------
-000E6Fr 2               .endproc
-000E6Fr 2               
-000E6Fr 1               
-000E6Fr 1               
-000E6Fr 1               .segment "DMA_MEM"
+000E39r 2  20 rr rr     	jsr Sprite::_moveSprite
+000E3Cr 2  A2 01        	ldx #PLAYER_SPR_ID					; spr id
+000E3Er 2  A0 00        	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
+000E40r 2  20 rr rr     	jsr Sprite::_tfrToChrBuff
+000E43r 2               
+000E43r 2  20 rr rr     	jsr Func::_scroll
+000E46r 2               
+000E46r 2               		; Aボタン
+000E46r 2  A5 rr        		lda Joypad::joy1_pushstart
+000E48r 2  29 80        		and #Joypad::BTN_A
+000E4Ar 2  F0 00        		beq @NO_PUSHED_BTN_A
+000E4Cr 2               
+000E4Cr 2               		; jsr DrawMap::_updateOneLine
+000E4Cr 2               @NO_PUSHED_BTN_A:
+000E4Cr 2               		; Bボタン
+000E4Cr 2  A5 rr        		lda Joypad::joy1
+000E4Er 2  29 40        		and #Joypad::BTN_B
+000E50r 2  F0 00        		beq @NO_PUSHED_BTN_B
+000E52r 2               
+000E52r 2               		; ldy #1
+000E52r 2               		; jsr DrawMap::_changeStage
+000E52r 2               @NO_PUSHED_BTN_B:
+000E52r 2               		; ↑ボタン
+000E52r 2  A5 rr        		lda Joypad::joy1_pushstart
+000E54r 2  29 08        		and #Joypad::BTN_U
+000E56r 2  F0 00        		beq @NO_PUSHED_BTN_U
+000E58r 2               
+000E58r 2               @NO_PUSHED_BTN_U:
+000E58r 2               		; ↓ボタン
+000E58r 2  A5 rr        		lda Joypad::joy1_pushstart
+000E5Ar 2  29 04        		and #Joypad::BTN_D
+000E5Cr 2  F0 00        		beq @NO_PUSHED_BTN_D
+000E5Er 2               
+000E5Er 2               @NO_PUSHED_BTN_D:
+000E5Er 2               
+000E5Er 2  20 rr rr     		jsr Player::_physicsX
+000E61r 2  20 rr rr     		jsr Player::_jumpCheck
+000E64r 2  20 rr rr     		jsr Player::_moveYProcess
+000E67r 2  20 rr rr     		jsr Player::_checkCollision
+000E6Ar 2  20 rr rr     		jsr Player::_animate
+000E6Dr 2               
+000E6Dr 2               
+000E6Dr 2               		; ----- End main -----
+000E6Dr 2  A9 00        		lda #0
+000E6Fr 2  85 rr        		sta is_processing_main
+000E71r 2  4C rr rr     		jmp _main
+000E74r 2               		; ------------------------------
+000E74r 2               .endproc
+000E74r 2               
+000E74r 1               
+000E74r 1               
+000E74r 1               .segment "DMA_MEM"
 000000r 1  xx xx xx xx  		.tag SPR_TBL
 000004r 1  xx xx xx xx  
 000008r 1  xx xx xx xx  
 000100r 1               
 000100r 1               
 000100r 1               .code									; ----- code -----
-000E6Fr 1               .segment "STARTUP"
+000E74r 1               .segment "STARTUP"
 000000r 1               
 000000r 1               .proc _reset
 000000r 1  78 D8 A2 40  		init
 000004r 1  8E 17 40 A2  
 000008r 1  FF 9A E8 8E  
-00010Dr 1               
-00010Dr 1  A9 01        		lda #1
-00010Fr 1  85 rr        		sta is_processing_main
-000111r 1               
-000111r 1  4C rr rr     		jmp _main
-000114r 1               		; ------------------------------
-000114r 1               .endproc
-000114r 1               
-000114r 1               
-000114r 1               .proc _irq
-000114r 1  40           		rti
-000115r 1               .endproc
-000115r 1               
-000115r 1               
-000115r 1               .segment "CHARS"
+00012Br 1               
+00012Br 1  A9 01        		lda #1
+00012Dr 1  85 rr        		sta is_processing_main
+00012Fr 1               
+00012Fr 1  4C rr rr     		jmp _main
+000132r 1               		; ------------------------------
+000132r 1               .endproc
+000132r 1               
+000132r 1               
+000132r 1               .proc _irq
+000132r 1  40           		rti
+000133r 1               .endproc
+000133r 1               
+000133r 1               
+000133r 1               .segment "CHARS"
 000000r 1  03 0F 1F 1F  		.incbin "spr_bg.chr"
 000004r 1  1C 24 26 66  
 000008r 1  00 00 00 00  

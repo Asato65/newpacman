@@ -1,0 +1,4 @@
+nsc -a -e testmus.mml 1>>comlog.txt		 2>>errlog.txt		
+ca65 -t none -I..\..\include\\ --listing testmus.lst --list-bytes 255 -g testmus.s 1>>comlog.txt		 2>>errlog.txt		
+ld65 -C nesa.cfg -L..\..\lib\\ -v -m test.map -vm --dbgfile test.dbg -o test.nes ines.o crt0.o work.o nmi_main.o irq_main.o main.o testmus.o ..\..\lib\\nsd.lib 1>>comlog.txt		 2>>errlog.txt		
+rm testmus.s

@@ -1,0 +1,46 @@
+ca65 V2.19 - Git de30a57
+Main file   : ines.s
+Current file: ines.s
+
+000000r 1               
+000000r 1               ; ------------------------------------------------------------------------
+000000r 1               ; 16 bytes INES header
+000000r 1               
+000000r 1               .segment	"HEADER"
+000000r 1               
+000000r 1               ;    +--------+------+------------------------------------------+
+000000r 1               ;    | Offset | Size | Content(s)                               |
+000000r 1               ;    +--------+------+------------------------------------------+
+000000r 1               ;    |   0    |  3   | 'NES'                                    |
+000000r 1               ;    |   3    |  1   | $1A                                      |
+000000r 1               ;    |   4    |  1   | 16K PRG-ROM page count                   |
+000000r 1               ;    |   5    |  1   | 8K CHR-ROM page count                    |
+000000r 1               ;    |   6    |  1   | ROM Control Byte #1                      |
+000000r 1               ;    |        |      |   %####vTsM                              |
+000000r 1               ;    |        |      |    |  ||||+- 0=Horizontal mirroring      |
+000000r 1               ;    |        |      |    |  ||||   1=Vertical mirroring        |
+000000r 1               ;    |        |      |    |  |||+-- 1=SRAM enabled              |
+000000r 1               ;    |        |      |    |  ||+--- 1=512-byte trainer present  |
+000000r 1               ;    |        |      |    |  |+---- 1=Four-screen mirroring     |
+000000r 1               ;    |        |      |    |  |                                  |
+000000r 1               ;    |        |      |    +--+----- Mapper # (lower 4-bits)     |
+000000r 1               ;    |   7    |  1   | ROM Control Byte #2                      |
+000000r 1               ;    |        |      |   %####0000                              |
+000000r 1               ;    |        |      |    |  |                                  |
+000000r 1               ;    |        |      |    +--+----- Mapper # (upper 4-bits)     |
+000000r 1               ;    |  8-15  |  8   | $00                                      |
+000000r 1               ;    | 16-..  |      | Actual 16K PRG-ROM pages (in linear      |
+000000r 1               ;    |  ...   |      | order). If a trainer exists, it precedes |
+000000r 1               ;    |  ...   |      | the first PRG-ROM page.                  |
+000000r 1               ;    | ..-EOF |      | CHR-ROM pages (in ascending order).      |
+000000r 1               ;    +--------+------+------------------------------------------+
+000000r 1               
+000000r 1  4E 45 53 1A  	.byte	$4e,$45,$53,$1a	; "NES"^Z
+000004r 1  02           	.byte	2		; ines prg  - Specifies the number of 16k prg banks.
+000005r 1  01           	.byte	1		; ines chr  - Specifies the number of 8k chr banks.
+000006r 1  01           	.byte	%00000001	; ines mir  - Specifies VRAM mirroring of the banks.
+000007r 1  00           	.byte	%00000000	; ines map  - Specifies the NES mapper used.
+000008r 1  00 00 00 00  	.byte	0,0,0,0,0,0,0,0	; 8 zeroes
+00000Cr 1  00 00 00 00  
+000010r 1               
+000010r 1               

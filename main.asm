@@ -23,6 +23,8 @@
 		bit PPU_STATUS
 		bvs @WAIT_FINISH_VBLANK
 
+		jsr _nsd_main_bgm
+
 		jsr Joypad::_getJoyData
 
 @WAIT_ZERO_BOMB:

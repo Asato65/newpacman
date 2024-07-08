@@ -4,15 +4,15 @@ bg_map_buff			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
 bg_plt_buff			= $0134				; size = 8
 fill_block_arr		= $013c				; size = 13 ($d)
 bg_buff				= $0149
-CHR_BUFF			= $0300
+CHR_BUFF			= $0700
 MAP1				= $0400
 MAP2				= $0500
 USER_MEM			= $0700
 
 PLT_TABLE_ADDR		= $3f00
 
-PPU_CTRL1			= $2000
-PPU_CTRL2			= $2001
+; PPU_CTRL1			= $2000		; nes.incで定義済み
+; PPU_CTRL2			= $2001
 PPU_STATUS			= $2002
 OAM_ADDR			= $2003
 OAM_DATA			= $2004
