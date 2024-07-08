@@ -224,12 +224,15 @@ EXIT:
 	rts
 	; ------------------------------
 :
-		lda spr_float_velocity_x_arr+$0
-		bne :+
-		lda #0
-		sta spr_anime_num+$0
-		rts
-		; ------------------------------
+	lda spr_float_velocity_x_arr+$0
+	bne :+
+	lda Joypad::joy1
+	and #(Joypad::BTN_L|Joypad::BTN_R)
+	bne @NORMAL_MOVE				; 当たり判定で動きが封じられているとき（速度0でボタンは押されている）
+	lda #0
+	sta spr_anime_num+$0
+	rts
+	; ------------------------------
 :										; 速度が0でないとき
 		lda Joypad::joy1
 		and #(Joypad::BTN_L|Joypad::BTN_R)
@@ -466,6 +469,30 @@ EXIT:
 	lda #0
 	sta player_offset_flags
 	sta player_collision_flags
+	sta is_collision_down
+
+	lda spr_posX_tmp_arr+$0
+	cmp #$f0+PLAYER_PADDING
+	bcc @SKIP1
+	cmp #$f8
+	bcc @RIGHT
+	; 左端衝突
+	lda #0
+	sta spr_posX_tmp_arr+$0
+	; lda #1
+	sta spr_float_velocity_x_arr+$0
+	sta spr_velocity_x_arr+$0
+	; sta spr_decimal_part_velocity_x_arr+$0
+	beq @SKIP1
+@RIGHT:
+	lda #($100-PLAYER_WIDTH-PLAYER_PADDING)
+	sta spr_posX_tmp_arr+$0
+	; lda #1
+	lda #0
+	sta spr_float_velocity_x_arr+$0
+	sta spr_velocity_x_arr+$0
+	; sta spr_decimal_part_velocity_x_arr+$0
+@SKIP1:
 
 	; マリオのY座標を取得してブロック単位に変換
 	lda spr_posY_tmp_arr+$0
@@ -663,6 +690,9 @@ EXIT:
 	sta player_collision_flags
 	jsr _fixCollision
 @EXIT:
+	lda is_collision_down
+	eor #%0000_0001
+	sta is_fly
 	rts
 	; ------------------------------
 .endproc
@@ -722,11 +752,6 @@ EXIT:
 	jsr _fixCollisionUp
 	jsr _fixCollisionLeft
 @EXIT:
-	lda is_collision_down
-	bne :+
-	lda #1
-	sta is_fly
-:
 	rts
 	; ------------------------------
 
@@ -762,7 +787,7 @@ EXIT:
 	beq @LOWER_LEFT
 	bcs @LEFT						; 上下のずれ < 左右のずれ
 :
-	cmp #%0000_0100
+	cmp #%0000_0100					; 右上
 	bne :+
 	lda player_offset_flags
 	cmp #%0000_0010					; X座標のずれの確認
@@ -783,7 +808,7 @@ EXIT:
 ; 	beq @RIGHT
 ; 	bne @UPPER_RIGHT
 ; :
-	cmp #%0000_1000
+	cmp #%0000_1000					; 左上
 	bne :+
 	lda player_offset_flags
 	cmp #%0000_0010					; X座標のずれの確認
@@ -829,11 +854,6 @@ EXIT:
 	jsr _fixCollisionUp
 	jsr _fixCollisionLeft
 @EXIT2:
-	lda is_collision_down
-	bne :+
-	lda #1
-	sta is_fly
-:
 	rts
 	; ------------------------------
 .endproc
@@ -881,8 +901,8 @@ EXIT:
 
 ;! -----------------------------------------------------------------------------
 ;! 不具合内容
-;! スクロール，速度決定のプロセスに何らかのバグ
-;! 上からマリオが降ってきたときには左右にずらさない
+;! スクロール，速度決定のプロセスに何らかのバグ→修正済み
+;! 上からマリオが降ってきたときには左右にずらさない→修正済み
 ;! -----------------------------------------------------------------------------
 
 .proc _fixCollisionRight

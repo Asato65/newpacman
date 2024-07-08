@@ -159,8 +159,8 @@ AMOUNT_INC_SPD_R:
 	cmp #$f8
 	bcc :+
 	; マリオが左端を超えた時
-	lda #0
-	sta spr_posX_arr, x
+	; lda #0
+	; sta spr_posX_arr, x
 	rts
 	; ------------------------------
 :
