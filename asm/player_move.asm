@@ -356,21 +356,19 @@ EXIT:
 		bpl :+
 		cnn								; X方向のスピードの絶対値を求める
 :
-		cmp #$1c
-		bmi @SKIP1
-		inx								; x = 1
-@SKIP1:
-		cmp #$19
-		bmi @SKIP2
-		inx								; x = 2
-@SKIP2:
-		cmp #$10
-		bmi @SKIP3
-		inx								; x = 3
-@SKIP3:
 		cmp #$09
-		bmi @SKIP4
-		inx								; x = 4
+		bcc :+
+		inx
+		cmp #$10
+		bcc :+
+		inx
+		cmp #$19
+		bcc :+
+		inx
+		cmp #$1c
+		bcc :+
+		inx
+:
 @SKIP4:
 		; 現在の速度に応じた初期データを格納
 		lda VER_FORCE_DECIMAL_PART_DATA, x
@@ -418,42 +416,41 @@ EXIT:
 ; @PARAMS		None
 ; @CLOBBERS		A X
 ; @RETURNS		None
+; https://qiita.com/morian-bisco/items/4c659d9f940c7e3a2099に従ったプログラム
 ;*------------------------------------------------------------------------------
 .proc _physicsY
 		ldx #0
 		stx spr_fix_val_y+$0			; 初期化
 
 		lda spr_pos_y_decimal_part+$0
-		add spr_decimal_part_force_y+$0
+		add spr_decimal_part_velocity_y_arr+$0
 		sta spr_pos_y_decimal_part+$0
 		bcc @SKIP_OVERFLOW
 		; オーバーフローしてたら
-		stx spr_pos_y_decimal_part+$0	; x = 0
 		inx								; x = 1
 		stx spr_fix_val_y+$0			; 補正値があったらここで修正
 @SKIP_OVERFLOW:
+		lda spr_posY_arr+$0
+		add spr_velocity_y_arr+$0
+		add spr_fix_val_y+$0
+		sta spr_posY_tmp_arr+$0
+
 		lda spr_decimal_part_velocity_y_arr+$0
 		add spr_decimal_part_force_y+$0
 		sta spr_decimal_part_velocity_y_arr+$0
-		bcc @EXIT
-
+		bcc :+
+		; 直前の計算結果が255を超えたとき
+		inc spr_velocity_y_arr+$0
+:
+		lda spr_velocity_y_arr+$0
+		cmp #DOWN_SPEED_LIMIT
+		bmi :+
+		; 落下スピードがMAXを超えていたら
+		lda #DOWN_SPEED_LIMIT
+		sta spr_velocity_y_arr+$0
 		lda #0
 		sta spr_decimal_part_velocity_y_arr+$0
-		ldx spr_velocity_y_arr+$0
-		inx
-		cpx #DOWN_SPEED_LIMIT
-		bmi @STORE_VER_SPEED
-
-		ldx #DOWN_SPEED_LIMIT
-		lda #0
-		sta spr_decimal_part_velocity_y_arr+$0
-@STORE_VER_SPEED:
-		stx spr_velocity_y_arr+$0
-
-@EXIT:
-		lda spr_posY_arr+$0
-		add spr_velocity_y_arr+$0
-		sta spr_posY_tmp_arr+$0			; 仮Y座標
+:
 		rts
 		; ------------------------------
 .endproc
