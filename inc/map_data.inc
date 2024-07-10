@@ -52,7 +52,19 @@ MAP_11_2:
 	.byte (GET_OBJ_POS $a, $6), 'B'
 	.byte (GET_OBJ_POS $a, $7), 'B'
 	.byte (GET_OBJ_POS $a, $8), 'B'
-	.byte (GET_OBJ_POS $f, $6), 'B'
+	.byte (GET_OBJ_POS $f, $2), 'B'
+	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $0, $2), 'B'
+	.byte (GET_OBJ_POS $0, $3), 'B'
+	.byte (GET_OBJ_POS $1, $2), 'B'
+	.byte (GET_OBJ_POS $1, $3), 'B'
+	.byte (GET_OBJ_POS $1, $4), 'B'
+	.byte (GET_OBJ_POS $4, $2), 'B'
+	.byte (GET_OBJ_POS $4, $3), 'B'
+	.byte (GET_OBJ_POS $4, $4), 'B'
+	.byte (GET_OBJ_POS $5, $2), 'B'
+	.byte (GET_OBJ_POS $5, $3), 'B'
+	.byte (GET_OBJ_POS $6, $2), 'B'
 	.byte OBJMAP_END
 
 MAP_12_1:

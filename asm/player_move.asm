@@ -352,7 +352,7 @@ EXIT:
 		sta spr_pos_y_origin+$0
 
 		; X = 0
-		lda spr_velocity_x_arr+$0
+		lda spr_float_velocity_x_arr+$0
 		bpl :+
 		cnn								; X方向のスピードの絶対値を求める
 :
@@ -798,9 +798,9 @@ EXIT:
 	lda player_pos_top
 	and #BYT_GET_LO
 	cmp tmp1
-	bcc @RIGHT2
+	bcc @UPPER2
 	beq @UPPER_RIGHT2
-	bcs @UPPER2						; 上下のずれ <= 左右のずれ
+	bcs @RIGHT2						; 上下のずれ <= 左右のずれ
 :
 ; 	bne :+
 ; 	ldx player_offset_flags

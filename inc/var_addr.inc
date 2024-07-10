@@ -41,7 +41,7 @@ is_scroll_locked		: .byte 0
 is_jumping				: .byte 0
 
 
-.segment "BUFF_MEM"
+.segment "USER_MEM"
 
 
 spr_posX_arr						: .res 6
