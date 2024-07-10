@@ -3,7 +3,6 @@
 #bgm	1
 #timebase 24
 
-
 Sub(0) {
 	// intro
 	o5	eere rcer gr8. r4
@@ -115,29 +114,16 @@ Sub(2) {
 }
 
 Sub(3) {
-	; l4 @0 o6c	; o5c o5c+ o5d o5d+ o5e o5f o5f+ o5g o5g+ o5a o5a+ o5b o6c o6c+ o6d o6d+
-	; l4 @1 o5b	; o5c o5c+ o5d o5d+ o5e o5f o5f+ o5g o5g+ o5a o5a+ o5b o6c o6c+ o6d o6d+
-	; l4 o2 g
-	o6c r
+	r
 }
 
 BGM(0) {
 	TR1 t100 v15 o4 l16 @2 q8 s46 Rv0 L
 	TR2 t100 v15 o4 l16 @2 q8 s46 Rv0 L
 	TR3 t100     o4 l16    q8     Rv0 L
-	; TR4 t150 v12    l16           Rv0 L
+	TR4 t100 v12    l16    q8 s46 Rv0 L
 	TR1 S0
 	TR2 S1
 	TR3 S2
-	;TR4 S3
+	TR4 S3
 }
-
-; @t1, x
-; 14400 / t = x (x: int)
-; tempo=100のときx=144 -> @t1, 144
-; v0~15
-; @1 duty 0~3 (12.5%, 25%, 50%, 75%)
-; o4 -> オクターブ
-; l8 -> long，8分音符を基準に
-; c1 -> cを全音符で鳴らす
-; b4 -> bを4分音符で鳴らす

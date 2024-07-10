@@ -884,11 +884,14 @@ EXIT:
 	sub player_pos_bottom
 	add spr_posY_tmp_arr+$0
 	sta spr_posY_tmp_arr+$0
+	lda spr_velocity_y_arr+$0
+	bmi :+
 	ldx #0
 	stx is_fly
 	stx is_jumping
-	inx
-	stx is_collision_down
+:
+	lda #1
+	sta is_collision_down
 	lda spr_velocity_y_arr+$0
 	bmi :+
 	lda #1							; Y方向の加速度が正（下向き）の場合
@@ -900,12 +903,6 @@ EXIT:
 .endproc
 
 
-;! -----------------------------------------------------------------------------
-;! 不具合内容
-;! スクロール，速度決定のプロセスに何らかのバグ→修正済み
-;! 上からマリオが降ってきたときには左右にずらさない→修正済み
-;! -----------------------------------------------------------------------------
-
 .proc _fixCollisionRight
 	; 右で衝突→左にずらす
 	lda player_actual_pos_right
@@ -913,8 +910,11 @@ EXIT:
 	sub player_actual_pos_right
 	add spr_posX_tmp_arr+$0
 	sta spr_posX_tmp_arr+$0
+	lda spr_velocity_x_arr+$0
+	bmi :+
 	lda #0
 	sta spr_float_velocity_x_arr+$0
+:
 	rts
 	; ------------------------------
 .endproc
@@ -930,8 +930,11 @@ EXIT:
 	sub player_actual_pos_left
 	add spr_posX_tmp_arr+$0
 	sta spr_posX_tmp_arr+$0
+	lda spr_velocity_x_arr+$0
+	bpl :+
 	lda #0
 	sta spr_float_velocity_x_arr+$0
+:
 	rts
 	; ------------------------------
 .endproc

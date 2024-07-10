@@ -1966,16 +1966,18 @@ DQSUB2:
 	.byte	$af ,$12
 	.byte	$00
 DQSUB3:
+	.byte	$8f
+	.byte	$00
 DQBGM0:
-	.byte	$03, $0
-	.word	$0008 ,$0017 ,$0026
+	.byte	$04, $0
+	.word	$000a ,$0019 ,$0028 ,$0033
 	.byte	$08 ,$64
 	.byte	$4b
 	.byte	$1b ,$02
 	.byte	$58
 	.byte	$16 ,$2e
 	.byte	$70
-	.byte	$02 ,$81 ,$f7
+	.byte	$02 ,$7d ,$f7
 	.byte	$01 ,$fc ,$ff
 	.byte	$08 ,$64
 	.byte	$4b
@@ -1983,11 +1985,19 @@ DQBGM0:
 	.byte	$58
 	.byte	$16 ,$2e
 	.byte	$70
-	.byte	$02 ,$27 ,$fa
+	.byte	$02 ,$23 ,$fa
 	.byte	$01 ,$fc ,$ff
 	.byte	$08 ,$64
 	.byte	$4b
 	.byte	$58
 	.byte	$70
-	.byte	$02 ,$db ,$fc
+	.byte	$02 ,$d7 ,$fc
+	.byte	$01 ,$fc ,$ff
+	.byte	$08 ,$64
+	.byte	$6c
+	.byte	$4b
+	.byte	$58
+	.byte	$16 ,$2e
+	.byte	$70
+	.byte	$02 ,$c2 ,$ff
 	.byte	$01 ,$fc ,$ff
