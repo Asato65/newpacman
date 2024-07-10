@@ -319,6 +319,7 @@ EXIT:
 ; @PARAMS		None
 ; @CLOBBERS		A
 ; @RETURNS		None
+; smbdisでは6060行目のPlayerPhysicsSubで実行？
 ;*------------------------------------------------------------------------------
 .proc _jumpCheck
 		lda Joypad::joy1_pushstart
@@ -339,6 +340,7 @@ EXIT:
 ; @PARAMS		None
 ; @CLOBBERS		A X
 ; @RETURNS		None
+; smbdisでは6092行目のProcJumping()
 ;*------------------------------------------------------------------------------
 .proc _prepareJumping
 		ldx #1
@@ -390,6 +392,7 @@ EXIT:
 ; @PARAMS		None
 ; @CLOBBERS		A
 ; @RETURNS		None
+; smbdisでは6082行目のCheckForJumping()
 ;*------------------------------------------------------------------------------
 .proc _moveYProcess
 		lda spr_velocity_y_arr+$0
@@ -417,6 +420,7 @@ EXIT:
 ; @CLOBBERS		A X
 ; @RETURNS		None
 ; https://qiita.com/morian-bisco/items/4c659d9f940c7e3a2099に従ったプログラム
+; smbdisでは7722行目のImposeGravity()で動作
 ;*------------------------------------------------------------------------------
 .proc _physicsY
 		ldx #0
