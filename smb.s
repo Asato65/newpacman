@@ -1972,839 +1972,1249 @@ DQSUB2:
 	.byte	$00
 DQSUB3:
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
 	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$3a
 	.byte	$5b
+	.byte	$ab ,$0c
+	.byte	$3c
+	.byte	$57
+	.byte	$2d
+	.byte	$a0 ,$08
+	.byte	$53
+	.byte	$2d
+	.byte	$a0 ,$04
+	.byte	$56
 	.byte	$2d
 	.byte	$a0 ,$0c
 	.byte	$57
-	.byte	$ab ,$08
+	.byte	$2d
+	.byte	$a0 ,$08
 	.byte	$53
-	.byte	$ab ,$04
-	.byte	$56
-	.byte	$ab ,$0c
-	.byte	$57
-	.byte	$ab ,$08
-	.byte	$53
-	.byte	$ab ,$04
+	.byte	$2d
+	.byte	$a0 ,$04
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$59
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$55
-	.byte	$ab ,$06
-	.byte	$ab ,$06
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$0a ,$11
-	.byte	$ab ,$12
+	.byte	$2d
+	.byte	$a0 ,$12
 	.byte	$55
-	.byte	$ab ,$06
+	.byte	$2d
+	.byte	$a0 ,$06
 	.byte	$56
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$5b
-	.byte	$ab ,$0c
+	.byte	$2d
+	.byte	$a0 ,$0c
 	.byte	$00
 DQBGM0:
 	.byte	$04, $0
@@ -2815,8 +3225,8 @@ DQBGM0:
 	.byte	$58
 	.byte	$16 ,$2e
 	.byte	$70
-	.byte	$11 ,$76 ,$f2
-	.byte	$02 ,$7f ,$f2
+	.byte	$11 ,$dc ,$f0
+	.byte	$02 ,$e5 ,$f0
 	.byte	$01 ,$f9 ,$ff
 	.byte	$08 ,$64
 	.byte	$4b
@@ -2824,14 +3234,14 @@ DQBGM0:
 	.byte	$58
 	.byte	$16 ,$2e
 	.byte	$70
-	.byte	$11 ,$64 ,$f2
-	.byte	$02 ,$22 ,$f5
+	.byte	$11 ,$ca ,$f0
+	.byte	$02 ,$88 ,$f3
 	.byte	$01 ,$f9 ,$ff
 	.byte	$08 ,$64
 	.byte	$4b
 	.byte	$58
 	.byte	$70
-	.byte	$02 ,$d6 ,$f7
+	.byte	$02 ,$3c ,$f6
 	.byte	$01 ,$fc ,$ff
 	.byte	$08 ,$64
 	.byte	$6c
@@ -2840,6 +3250,6 @@ DQBGM0:
 	.byte	$1b ,$02
 	.byte	$58
 	.byte	$70
-	.byte	$11 ,$40 ,$f2
-	.byte	$02 ,$bd ,$fa
+	.byte	$11 ,$a6 ,$f0
+	.byte	$02 ,$23 ,$f9
 	.byte	$01 ,$f9 ,$ff

@@ -119,13 +119,13 @@ Sub(2) {
 }
 
 Sub(3) {
-	Q107 b8 Q7 b16 Q114 b8 Q7 b16 Q114 b8 b8. b8 Q7 b16 b16 b16
-	[24 b#8 b12 b24 Q114 b8 Q7 b12 b24]
-	[4 Q107 b8 Q7 b16 Q107 b8 Q7 b16 Q107 b8 b8. b8 Q7 b16 b16 b16]
-	[8 b#8 b12 b24 Q114 b8 Q7 b12 b24]
-	[16 b8. b16 Q114 b8 Q7 b8]
-	[4 Q107 b8 Q7 b16 Q107 b8 Q7 b16 Q107 b8 b8. b8 Q7 b16 b16 b16]
-	[16 b8. b16 Q114 b8 Q7 b8]
+	Q107 b#8 Q7 b#16 Q114 b#8 Q7 b#16 Q114 b#8 b#8. b#8 Q7 b#16 b#16 b#16
+	[24 o3 b8 o5 b#12 b#24 Q114 b#8 Q7 b#12 b#24]
+	[4 Q107 b#8 Q7 b#16 Q107 b#8 Q7 b#16 Q107 b#8 b#8. b#8 Q7 b#16 b#16 b#16]
+	[8 o3 b8 o5  b#12 b#24 Q114 b#8 Q7 b#12 b#24]
+	[16 b#8. b#16 Q114 b#8 Q7 b#8]
+	[4 Q107 b#8 Q7 b#16 Q107 b#8 Q7 b#16 Q107 b#8 b#8. b#8 Q7 b#16 b#16 b#16]
+	[16 b#8. b#16 Q114 b#8 Q7 b#8]
 
 	/*
 	d d r d r d d r d r8 d r d d d
