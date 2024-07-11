@@ -65,5 +65,7 @@ spr_anime_num						: .res 6
 spr_id_arr							: .res 6		; id = 0: no spr
 spr_attr_arr						: .res 6		; bit0: 向き（1のとき右向き）
 
+plt_datas							: .res 24
+bg_color							: .res 1
 
 .code

@@ -212,27 +212,29 @@ EXIT:
 .proc _animate
 		lda Player::is_jumping
 		beq :+
+		; ジャンプ時
 		lda #4							; ジャンプ時のアニメーション番号
 		sta spr_anime_num
 		rts
 		; ------------------------------
 :
-	lda Player::is_fly
-	beq :+
-	lda #3
-	sta spr_anime_num
-	rts
-	; ------------------------------
+		lda Player::is_fly
+		beq :+
+		; 落下時
+		lda #3
+		sta spr_anime_num
+		rts
+		; ------------------------------
 :
-	lda spr_float_velocity_x_arr+$0
-	bne :+
-	lda Joypad::joy1
-	and #(Joypad::BTN_L|Joypad::BTN_R)
-	bne @NORMAL_MOVE				; 当たり判定で動きが封じられているとき（速度0でボタンは押されている）
-	lda #0
-	sta spr_anime_num+$0
-	rts
-	; ------------------------------
+		lda spr_float_velocity_x_arr+$0
+		bne :+
+		lda Joypad::joy1
+		and #(Joypad::BTN_L|Joypad::BTN_R)
+		bne @NORMAL_MOVE				; 当たり判定で動きが封じられているとき（速度0でボタンは押されている）->歩行アニメーションへ
+		lda #0
+		sta spr_anime_num+$0
+		rts
+		; ------------------------------
 :										; 速度が0でないとき
 		lda Joypad::joy1
 		and #(Joypad::BTN_L|Joypad::BTN_R)
@@ -467,476 +469,482 @@ EXIT:
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _checkCollision
-	lda #0
-	sta player_offset_flags
-	sta player_collision_flags
-	sta is_collision_down
+		lda #0
+		sta player_offset_flags
+		sta player_collision_flags
+		sta is_collision_down
 
-	lda spr_posX_tmp_arr+$0
-	cmp #$f0+PLAYER_PADDING
-	bcc @SKIP1
-	cmp #$f8
-	bcc @RIGHT
-	; 左端衝突
-	lda #0
-	sta spr_posX_tmp_arr+$0
-	; lda #1
-	sta spr_float_velocity_x_arr+$0
-	sta spr_velocity_x_arr+$0
-	; sta spr_decimal_part_velocity_x_arr+$0
-	beq @SKIP1
+		lda spr_posX_tmp_arr+$0
+		cmp #$f0+PLAYER_PADDING
+		bcc @SKIP1
+		cmp #$f8
+		bcc @RIGHT
+		; 左端衝突
+		lda #0
+		sta spr_posX_tmp_arr+$0
+		sta spr_float_velocity_x_arr+$0
+		sta spr_velocity_x_arr+$0
+		beq @SKIP1	; ------------------
 @RIGHT:
-	lda #($100-PLAYER_WIDTH-PLAYER_PADDING)
-	sta spr_posX_tmp_arr+$0
-	; lda #1
-	lda #0
-	sta spr_float_velocity_x_arr+$0
-	sta spr_velocity_x_arr+$0
-	; sta spr_decimal_part_velocity_x_arr+$0
+		lda #($100-PLAYER_WIDTH-PLAYER_PADDING)
+		sta spr_posX_tmp_arr+$0
+		lda #0
+		sta spr_float_velocity_x_arr+$0
+		sta spr_velocity_x_arr+$0
 @SKIP1:
-
-	; マリオのY座標を取得してブロック単位に変換
-	lda spr_posY_tmp_arr+$0
-	add #2
-	shr #4
-	cmp #2
-	bcs :+
-	rts									; 上1列にマリオ（の頭）がいるとき
-	; ------------------------------
+		; マリオのY座標を取得してブロック単位に変換
+		lda spr_posY_tmp_arr+$0
+		add #2							; マリオの上部分のあたり判定を緩くする（2ピクセル分下げる）
+		shr #4
+		cmp #2
+		bcs :+
+		rts								; 上1列にマリオ（の頭）がいるとき
+		; ------------------------------
 :
-	sub #2
-	sta player_block_pos_Y
+		sub #2							; 上2列分は使わないので、3列目を1列目としてカウントする
+		sta player_block_pos_Y
 
-	lda spr_posY_tmp_arr+$0
-	add #2
-	sta player_pos_top
-	add #$10-2
-	sta player_pos_bottom
-	sub #1
-	shr #4
-	sub #2
-	sta player_block_pos_bottom
+		lda spr_posY_tmp_arr+$0
+		add #2
+		sta player_pos_top
+		add #$10-2						; 当たり判定を緩くした分、マリオの高さを低くする
+		sta player_pos_bottom			; マリオの下端+1pxの座標
+		sub #1							; マリオの下端
+		shr #4
+		sub #2
+		sta player_block_pos_bottom
 
 
-	; スクロール量と画面を考慮してマリオのX座標を取得
-	ldx #0
-	stx tmp1
-	lda spr_posX_tmp_arr+$0
-	add #PLAYER_PADDING
-	bcc :+
-	inx
-	stx tmp1
+		; スクロール量と画面を考慮してマリオのX座標を取得
+		ldx #0
+		stx tmp1
+		lda spr_posX_tmp_arr+$0
+		add #PLAYER_PADDING
+		bcc :+
+		; キャリーがあったらtmp1に1を代入（キャリーフラグ代わり）
+		inx
+		stx tmp1
 :
-	add scroll_x
-	sta player_actual_pos_left
-	lda main_disp
-	adc tmp1								; キャリーフラグ（tmp1もキャリーフラグ代わり）を足し算
-	and #%0000_0001
-	sta player_current_screen
+		add scroll_x
+		sta player_actual_pos_left
+		lda main_disp
+		adc tmp1						; キャリーが立っている／tmp1が1ならそれを足す
+		and #%0000_0001
+		sta player_current_screen
 
-	lda player_actual_pos_left
-	shr #4
-	sta player_block_pos_X
-	lda player_actual_pos_left
-	add #PLAYER_WIDTH
-	sta player_actual_pos_right
-	sub #1
-	shr #4
-	sta player_block_pos_right
-
-
-	; 下方向のあたり判定
-	lda player_block_pos_Y
-	cmp player_block_pos_bottom
-	beq :+
-	lda player_offset_flags
-	ora #%0000_0001					; Y方向にずれあり
-	sta player_offset_flags
-:
-	; 右方向のあたり判定
-	lda player_block_pos_right
-	cmp player_block_pos_X
-	beq :+
-	lda player_offset_flags
-	ora #%0000_0010
-	sta player_offset_flags
-:
+		lda player_actual_pos_left
+		shr #4
+		sta player_block_pos_X
+		lda player_actual_pos_left
+		add #PLAYER_WIDTH
+		sta player_actual_pos_right		; マリオの右端+1pxの座標
+		sub #1							; マリオの右端を求める
+		shr #4
+		sta player_block_pos_right
 
 
-	; マリオの周辺のブロックフラグをセット=
-	; ----- 左上 -----
-	lda player_block_pos_Y
-	shl #4
-	ora player_block_pos_X
-	tax
-	clc								; 後で使うためにキャリークリア
-	lda player_current_screen
-	bne :+
-	lda $0400, x
-	bcc :++	; ---------------------
+		; 下方向のあたり判定
+		lda player_block_pos_Y
+		cmp player_block_pos_bottom
+		beq :+
+		lda player_offset_flags
+		ora #%0000_0001					; Y方向にずれあり
+		sta player_offset_flags
 :
-	lda $0500, x
+		; 右方向のあたり判定
+		lda player_block_pos_right
+		cmp player_block_pos_X
+		beq :+
+		lda player_offset_flags
+		ora #%0000_0010
+		sta player_offset_flags
 :
-	beq :+							; ブロック判定
-	sec								; ブロックがあったときキャリーセット
-:
-	rol player_collision_flags		; キャリーを入れていく（あと三回ローテートするのでbit3に格納される）
 
-	; ----- 右上 -----
-	lda player_block_pos_X
-	cmp #$0f
-	bne @NORMAL1
-	lda player_block_pos_Y
-	shl #4							; 下位（X座標）は0
-	tax
-	clc
-	lda player_current_screen
-	bne :+
-	lda $0500, x
-	bcc @CHECK1
+
+		; マリオの周辺のブロックフラグをセット=
+		; ----- 左上 -----
+		lda player_block_pos_Y
+		shl #4
+		ora player_block_pos_X
+		tax
+		clc								; 後で使うためにキャリークリア
+		lda player_current_screen
+		bne :+
+		lda $0400, x
+		bcc :++	; ----------------------
 :
-	lda $0400, x
-	bcc @CHECK1
+		lda $0500, x
+:
+		beq :+							; ブロック判定
+		sec								; ブロックがあったときキャリーセット
+:
+		rol player_collision_flags		; キャリーを入れていく（あと三回ローテートするのでbit3に格納される）
+
+		; ----- 右上 -----
+		lda player_block_pos_X
+		cmp #$0f
+		bne @NORMAL1
+		; マリオのいる位置とその右側の位置で画面が違うとき
+		lda player_block_pos_Y
+		shl #4							; 下位（X座標）は0
+		tax
+		clc
+		lda player_current_screen
+		bne :+
+		lda $0500, x					; 今いる画面とは違う方の画面を使う
+		bcc @CHECK1	; ------------------
+:
+		lda $0400, x
+		bcc @CHECK1	; ------------------
 @NORMAL1:
-	lda player_block_pos_Y
-	shl #4
-	ora player_block_pos_X
-	add #1
-	tax
-	clc
-	lda player_current_screen
-	bne :+
-	lda $0400, x
-	bcc @CHECK1
+		lda player_block_pos_Y
+		shl #4
+		ora player_block_pos_X
+		add #1							; X座標を右に一つずらす
+		tax
+		clc
+		lda player_current_screen
+		bne :+
+		lda $0400, x
+		bcc @CHECK1	; ------------------
 :
-	lda $0500, x
+		lda $0500, x
 @CHECK1:
-	beq :+
-	sec
+		beq :+
+		sec
 :
-	rol player_collision_flags
+		rol player_collision_flags
 
-	; ----- 左下 -----
-	lda player_block_pos_bottom
-	shl #4
-	ora player_block_pos_X
-	tax
-	clc								; 後で使うためにキャリークリア
-	lda player_current_screen
-	bne :+
-	lda $0400, x
-	bcc :++	; ---------------------
+		; ----- 左下 -----
+		lda player_block_pos_bottom
+		shl #4
+		ora player_block_pos_X
+		tax
+		clc
+		lda player_current_screen
+		bne :+
+		lda $0400, x
+		bcc :++	; ---------------------
 :
-	lda $0500, x
+		lda $0500, x
 :
-	beq :+							; ブロック判定
-	sec								; ブロックがあったときキャリーセット
+		beq :+
+		sec
 :
-	rol player_collision_flags		; キャリーを入れていく（あと三回ローテートするのでbit3に格納される）
+		rol player_collision_flags
 
-	; ----- 右下 -----
-	lda player_block_pos_X
-	cmp #$0f
-	bne @NORMAL2
-	lda player_block_pos_bottom
-	shl #4							; 下位（X座標）は0
-	tax
-	clc
-	lda player_current_screen
-	bne :+
-	lda $0500, x
-	bcc @CHECK2
+		; ----- 右下 -----
+		lda player_block_pos_X
+		cmp #$0f
+		bne @NORMAL2
+		lda player_block_pos_bottom
+		shl #4
+		tax
+		clc
+		lda player_current_screen
+		bne :+
+		lda $0500, x
+		bcc @CHECK2	; ------------------
 :
-	lda $0400, x
-	bcc @CHECK2
+		lda $0400, x
+		bcc @CHECK2	; ------------------
 @NORMAL2:
-	lda player_block_pos_bottom
-	shl #4
-	ora player_block_pos_X
-	add #1
-	tax
-	clc
-	lda player_current_screen
-	bne :+
-	lda $0400, x
-	bcc @CHECK2
+		lda player_block_pos_bottom
+		shl #4
+		ora player_block_pos_X
+		add #1
+		tax
+		clc
+		lda player_current_screen
+		bne :+
+		lda $0400, x
+		bcc @CHECK2	; ------------------
 :
-	lda $0500, x
+		lda $0500, x
 @CHECK2:
-	beq :+
-	sec
+		beq :+
+		sec
 :
-	rol player_collision_flags
+		rol player_collision_flags
 
 
-	; フラグを元にしてあたり判定・位置調整
-	lda player_offset_flags
-	cmp #%0000_0011
-	beq @CHECK_XY
-	cmp #%0000_0001
-	beq @CHECK_BOTTOM
-	cmp #%0000_0010
-	beq @CHECK_RIGHT
-	bne @EXIT
+		; フラグを元にしてあたり判定・位置調整
+		lda player_offset_flags
+		cmp #%0000_0011
+		beq @CHECK_XY
+		cmp #%0000_0001
+		beq @CHECK_Y
+		cmp #%0000_0010
+		beq @CHECK_X
+		bne @EXIT
 @CHECK_XY:
-	lda #%0000_1111
-	jmp @JMP_SUB
-@CHECK_BOTTOM:
-	lda #%0000_1010					; 右側は無視
-	jmp @JMP_SUB
-@CHECK_RIGHT:
-	lda #%0000_1100					; 下側は無視
+		lda #%0000_1111
+		bne @JMP_SUB	; --------------
+@CHECK_Y:
+		lda #%0000_1010					; 右側は無視
+		bne @JMP_SUB	; --------------
+@CHECK_X:
+		lda #%0000_1100					; 下側は無視
 @JMP_SUB:
-	and player_collision_flags
-	sta player_collision_flags
-	jsr _fixCollision
+		and player_collision_flags
+		sta player_collision_flags
+		jsr _fixCollision
 @EXIT:
-	lda is_collision_down
-	eor #%0000_0001
-	sta is_fly
-	rts
-	; ------------------------------
+		lda is_collision_down
+		eor #%0000_0001
+		sta is_fly
+		rts
+		; ------------------------------
 .endproc
 
 
 .proc _fixCollision
-	lda player_collision_flags
-	bne :+
-	rts
-	; ------------------------------
+		lda player_collision_flags
+		bne :+
+		rts
+		; ------------------------------
 :
 
-	cmp #%0000_1100
-	beq @UPPER
-	cmp #%0000_0011
-	beq @LOWER
-	cmp #%0000_0101
-	beq @RIGHT
-	cmp #%0000_1010
-	beq @LEFT
+		cmp #%0000_1100
+		beq @UPPER
+		cmp #%0000_0011
+		beq @LOWER
+		cmp #%0000_0101
+		beq @RIGHT
+		cmp #%0000_1010
+		beq @LEFT
 
-	cmp #%0000_0111
-	beq @LOWER_RIGHT				; 右下→着地する方向に動かし，左にずらす
-	cmp #%0000_1011
-	beq @LOWER_LEFT
-	cmp #%0000_1101
-	beq @UPPER_RIGHT
-	cmp #%0000_1110
-	beq @UPPER_LEFT
-	bne @OTHER_CHECK
+		cmp #%0000_0111
+		beq @LOWER_RIGHT				; 右下→着地する方向に動かし，左にずらす
+		cmp #%0000_1011
+		beq @LOWER_LEFT
+		cmp #%0000_1101
+		beq @UPPER_RIGHT
+		cmp #%0000_1110
+		beq @UPPER_LEFT
+		bne @OTHER_CHECK				; マリオ周辺のブロックが一つだけのとき
 
 @LOWER:
-	jsr _fixCollisionDown
-	jmp @EXIT
+		jsr _fixCollisionDown
+		rts
 @UPPER:
-	jsr _fixCollisionUp
-	jmp @EXIT
+		jsr _fixCollisionUp
+		rts
 @RIGHT:
-	jsr _fixCollisionRight
-	jmp @EXIT
+		jsr _fixCollisionRight
+		rts
 @LEFT:
-	jsr _fixCollisionLeft
-	jmp @EXIT
+		jsr _fixCollisionLeft
+		rts
 @LOWER_RIGHT:
-	jsr _fixCollisionDown
-	jsr _fixCollisionRight
-	jmp @EXIT
+		jsr _fixCollisionRight
+		jsr _fixCollisionDown
+		rts
 @LOWER_LEFT:
-	jsr _fixCollisionDown
-	jsr _fixCollisionLeft
-	jmp @EXIT
+		jsr _fixCollisionLeft
+		jsr _fixCollisionDown
+		rts
 @UPPER_RIGHT:
-	jsr _fixCollisionUp
-	jsr _fixCollisionRight
-	jmp @EXIT
+		jsr _fixCollisionRight
+		jsr _fixCollisionUp
+		rts
 @UPPER_LEFT:
-	jsr _fixCollisionUp
-	jsr _fixCollisionLeft
-@EXIT:
-	rts
-	; ------------------------------
+		jsr _fixCollisionLeft
+		jsr _fixCollisionUp
+		rts
+		; ------------------------------
 
 @OTHER_CHECK:
-	cmp #%0000_0001					; 右下→着地する方向に動かし，左にずらす
-	bne :+
-	lda player_offset_flags
-	cmp #%0000_0001					; Y座標のずれの確認
-	beq @LOWER
-	lda player_actual_pos_right
-	and #BYT_GET_LO
-	sta tmp1
-	lda player_pos_bottom
-	and #BYT_GET_LO
-	cmp tmp1
-	bcc @LOWER						; right-bottom<0 → right<bottom（左右<上下）
-	beq @LOWER_RIGHT
-	bcs @RIGHT						; 上下のずれ < 左右のずれ
+		cmp #%0000_0001					; 右下→着地する方向に動かし，左にずらす
+		bne @CHECK_LOWER_LEFT
+		lda player_offset_flags
+		cmp #%0000_0001					; Y座標のずれの確認
+		beq @LOWER
+		lda player_actual_pos_right
+		and #BYT_GET_LO
+		sta tmp1
+		lda player_pos_bottom
+		and #BYT_GET_LO
+		cmp tmp1
+		bcc @LOWER						; right-bottom<0 → right<bottom（左右<上下）
+		beq @LOWER_RIGHT
+		bcs @RIGHT						; 上下のずれ < 左右のずれ
+@CHECK_LOWER_LEFT:
+		cmp #%0000_0010					; 左下
+		bne @CHECK_UPPER_RIGHT
+		lda player_offset_flags
+		cmp #%0000_0001					; Y座標のずれの確認
+		beq @LOWER
+		lda player_actual_pos_left
+		cnn
+		and #BYT_GET_LO
+		sta tmp1
+		lda player_pos_bottom
+		and #BYT_GET_LO
+		cmp tmp1
+		bcc @LOWER
+		beq @LOWER_LEFT
+		bcs @LEFT						; 上下のずれ < 左右のずれ
+@CHECK_UPPER_RIGHT:
+		cmp #%0000_0100					; 右上
+		bne @CHECK_UPPER_LEFT
+		lda player_offset_flags
+		cmp #%0000_0010					; X座標のずれの確認
+		beq @RIGHT2
+		lda player_actual_pos_right
+		and #BYT_GET_LO
+		sta tmp1
+		lda player_pos_top
+		and #BYT_GET_LO
+		cmp tmp1
+		bcc @UPPER2
+		beq @UPPER_RIGHT2
+		bcs @RIGHT2						; 上下のずれ <= 左右のずれ
+@CHECK_UPPER_LEFT:
+		cmp #%0000_1000					; 左上
+		bne :+
+		lda player_offset_flags
+		cmp #%0000_0010					; X座標のずれの確認
+		beq @LEFT2
+		lda player_actual_pos_left
+		and #BYT_GET_LO
+		sta tmp1
+		lda player_pos_top
+		and #BYT_GET_LO
+		cmp tmp1
+		bcc @LEFT2
+		beq @UPPER_LEFT2
+		bcs @UPPER2						; 上下のずれ <= 左右のずれ
 :
-	cmp #%0000_0010					; 左下
-	bne :+
-	lda player_offset_flags
-	cmp #%0000_0001					; Y座標のずれの確認
-	beq @LOWER
-	lda player_actual_pos_left
-	cnn
-	and #BYT_GET_LO
-	sta tmp1
-	lda player_pos_bottom
-	and #BYT_GET_LO
-	cmp tmp1
-	bcc @LOWER
-	beq @LOWER_LEFT
-	bcs @LEFT						; 上下のずれ < 左右のずれ
-:
-	cmp #%0000_0100					; 右上
-	bne :+
-	lda player_offset_flags
-	cmp #%0000_0010					; X座標のずれの確認
-	beq @RIGHT2
-	lda player_actual_pos_right
-	and #BYT_GET_LO
-	sta tmp1
-	lda player_pos_top
-	and #BYT_GET_LO
-	cmp tmp1
-	bcc @UPPER2
-	beq @UPPER_RIGHT2
-	bcs @RIGHT2						; 上下のずれ <= 左右のずれ
-:
-; 	bne :+
-; 	ldx player_offset_flags
-; 	cpx #%0000_0010
-; 	beq @RIGHT
-; 	bne @UPPER_RIGHT
-; :
-	cmp #%0000_1000					; 左上
-	bne :+
-	lda player_offset_flags
-	cmp #%0000_0010					; X座標のずれの確認
-	beq @LEFT2
-	lda player_actual_pos_left
-	and #BYT_GET_LO
-	sta tmp1
-	lda player_pos_top
-	and #BYT_GET_LO
-	cmp tmp1
-	bcc @LEFT2
-	beq @UPPER_LEFT2
-	bcs @UPPER2						; 上下のずれ <= 左右のずれ
-:
-	rts
-	; ------------------------------
+		rts
+		; ------------------------------
 
 @LOWER2:
-	jsr _fixCollisionDown
-	jmp @EXIT2
+		jsr _fixCollisionDown
+		rts
 @UPPER2:
-	jsr _fixCollisionUp
-	jmp @EXIT2
+		jsr _fixCollisionUp
+		rts
 @RIGHT2:
-	jsr _fixCollisionRight
-	jmp @EXIT2
+		jsr _fixCollisionRight
+		rts
 @LEFT2:
-	jsr _fixCollisionLeft
-	jmp @EXIT2
+		jsr _fixCollisionLeft
+		rts
 @LOWER_RIGHT2:
-	jsr _fixCollisionDown
-	jsr _fixCollisionRight
-	jmp @EXIT2
+		jsr _fixCollisionDown
+		jsr _fixCollisionRight
+		rts
 @LOWER_LEFT2:
-	jsr _fixCollisionDown
-	jsr _fixCollisionLeft
-	jmp @EXIT2
+		jsr _fixCollisionDown
+		jsr _fixCollisionLeft
+		rts
 @UPPER_RIGHT2:
-	jsr _fixCollisionUp
-	jsr _fixCollisionRight
-	jmp @EXIT2
+		jsr _fixCollisionUp
+		jsr _fixCollisionRight
+		rts
 @UPPER_LEFT2:
-	jsr _fixCollisionUp
-	jsr _fixCollisionLeft
-@EXIT2:
-	rts
-	; ------------------------------
+		jsr _fixCollisionUp
+		jsr _fixCollisionLeft
+		rts
+		; ------------------------------
 .endproc
 
 
 .proc _fixCollisionUp
-	; 上で衝突→下にずらす
-	lda player_pos_top
-	sub #2							; 上のパディング分
-	and #BYT_GET_HI
-	add #$10-2
-	sta spr_posY_tmp_arr+$0
+		; 上で衝突→下にずらす
+		lda player_pos_top
+		sub #2							; 上のパディング分
+		and #BYT_GET_HI
+		add #$10-2
+		sta spr_posY_tmp_arr+$0
 
-	lda #0							; 初期化
-	sta spr_velocity_y_arr+$0
-	sta spr_decimal_part_velocity_y_arr+$0
-	lda spr_force_fall_y+$0
-	sta spr_decimal_part_force_y+$0
-	rts
-	; ------------------------------
+		lda #0							; 初期化
+		sta spr_velocity_y_arr+$0
+		sta spr_decimal_part_velocity_y_arr+$0
+		lda spr_force_fall_y+$0
+		sta spr_decimal_part_force_y+$0
+		rts
+		; ------------------------------
 .endproc
 
 
 .proc _fixCollisionDown
-	lda player_pos_bottom
-	and #BYT_GET_HI
-	sub player_pos_bottom
-	add spr_posY_tmp_arr+$0
-	sta spr_posY_tmp_arr+$0
-	lda spr_velocity_y_arr+$0
-	bmi :+
-	ldx #0
-	stx is_fly
-	stx is_jumping
+		lda player_pos_bottom
+		and #BYT_GET_HI
+		sub player_pos_bottom
+		add spr_posY_tmp_arr+$0
+		sta spr_posY_tmp_arr+$0
+		lda #1
+		sta is_collision_down
+		lda spr_velocity_y_arr+$0
+		bmi :+
+		ldx #0
+		; stx is_fly
+		stx is_jumping
+		lda #1							; Y方向の加速度が正（下向き）の場合
+		sta spr_velocity_y_arr+$0
+		sta spr_decimal_part_velocity_y_arr+$0
 :
-	lda #1
-	sta is_collision_down
-	lda spr_velocity_y_arr+$0
-	bmi :+
-	lda #1							; Y方向の加速度が正（下向き）の場合
-	sta spr_velocity_y_arr+$0
-	sta spr_decimal_part_velocity_y_arr+$0
-:
-	rts
-	; ------------------------------
+		rts
+		; ------------------------------
 .endproc
 
 
 .proc _fixCollisionRight
-	; 右で衝突→左にずらす
-	lda player_actual_pos_right
-	and #BYT_GET_HI
-	sub player_actual_pos_right
-	add spr_posX_tmp_arr+$0
-	sta spr_posX_tmp_arr+$0
-	lda spr_velocity_x_arr+$0
-	bmi :+
-	lda #0
-	sta spr_float_velocity_x_arr+$0
+		; 右で衝突→左にずらす
+		lda player_actual_pos_right
+		and #BYT_GET_HI
+		sub player_actual_pos_right
+		add spr_posX_tmp_arr+$0
+		sta tmp1
+		lda spr_posX_tmp_arr+$0
+		bmi @CHANGE_VELOCITY
+		; 元のX座標が正で
+		lda tmp1
+		bpl @CHANGE_VELOCITY
+		; 変更後のX座標が負のとき->左端を超えたとき
+		lda #0
+		sta tmp1
+		lda player_collision_flags
+		and #%0000_0101					; 右側のブロック情報だけ取り出す
+		cmp #%0000_0100
+		beq @COLLISION_UPPER_RIGHT
+		; 右下、もしくは右側全部にブロックがあるとき->上昇
+		lda #0
+		sta spr_velocity_y_arr+$0
+		jsr _fixCollisionDown
+		jmp @CHANGE_VELOCITY
+@COLLISION_UPPER_RIGHT:
+		; 右上にブロックがあるとき->下降
+		jsr _fixCollisionUp
+@CHANGE_VELOCITY:
+		lda tmp1
+		sta spr_posX_tmp_arr+$0
+		lda spr_velocity_x_arr+$0
+		bmi :+
+		lda #0
+		sta spr_float_velocity_x_arr+$0
 :
-	rts
-	; ------------------------------
+		rts
+		; ------------------------------
 .endproc
 
 
 .proc _fixCollisionLeft
-	; lda player_actual_pos_left
-	; and #BYT_GET_HI
-	; sta spr_posX_tmp_arr+$0
-	lda player_actual_pos_left
-	and #BYT_GET_HI
-	add #$10
-	sub player_actual_pos_left
-	add spr_posX_tmp_arr+$0
-	sta spr_posX_tmp_arr+$0
-	lda spr_velocity_x_arr+$0
-	bpl :+
-	lda #0
-	sta spr_float_velocity_x_arr+$0
+		lda player_actual_pos_left
+		and #BYT_GET_HI
+		add #$10
+		sub player_actual_pos_left
+		add spr_posX_tmp_arr+$0
+		sta spr_posX_tmp_arr+$0
+		lda spr_velocity_x_arr+$0
+		bpl :+
+		lda #0
+		sta spr_float_velocity_x_arr+$0
 :
-	rts
-	; ------------------------------
+		rts
+		; ------------------------------
 .endproc
 
 

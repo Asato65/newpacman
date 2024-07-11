@@ -260,7 +260,7 @@
 
 
 .macro tfrPlt
-		; Transfar pallete
+		; Transfar palette
 		lda #>PLT_TABLE_ADDR
 		sta PPU_ADDR
 		lda #<PLT_TABLE_ADDR			; Addr lo = 0
@@ -268,10 +268,10 @@
 		tax								; X = 0
 :
 		ldy #3
-		lda #$22						; under ground -> #$0f
+		lda bg_color
 		sta PPU_DATA
 :
-		lda DEFAULT_PLT, x				; under ground -> UNDER_GROUND_PLT
+		lda plt_datas, x				; under ground -> UNDER_GROUND_PLT
 		sta PPU_DATA
 		inx
 		dey
@@ -279,6 +279,7 @@
 		cpx #$3*8
 		bcc :--
 
+		; 属性テーブル
 		lda #$23
 		sta PPU_ADDR
 		lda #$c0

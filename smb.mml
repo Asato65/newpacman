@@ -2,6 +2,11 @@
 #Label "DQ"
 #bgm	1
 #timebase 24
+#QMax 228
+
+Envelop(0) { 2, 1, 8, 8, 8, 0 }
+Envelop(1) { 2, 1, 8, 7, 6, 5, 5, 4, 4, 0 }
+Envelop(2) { 2, 1, 15, 15, 15, 0 }
 
 Sub(0) {
 	// intro
@@ -114,16 +119,34 @@ Sub(2) {
 }
 
 Sub(3) {
-	r
+	Q107 b8 Q7 b16 Q114 b8 Q7 b16 Q114 b8 b8. b8 Q7 b16 b16 b16
+	[24 b#8 b12 b24 Q114 b8 Q7 b12 b24]
+	[4 Q107 b8 Q7 b16 Q107 b8 Q7 b16 Q107 b8 b8. b8 Q7 b16 b16 b16]
+	[8 b#8 b12 b24 Q114 b8 Q7 b12 b24]
+	[16 b8. b16 Q114 b8 Q7 b8]
+	[4 Q107 b8 Q7 b16 Q107 b8 Q7 b16 Q107 b8 b8. b8 Q7 b16 b16 b16]
+	[16 b8. b16 Q114 b8 Q7 b8]
+
+	/*
+	d d r d r d d r d r8 d r d d d
+	[24 b r d12 d24 d r d12 d24]
+	[3 d r d d r ddd]
+	d d r d r d d r d r8 d r d d d
+	[8 b r d12 d24 d r d12 d24]
+	[16 d r r12 d24 d r d r]
+	[3 d r d d r ddd]
+	d d r d r d d r d r8 d r d d d
+	[8 d r r12 d24 d r d r]
+	*/
 }
 
 BGM(0) {
 	TR1 t100 v15 o4 l16 @2 q8 s46 Rv0 L
 	TR2 t100 v15 o4 l16 @2 q8 s46 Rv0 L
 	TR3 t100     o4 l16    q8     Rv0 L
-	TR4 t100 v12    l16    q8 s46 Rv0 L
-	TR1 S0
-	TR2 S1
+	TR4 t100 v12 o5 l16 @2 q8     Rv0 L
+	TR1 Ev1 S0
+	TR2 Ev1 S1
 	TR3 S2
-	TR4 S3
+	TR4 Ev0 S3
 }

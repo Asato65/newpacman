@@ -1,4 +1,12 @@
-DEFAULT_PLT:
+BG_COLORS:
+	.byte $22, $0f
+
+PALETTES:
+	.addr GROUND_PLT
+	.addr UNDER_GROUND_PLT
+
+
+GROUND_PLT:
 		; BG
 		.byte $36, $17, $0f
 		.byte $27, $17, $0f				; 27 -> 07/17/27

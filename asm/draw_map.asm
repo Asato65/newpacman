@@ -306,7 +306,7 @@ fill_ground_start		: .byte 0
 ;*------------------------------------------------------------------------------
 ; Change stage
 ; @PARAMS		Y: Stage number
-; @CLOBBERS		A Y
+; @CLOBBERS		A X Y
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
@@ -344,7 +344,22 @@ fill_ground_start		: .byte 0
 		lda #'G'
 		sta DrawMap::fill_ground_block
 
-		jsr DrawMap::_setStageAddr
+		tya
+		pha
+		lda STAGE_PALETTE_ARR, y
+		tax
+		lda BG_COLORS, x
+		sta bg_color
+		jsr Subfunc::_trfPltDataToBuff
+		lda ppu_ctrl1_cpy
+		and #%1111_1011					; ストア時のインクリメントを+1にする
+		sta PPU_CTRL1
+		tfrPlt
+		jsr Subfunc::_restorePPUSet
+		pla
+		tay
+
+		jsr DrawMap::_setStageAddr		; Y破壊（ステージ番号）
 		ldy #0
 		jsr DrawMap::_setMapAddr
 
@@ -364,7 +379,7 @@ fill_ground_start		: .byte 0
 		sta PPU_ADDR
 		lda #$00
 		sta PPU_ADDR
-		lda #$22
+		lda bg_color
 		sta PPU_DATA
 		lda #$3f
 		sta PPU_ADDR

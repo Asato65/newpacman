@@ -23,8 +23,6 @@
 		bit PPU_STATUS
 		bvs @WAIT_FINISH_VBLANK
 
-		jsr _nsd_main_bgm
-
 		jsr Joypad::_getJoyData
 
 @WAIT_ZERO_BOMB:
@@ -39,6 +37,8 @@
 		; ----------- 0爆弾後 -----------
 
 		jsr Subfunc::_setScroll
+
+		jsr _nsd_main_bgm
 
 	; inc timer
 	inc spr_anime_timer+$0
@@ -64,20 +64,22 @@
 		and #Joypad::BTN_B
 		beq @NO_PUSHED_BTN_B
 
-		; ldy #1
-		; jsr DrawMap::_changeStage
+		; pass
 @NO_PUSHED_BTN_B:
 		; ↑ボタン
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_U
 		beq @NO_PUSHED_BTN_U
 
+		ldy #2
+		jsr DrawMap::_changeStage
 @NO_PUSHED_BTN_U:
 		; ↓ボタン
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_D
 		beq @NO_PUSHED_BTN_D
 
+		; pass
 @NO_PUSHED_BTN_D:
 
 		jsr Player::_physicsX
