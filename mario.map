@@ -1,8 +1,8 @@
 Modules list:
 -------------
 mario.o:
-    CODE              Offs=000000  Size=0010EC  Align=00001  Fill=0000
-    RODATA            Offs=000000  Size=000046  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=0010B0  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=0000C0  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000000  Size=000042  Align=00001  Fill=0000
@@ -14,85 +14,92 @@ mario.o:
     CHARS             Offs=000000  Size=002000  Align=00001  Fill=0000
     VECINFO           Offs=000000  Size=000006  Align=00001  Fill=0000
 smb.o:
-    CODE              Offs=0010EC  Size=000000  Align=00001  Fill=0000
-    RODATA            Offs=000046  Size=000DC8  Align=00001  Fill=0000
+    CODE              Offs=0010B0  Size=000000  Align=00001  Fill=0000
+    RODATA            Offs=0000C0  Size=000DC8  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_init.o):
-    CODE              Offs=0010EC  Size=00000A  Align=00001  Fill=0000
-    RODATA            Offs=000E0E  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=0010B0  Size=00000A  Align=00001  Fill=0000
+    RODATA            Offs=000E88  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_main_bgm.o):
-    CODE              Offs=0010F6  Size=00005B  Align=00001  Fill=0000
-    RODATA            Offs=000E0E  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=0010BA  Size=00005B  Align=00001  Fill=0000
+    RODATA            Offs=000E88  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_play_bgm.o):
-    CODE              Offs=001151  Size=0000E2  Align=00001  Fill=0000
-    RODATA            Offs=000E0E  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=001115  Size=0000E2  Align=00001  Fill=0000
+    RODATA            Offs=000E88  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_stop_bgm.o):
-    CODE              Offs=001233  Size=000020  Align=00001  Fill=0000
-    RODATA            Offs=000E0E  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=0011F7  Size=000020  Align=00001  Fill=0000
+    RODATA            Offs=000E88  Size=000000  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+nsd/lib/nsd.lib(nsd_pause_bgm.o):
+    CODE              Offs=001217  Size=00001B  Align=00001  Fill=0000
+    RODATA            Offs=000E88  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_play_se.o):
-    CODE              Offs=001253  Size=00007E  Align=00001  Fill=0000
-    RODATA            Offs=000E0E  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=001232  Size=00007E  Align=00001  Fill=0000
+    RODATA            Offs=000E88  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_stop_se.o):
-    CODE              Offs=0012D1  Size=000024  Align=00001  Fill=0000
-    RODATA            Offs=000E0E  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=0012B0  Size=000024  Align=00001  Fill=0000
+    RODATA            Offs=000E88  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_sequence.o):
-    CODE              Offs=0012F5  Size=0005A0  Align=00001  Fill=0000
-    RODATA            Offs=000E0E  Size=000098  Align=00001  Fill=0000
+    CODE              Offs=0012D4  Size=0005A0  Align=00001  Fill=0000
+    RODATA            Offs=000E88  Size=000098  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_envelope.o):
-    CODE              Offs=001895  Size=00023B  Align=00001  Fill=0000
-    RODATA            Offs=000EA6  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=001874  Size=00023B  Align=00001  Fill=0000
+    RODATA            Offs=000F20  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_snd.o):
-    CODE              Offs=001AD0  Size=0002A4  Align=00001  Fill=0000
-    RODATA            Offs=000EA6  Size=000116  Align=00001  Fill=0000
+    CODE              Offs=001AAF  Size=0002A4  Align=00001  Fill=0000
+    RODATA            Offs=000F20  Size=000116  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_math.o):
-    CODE              Offs=001D74  Size=000066  Align=00001  Fill=0000
-    RODATA            Offs=000FBC  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=001D53  Size=000066  Align=00001  Fill=0000
+    RODATA            Offs=001036  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
 nsd/lib/nsd.lib(nsd_work.o):
-    CODE              Offs=001DDA  Size=000000  Align=00001  Fill=0000
-    RODATA            Offs=000FBC  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=001DB9  Size=000000  Align=00001  Fill=0000
+    RODATA            Offs=001036  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000126  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000042  Size=000030  Align=00001  Fill=0000
@@ -112,29 +119,29 @@ DATA                  000200  000200  000000  00001
 USER_MEM              000600  000684  000085  00001
 DMA_MEM               000700  0007FF  000100  00001
 STARTUP               008000  008138  000139  00001
-RODATA                008139  0090F4  000FBC  00001
-CODE                  0090F5  00AECE  001DDA  00001
+RODATA                008139  00916E  001036  00001
+CODE                  00916F  00AF27  001DB9  00001
 VECINFO               00FFFA  00FFFF  000006  00001
 
 
 Exports list by name:
 ---------------------
-DQBGM0                    008EFC RLA    __BSS_LOAD__              000200  LA    
+DQBGM0                    008F76 RLA    __BSS_LOAD__              000200  LA    
 __BSS_RUN__               000200  LA    __BSS_SIZE__              000126  EA    
-__CODE_LOAD__             0090F5  LA    __CODE_RUN__              0090F5  LA    
-__CODE_SIZE__             001DDA  EA    __DATA_LOAD__             0090F5  LA    
+__CODE_LOAD__             00916F  LA    __CODE_RUN__              00916F  LA    
+__CODE_SIZE__             001DB9  EA    __DATA_LOAD__             00916F  LA    
 __DATA_RUN__              000200  LA    __DATA_SIZE__             000000  EA    
 __DMA_MEM_FILEOFFS__      00A107  EA    __DMA_MEM_LAST__          000800  LA    
 __DMA_MEM_SIZE__          000100  EA    __DMA_MEM_START__         000700  LA    
 __RAM_FILEOFFS__          00A082  EA    __RAM_LAST__              000326  LA    
 __RAM_SIZE__              000200  EA    __RAM_START__             000200  LA    
 __RODATA_LOAD__           008139  LA    __RODATA_RUN__            008139  LA    
-__RODATA_SIZE__           000FBC  EA    __ROMCHR_FILEOFFS__       008010  EA    
+__RODATA_SIZE__           001036  EA    __ROMCHR_FILEOFFS__       008010  EA    
 __ROMCHR_LAST__           002000  LA    __ROMCHR_SIZE__           002000  EA    
 __ROMCHR_START__          000000  LA    __ROMINFO_FILEOFFS__      00800A  EA    
 __ROMINFO_LAST__          010000  LA    __ROMINFO_SIZE__          000006  EA    
 __ROMINFO_START__         00FFFA  LA    __ROMST_FILEOFFS__        000010  EA    
-__ROMST_LAST__            00AECF  LA    __ROMST_SIZE__            007FFA  EA    
+__ROMST_LAST__            00AF28  LA    __ROMST_SIZE__            007FFA  EA    
 __ROMST_START__           008000  LA    __STARTUP_LOAD__          008000  LA    
 __STARTUP_RUN__           008000  LA    __STARTUP_SIZE__          000139  EA    
 __USER_MEM_FILEOFFS__     00A082  EA    __USER_MEM_LAST__         000685  LA    
@@ -142,54 +149,56 @@ __USER_MEM_SIZE__         000200  EA    __USER_MEM_START__        000600  LA
 __VECINFO_LOAD__          00FFFA  LA    __VECINFO_RUN__           00FFFA  LA    
 __VECINFO_SIZE__          000006  EA    __ZP_FILEOFFS__           00A010  EA    
 __ZP_LAST__               000072  LA    __ZP_SIZE__               000100  EA    
-__ZP_START__              000000  LA    _nsd_div192               00AE69 RLA    
-_nsd_dpcm_calc            00ABED  LA    _nsd_init                 00A1E1 RLA    
-_nsd_main_bgm             00A1EB RLA    _nsd_mul                  00AEA6 RLA    
-_nsd_play                 00A29C RLA    _nsd_play_bgm             00A246 RLA    
-_nsd_play_se              00A348 RLA    _nsd_snd_frequency        00AD50 RLA    
-_nsd_snd_init             00ABC5 RLA    _nsd_snd_keyoff           00AC67 RLA    
-_nsd_snd_keyon            00AC08 RLA    _nsd_snd_sweep            00AD2D RLA    
-_nsd_snd_voice            00AC93 RLA    _nsd_snd_volume           00ACD5 RLA    
-_nsd_stop_bgm             00A328 RLA    _nsd_stop_se              00A3C6 RLA    
-nsd_envelop               00A98A RLA    nsd_sequence              00A411 RLA    
+__ZP_START__              000000  LA    _nsd_div192               00AEC2 RLA    
+_nsd_dpcm_calc            00AC46  LA    _nsd_init                 00A21F RLA    
+_nsd_main_bgm             00A229 RLA    _nsd_mul                  00AEFF RLA    
+_nsd_pause                00A398  LA    _nsd_pause_bgm            00A386 RLA    
+_nsd_play                 00A2DA RLA    _nsd_play_bgm             00A284 RLA    
+_nsd_play_se              00A3A1 RLA    _nsd_snd_frequency        00ADA9 RLA    
+_nsd_snd_init             00AC1E RLA    _nsd_snd_keyoff           00ACC0 RLA    
+_nsd_snd_keyon            00AC61 RLA    _nsd_snd_sweep            00AD86 RLA    
+_nsd_snd_voice            00ACEC RLA    _nsd_snd_volume           00AD2E RLA    
+_nsd_stop_bgm             00A366 RLA    _nsd_stop_se              00A41F RLA    
+nsd_envelop               00A9E3 RLA    nsd_sequence              00A46A RLA    
 nsd_work                  000200 RLA    nsd_work_zp               000042 RLZ    
 
 
 
 Exports list by value:
 ----------------------
-__ZP_START__              000000  LA    __DATA_SIZE__             000000  EA    
-__ROMCHR_START__          000000  LA    __ROMINFO_SIZE__          000006  EA    
+__ZP_START__              000000  LA    __ROMCHR_START__          000000  LA    
+__DATA_SIZE__             000000  EA    __ROMINFO_SIZE__          000006  EA    
 __VECINFO_SIZE__          000006  EA    __ROMST_FILEOFFS__        000010  EA    
 nsd_work_zp               000042 RLZ    __ZP_LAST__               000072  LA    
-__DMA_MEM_SIZE__          000100  EA    __ZP_SIZE__               000100  EA    
+__ZP_SIZE__               000100  EA    __DMA_MEM_SIZE__          000100  EA    
 __BSS_SIZE__              000126  EA    __STARTUP_SIZE__          000139  EA    
-__BSS_RUN__               000200  LA    nsd_work                  000200 RLA    
-__BSS_LOAD__              000200  LA    __DATA_RUN__              000200  LA    
+__BSS_LOAD__              000200  LA    __USER_MEM_SIZE__         000200  EA    
+nsd_work                  000200 RLA    __DATA_RUN__              000200  LA    
 __RAM_SIZE__              000200  EA    __RAM_START__             000200  LA    
-__USER_MEM_SIZE__         000200  EA    __RAM_LAST__              000326  LA    
+__BSS_RUN__               000200  LA    __RAM_LAST__              000326  LA    
 __USER_MEM_START__        000600  LA    __USER_MEM_LAST__         000685  LA    
 __DMA_MEM_START__         000700  LA    __DMA_MEM_LAST__          000800  LA    
-__RODATA_SIZE__           000FBC  EA    __CODE_SIZE__             001DDA  EA    
-__ROMCHR_LAST__           002000  LA    __ROMCHR_SIZE__           002000  EA    
-__ROMST_SIZE__            007FFA  EA    __ROMST_START__           008000  LA    
-__STARTUP_RUN__           008000  LA    __STARTUP_LOAD__          008000  LA    
+__RODATA_SIZE__           001036  EA    __CODE_SIZE__             001DB9  EA    
+__ROMCHR_SIZE__           002000  EA    __ROMCHR_LAST__           002000  LA    
+__ROMST_SIZE__            007FFA  EA    __STARTUP_RUN__           008000  LA    
+__STARTUP_LOAD__          008000  LA    __ROMST_START__           008000  LA    
 __ROMINFO_FILEOFFS__      00800A  EA    __ROMCHR_FILEOFFS__       008010  EA    
-__RODATA_RUN__            008139  LA    __RODATA_LOAD__           008139  LA    
-DQBGM0                    008EFC RLA    __CODE_RUN__              0090F5  LA    
-__DATA_LOAD__             0090F5  LA    __CODE_LOAD__             0090F5  LA    
-__ZP_FILEOFFS__           00A010  EA    __RAM_FILEOFFS__          00A082  EA    
-__USER_MEM_FILEOFFS__     00A082  EA    __DMA_MEM_FILEOFFS__      00A107  EA    
-_nsd_init                 00A1E1 RLA    _nsd_main_bgm             00A1EB RLA    
-_nsd_play_bgm             00A246 RLA    _nsd_play                 00A29C RLA    
-_nsd_stop_bgm             00A328 RLA    _nsd_play_se              00A348 RLA    
-_nsd_stop_se              00A3C6 RLA    nsd_sequence              00A411 RLA    
-nsd_envelop               00A98A RLA    _nsd_snd_init             00ABC5 RLA    
-_nsd_dpcm_calc            00ABED  LA    _nsd_snd_keyon            00AC08 RLA    
-_nsd_snd_keyoff           00AC67 RLA    _nsd_snd_voice            00AC93 RLA    
-_nsd_snd_volume           00ACD5 RLA    _nsd_snd_sweep            00AD2D RLA    
-_nsd_snd_frequency        00AD50 RLA    _nsd_div192               00AE69 RLA    
-_nsd_mul                  00AEA6 RLA    __ROMST_LAST__            00AECF  LA    
+__RODATA_LOAD__           008139  LA    __RODATA_RUN__            008139  LA    
+DQBGM0                    008F76 RLA    __CODE_RUN__              00916F  LA    
+__DATA_LOAD__             00916F  LA    __CODE_LOAD__             00916F  LA    
+__ZP_FILEOFFS__           00A010  EA    __USER_MEM_FILEOFFS__     00A082  EA    
+__RAM_FILEOFFS__          00A082  EA    __DMA_MEM_FILEOFFS__      00A107  EA    
+_nsd_init                 00A21F RLA    _nsd_main_bgm             00A229 RLA    
+_nsd_play_bgm             00A284 RLA    _nsd_play                 00A2DA RLA    
+_nsd_stop_bgm             00A366 RLA    _nsd_pause_bgm            00A386 RLA    
+_nsd_pause                00A398  LA    _nsd_play_se              00A3A1 RLA    
+_nsd_stop_se              00A41F RLA    nsd_sequence              00A46A RLA    
+nsd_envelop               00A9E3 RLA    _nsd_snd_init             00AC1E RLA    
+_nsd_dpcm_calc            00AC46  LA    _nsd_snd_keyon            00AC61 RLA    
+_nsd_snd_keyoff           00ACC0 RLA    _nsd_snd_voice            00ACEC RLA    
+_nsd_snd_volume           00AD2E RLA    _nsd_snd_sweep            00AD86 RLA    
+_nsd_snd_frequency        00ADA9 RLA    _nsd_div192               00AEC2 RLA    
+_nsd_mul                  00AEFF RLA    __ROMST_LAST__            00AF28  LA    
 __VECINFO_LOAD__          00FFFA  LA    __ROMINFO_START__         00FFFA  LA    
 __VECINFO_RUN__           00FFFA  LA    __ROMINFO_LAST__          010000  LA    
 
@@ -254,6 +263,9 @@ _nsd_main_bgm (nsd_main_bgm.o):
     mario.o                   ./nsd/include/nsd.inc:50
 _nsd_mul (nsd_math.o):
     nsd_envelope.o            nsd_envelope.s:20
+_nsd_pause (nsd_pause_bgm.o):
+_nsd_pause_bgm (nsd_pause_bgm.o):
+    mario.o                   ./nsd/include/nsd.inc:107
 _nsd_play (nsd_play_bgm.o):
     nsd_play_se.o             nsd_play_se.s:17
 _nsd_play_bgm (nsd_play_bgm.o):
@@ -267,6 +279,7 @@ _nsd_snd_init (nsd_snd.o):
 _nsd_snd_keyoff (nsd_snd.o):
     nsd_sequence.o            nsd_sequence.s:18
     nsd_stop_se.o             nsd_stop_se.s:22
+    nsd_pause_bgm.o           nsd_pause_bgm.s:19
     nsd_stop_bgm.o            nsd_stop_bgm.s:19
 _nsd_snd_keyon (nsd_snd.o):
     nsd_sequence.o            nsd_sequence.s:17
@@ -278,6 +291,7 @@ _nsd_snd_voice (nsd_snd.o):
 _nsd_snd_volume (nsd_snd.o):
     nsd_envelope.o            nsd_envelope.s:18
     nsd_stop_se.o             nsd_stop_se.s:21
+    nsd_pause_bgm.o           nsd_pause_bgm.s:18
     nsd_stop_bgm.o            nsd_stop_bgm.s:18
 _nsd_stop_bgm (nsd_stop_bgm.o):
     nsd_play_bgm.o            nsd_play_bgm.s:18
@@ -302,6 +316,7 @@ nsd_work_zp (nsd_work.o):
     nsd_envelope.o            nsd_envelope.s:27
     nsd_sequence.o            nsd_sequence.s:23
     nsd_stop_se.o             nsd_stop_se.s:25
+    nsd_pause_bgm.o           nsd_pause_bgm.s:22
     nsd_stop_bgm.o            nsd_stop_bgm.s:22
     nsd_play_bgm.o            nsd_play_bgm.s:25
     nsd_main_bgm.o            nsd_main_bgm.s:17

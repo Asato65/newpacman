@@ -313,6 +313,9 @@ fill_ground_start		: .byte 0
 .proc _changeStage
 		lda #0
 		sta is_updated_map
+		sty tmp_rgstY
+		jsr _nsd_pause_bgm
+		ldy tmp_rgstY
 		jsr Subfunc::_sleepOneFrame
 
 		; Change bg color (black)
@@ -340,12 +343,24 @@ fill_ground_start		: .byte 0
 		sta scroll_x
 		sta ppu_ctrl2_cpy
 		sta PPU_CTRL2
+		sta Player::is_fly
+		sta Player::is_jumping
+		sta spr_velocity_x_arr+$0
+		lda #1
+		sta spr_velocity_y_arr+$0
+		sta spr_float_velocity_x_arr+$0
+		lda #$28
+		sta spr_posX_arr+$0
+		sta spr_posX_tmp_arr+$0
+		lda #$c0
+		sta spr_posY_arr+$0
+		sta spr_posY_tmp_arr+$0
+		sta spr_pos_y_origin+$0
 
 		lda #'G'
 		sta DrawMap::fill_ground_block
 
-		tya
-		pha
+		sty tmp_rgstY
 		lda STAGE_PALETTE_ARR, y
 		tax
 		lda BG_COLORS, x
@@ -356,8 +371,12 @@ fill_ground_start		: .byte 0
 		sta PPU_CTRL1
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
-		pla
-		tay
+		ldx #PLAYER_SPR_ID					; spr id
+		jsr Sprite::_moveSprite
+		ldx #PLAYER_SPR_ID					; spr id
+		ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
+		jsr Sprite::_tfrToChrBuff
+		ldy tmp_rgstY
 
 		jsr DrawMap::_setStageAddr		; Y破壊（ステージ番号）
 		ldy #0
@@ -391,6 +410,10 @@ fill_ground_start		: .byte 0
 		lda #0
 		sta is_updated_map
 		jsr Subfunc::_sleepOneFrame
+
+		lda	bgm0
+		ldx	bgm0 + 1
+		jsr	_nsd_play_bgm
 
 		lda #%00011110
 		sta ppu_ctrl2_cpy

@@ -43,13 +43,6 @@
 	; inc timer
 	inc spr_anime_timer+$0
 
-	; chr move
-	ldx #PLAYER_SPR_ID					; spr id
-	jsr Sprite::_moveSprite
-	ldx #PLAYER_SPR_ID					; spr id
-	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
-	jsr Sprite::_tfrToChrBuff
-
 	jsr Func::_scroll
 
 		; Aボタン
@@ -87,6 +80,13 @@
 		jsr Player::_moveYProcess
 		jsr Player::_checkCollision
 		jsr Player::_animate
+
+		; chr move
+	ldx #PLAYER_SPR_ID					; spr id
+	jsr Sprite::_moveSprite
+	ldx #PLAYER_SPR_ID					; spr id
+	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
+	jsr Sprite::_tfrToChrBuff
 
 
 		; ----- End main -----

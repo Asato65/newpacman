@@ -30,9 +30,9 @@
 .include "joypad.asm"
 .include "macro.asm"
 .include "subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
-.include "draw_map.asm"
 .include "sprite.asm"
 .include "player_move.asm"
+.include "draw_map.asm"
 .include "nes.inc"
 .include "nsd.inc"
 .include "nmi.asm"
