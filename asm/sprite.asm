@@ -201,7 +201,7 @@ AMOUNT_INC_SPD_R:
 ; @PARAMS		y: buff index（ストアし始める最初のindex）
 ; @PARAMS		tmp1: posY
 ; @PARAMS		tmp2: posX
-; @CLOBBERS		A X Y
+; @CLOBBERS		A X Y tmp_rgstY
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _tfrSprToBuffNormal

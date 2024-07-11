@@ -313,9 +313,6 @@ fill_ground_start		: .byte 0
 .proc _changeStage
 		lda #0
 		sta is_updated_map
-		sty tmp_rgstY
-		jsr _nsd_pause_bgm
-		ldy tmp_rgstY
 		jsr Subfunc::_sleepOneFrame
 
 		; Change bg color (black)
@@ -360,7 +357,8 @@ fill_ground_start		: .byte 0
 		lda #'G'
 		sta DrawMap::fill_ground_block
 
-		sty tmp_rgstY
+		tya
+		pha
 		lda STAGE_PALETTE_ARR, y
 		tax
 		lda BG_COLORS, x
@@ -371,12 +369,15 @@ fill_ground_start		: .byte 0
 		sta PPU_CTRL1
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
+		jsr _nsd_pause_bgm
+
 		ldx #PLAYER_SPR_ID					; spr id
 		jsr Sprite::_moveSprite
 		ldx #PLAYER_SPR_ID					; spr id
 		ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
 		jsr Sprite::_tfrToChrBuff
-		ldy tmp_rgstY
+		pla
+		tay
 
 		jsr DrawMap::_setStageAddr		; Y破壊（ステージ番号）
 		ldy #0
