@@ -17,6 +17,7 @@
 
 .rodata									; ----- data -----
 
+
 .include "const.inc"
 .include "const_addr.inc"
 .include "var_addr.inc"
@@ -29,9 +30,13 @@
 
 .include "joypad.asm"
 .include "macro.asm"
+.include "map/1-1.inc"
+.include "map/1-2.inc"
+.include "map/1-3.inc"
 .include "subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
 .include "sprite.asm"
 .include "player_move.asm"
+.include "enemy.asm"
 .include "draw_map.asm"
 .include "nes.inc"
 .include "nsd.inc"

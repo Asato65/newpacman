@@ -27,6 +27,7 @@ scroll_x				: .byte 0
 scroll_amount			: .byte 0
 
 main_disp				: .byte 0
+disp_cnt				: .byte 0		; 画面が切り替わった回数
 
 nmi_cnt					: .byte 0
 frm_cnt					: .byte 0
@@ -63,9 +64,10 @@ spr_fix_val_y						: .res 6		; 加速度補正値
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
 spr_id_arr							: .res 6		; id = 0: no spr
-spr_attr_arr						: .res 6		; bit0: 向き（1のとき右向き）
+spr_attr_arr						: .res 6		; bit2: 上端を超えたとき, bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
 
 plt_datas							: .res 24
 bg_color							: .res 1
+
 
 .code

@@ -28,6 +28,7 @@
 
 
 CHR_ATTR:
+		; bit7:垂直反転, bit6:水平反転(１で反転), bit5:BGとの優先順位(0:手前、1:奥), bit0-1:パレットの上位2bit
 		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; standing
 		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; walk1
 		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; walk2
@@ -95,59 +96,6 @@ AMOUNT_INC_SPD_R:
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _moveSprite
-; 		dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
-; 		lda spr_velocity_x_arr, x
-; 		bne :+
-; 		sta scroll_amount
-; :
-; 		clc
-; 		adc spr_posX_arr, x
-; 		cmp #$f0
-; 		bcc :+
-; 		pha
-; 		lda spr_posX_tmp_arr, x
-; 		sec
-; 		sbc spr_posX_arr, x
-; 		tay								; move_dxを求める（移動量）
-; 		pla
-; 		cpy #$80
-; 		bcc :+
-; 		; posX < 0 && move_dx < 0
-; 		lda #0
-; :
-
-; ; スクロールロック時の処理
-; 		ldy is_scroll_locked
-; 		bne @STORE_POSX
-
-; 		cmp #PLAYER_MAX_POSX
-; 		bcs @MOVE_SCROLL
-
-; @STORE_POSX:
-; 		cmp #($100-(PLAYER_WIDTH+PLAYER_PADDING))
-; 		bcc @STOP_MOVE
-; 		beq @STOP_MOVE
-
-; 		lda #($100-(PLAYER_WIDTH+PLAYER_PADDING))
-; @STOP_MOVE:
-; 		sta spr_posX_arr, x
-; 		jmp @MOVE_Y
-; 		; ------------------------------
-
-; @MOVE_SCROLL:
-; 		sub #PLAYER_MAX_POSX
-; 		sta scroll_amount
-
-; 		lda #PLAYER_MAX_POSX
-; 		sta spr_posX_arr, x
-
-; @MOVE_Y:
-; 		lda spr_posY_tmp_arr, x
-; 		sta spr_posY_arr, x
-
-; 		rts
-; 		; ------------------------------
-
 	dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
 
 	; Y方向
@@ -414,6 +362,12 @@ AMOUNT_INC_SPD_R:
 		lda spr_posX_arr, x
 		sta tmp2							; posX
 
+		lda spr_attr_arr+$0
+		and #%0000_0100
+		beq :+
+		lda #$f0						; 画面外にいったとき
+		sta tmp1
+:
 		lda spr_attr_arr, x
 		and #BIT0
 		beq :+

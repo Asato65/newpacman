@@ -25,6 +25,7 @@
 		lda main_disp
 		eor #%0000_0001
 		sta main_disp
+		inc disp_cnt
 
 		lda ppu_ctrl1_cpy
 		eor #%0000_0001

@@ -457,6 +457,34 @@ EXIT:
 		lda #0
 		sta spr_decimal_part_velocity_y_arr+$0
 :
+	lda spr_velocity_y_arr+$0
+	bpl @DOWN
+	; 上昇中
+	lda spr_posY_tmp_arr+$0
+	add #$10
+	bpl @EXIT
+	; 移動後のposYが負（画面下部、画面外）
+	lda spr_posY_arr+$0
+	add #$10
+	bmi @EXIT
+	; 元のposYが正（画面上部）
+	lda spr_attr_arr+$0
+	ora #%0000_0100
+	sta spr_attr_arr+$0
+	bne @EXIT	; ------------------
+@DOWN:
+	lda spr_attr_arr+$0
+	and #%0000_0100
+	beq @EXIT
+	; 画面外（上部）にいるとき
+	lda spr_posY_tmp_arr+$0
+	add #$10
+	bmi @EXIT
+	; posYが正（画面上部）に戻ってきたとき
+	lda spr_attr_arr+$0
+	and #%1111_1011
+	sta spr_attr_arr+$0
+@EXIT:
 		rts
 		; ------------------------------
 .endproc
@@ -492,6 +520,12 @@ EXIT:
 		sta spr_float_velocity_x_arr+$0
 		sta spr_velocity_x_arr+$0
 @SKIP1:
+		lda spr_attr_arr+$0
+		and #%0000_0100
+		beq :+
+		rts
+		; --------------------------
+:
 		; マリオのY座標を取得してブロック単位に変換
 		lda spr_posY_tmp_arr+$0
 		add #2							; マリオの上部分のあたり判定を緩くする（2ピクセル分下げる）

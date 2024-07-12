@@ -333,6 +333,7 @@ fill_ground_start		: .byte 0
 		lda #0
 		sta DrawMap::index
 		sta main_disp
+		sta disp_cnt
 		sta DrawMap::cnt_map_next		; count ff
 		sta DrawMap::map_buff_num
 		sta DrawMap::isend_draw_stage

@@ -81,12 +81,14 @@
 		jsr Player::_checkCollision
 		jsr Player::_animate
 
+		jsr Enemy::_spawn
+
 		; chr move
-	ldx #PLAYER_SPR_ID					; spr id
-	jsr Sprite::_moveSprite
-	ldx #PLAYER_SPR_ID					; spr id
-	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
-	jsr Sprite::_tfrToChrBuff
+		ldx #PLAYER_SPR_ID					; spr id
+		jsr Sprite::_moveSprite
+		ldx #PLAYER_SPR_ID					; spr id
+		ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
+		jsr Sprite::_tfrToChrBuff
 
 
 		; ----- End main -----
