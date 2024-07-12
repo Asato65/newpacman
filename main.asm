@@ -81,14 +81,26 @@
 		jsr Player::_checkCollision
 		jsr Player::_animate
 
-		jsr Enemy::_spawn
+		; jsr Enemy::_spawn
 
 		; chr move
-		ldx #PLAYER_SPR_ID					; spr id
-		jsr Sprite::_moveSprite
-		ldx #PLAYER_SPR_ID					; spr id
-		ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
-		jsr Sprite::_tfrToChrBuff
+	ldx #0
+@CHR_MOVE_LOOP:
+	stx tmp6						; buff index
+	lda spr_attr_arr, x
+	and #BIT7
+	beq :+							; キャラクタが未使用ならスキップ
+	inx								; spr id（キャラに固有のIDではなくバッファ用の）
+	jsr Sprite::_moveSprite
+	ldx tmp6						; spr id
+	inx
+	ldy tmp6						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
+	jsr Sprite::_tfrToChrBuff
+	ldx tmp6
+:
+	inx
+	cpx #6
+	bne @CHR_MOVE_LOOP
 
 
 		; ----- End main -----

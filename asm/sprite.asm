@@ -27,22 +27,6 @@
 
 
 
-CHR_ATTR:
-		; bit7:垂直反転, bit6:水平反転(１で反転), bit5:BGとの優先順位(0:手前、1:奥), bit0-1:パレットの上位2bit
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; standing
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; walk1
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; walk2
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; walk3, fall
-		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000		; jumping
-
-CHR_ID:
-		.byte $3a, $37, $4f, $4f		; standing
-		.byte $32, $33, $34, $35		; walk1
-		.byte $36, $37, $38, $39		; walk2
-		.byte $3a, $37, $3b, $3c		; walk3, falling
-		.byte $32, $41, $42, $43		; jumping
-
-
 PLAYER_STANDING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
 PLAYER_WALK1_ATTR:			.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 PLAYER_WALK2_ATTR:			.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
@@ -50,21 +34,21 @@ PLAYER_WALK3_FALLING_ATTR:	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 PLAYER_JUMPING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 PLAYER_BRAKING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 
-PLAYER_STANDING:		.byte $3a, $37, $4f, $4f
-PLAYER_WALK1:			.byte $32, $33, $34, $35
-PLAYER_WALK2:			.byte $36, $37, $38, $39
-PLAYER_WALK3_FALLING:	.byte $3a, $37, $3b, $3c
-PLAYER_JUMPING:			.byte $32, $41, $42, $43
-PLAYER_BRAKING:			.byte $3d, $3e, $3f, $40
+PLAYER_STANDING:		.byte $03, $06, $0e, $0e
+PLAYER_WALK1:			.byte $01, $05, $09, $0f
+PLAYER_WALK2:			.byte $02, $06, $0a, $10
+PLAYER_WALK3_FALLING:	.byte $03, $06, $0b, $11
+PLAYER_JUMPING:			.byte $01, $08, $0d, $13
+PLAYER_BRAKING:			.byte $04, $07, $0c, $12
 
 
-CHR_ATTR_TABLE:
+PLAYER_CHR_ATTR_TABLE:
 		.word PLAYER_STANDING_ATTR
 		.word PLAYER_WALK1_ATTR, PLAYER_WALK2_ATTR, PLAYER_WALK3_FALLING_ATTR
 		.word PLAYER_JUMPING_ATTR
 		.word PLAYER_BRAKING_ATTR
 
-CHR_ID_TABLE:
+PLAYER_CHR_ID_TABLE:
 		.word PLAYER_STANDING
 		.word PLAYER_WALK1, PLAYER_WALK2, PLAYER_WALK3_FALLING
 		.word PLAYER_JUMPING
@@ -174,36 +158,36 @@ AMOUNT_INC_SPD_R:
 		tax
 
 		ldy #0
-		ldarr CHR_ATTR_TABLE
+		ldarr PLAYER_CHR_ATTR_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$2, y
 		ldy #1
-		ldarr CHR_ATTR_TABLE
+		ldarr PLAYER_CHR_ATTR_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$6, y
 		ldy #2
-		ldarr CHR_ATTR_TABLE
+		ldarr PLAYER_CHR_ATTR_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$a, y
 		ldy #3
-		ldarr CHR_ATTR_TABLE
+		ldarr PLAYER_CHR_ATTR_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$e, y
 
 		ldy #0
-		ldarr CHR_ID_TABLE
+		ldarr PLAYER_CHR_ID_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$1, y
 		ldy #1
-		ldarr CHR_ID_TABLE
+		ldarr PLAYER_CHR_ID_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$5, y
 		ldy #2
-		ldarr CHR_ID_TABLE
+		ldarr PLAYER_CHR_ID_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$9, y
 		ldy #3
-		ldarr CHR_ID_TABLE
+		ldarr PLAYER_CHR_ID_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$d, y
 
@@ -241,40 +225,40 @@ AMOUNT_INC_SPD_R:
 		tax
 
 		ldy #0
-		ldarr CHR_ATTR_TABLE
+		ldarr PLAYER_CHR_ATTR_TABLE
 		eor #%0100_0000						; 左右反転
 		ldy tmp_rgstY
 		sta CHR_BUFF+$2, y
 		ldy #1
-		ldarr CHR_ATTR_TABLE
+		ldarr PLAYER_CHR_ATTR_TABLE
 		eor #%0100_0000
 		ldy tmp_rgstY
 		sta CHR_BUFF+$6, y
 		ldy #2
-		ldarr CHR_ATTR_TABLE
+		ldarr PLAYER_CHR_ATTR_TABLE
 		eor #%0100_0000
 		ldy tmp_rgstY
 		sta CHR_BUFF+$a, y
 		ldy #3
-		ldarr CHR_ATTR_TABLE
+		ldarr PLAYER_CHR_ATTR_TABLE
 		eor #%0100_0000
 		ldy tmp_rgstY
 		sta CHR_BUFF+$e, y
 
 		ldy #0
-		ldarr CHR_ID_TABLE
+		ldarr PLAYER_CHR_ID_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$1, y
 		ldy #1
-		ldarr CHR_ID_TABLE
+		ldarr PLAYER_CHR_ID_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$5, y
 		ldy #2
-		ldarr CHR_ID_TABLE
+		ldarr PLAYER_CHR_ID_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$9, y
 		ldy #3
-		ldarr CHR_ID_TABLE
+		ldarr PLAYER_CHR_ID_TABLE
 		ldy tmp_rgstY
 		sta CHR_BUFF+$d, y
 
@@ -292,14 +276,15 @@ AMOUNT_INC_SPD_R:
 ; @CLOBBERS		A X Y
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
+/*
 .proc _tfrSprToBuffFlipY
 	; Lower left
 	lda tmp1
 	add #8
 	sta CHR_BUFF+$0, y
-	lda CHR_ID, x
+	lda PLAYER_CHR_ID, x
 	sta CHR_BUFF+$1, y
-	lda CHR_ATTR, x
+	lda PLAYER_CHR_ATTR, x
 	sta CHR_BUFF+$2, y
 	lda tmp2
 	sta CHR_BUFF+$3, y
@@ -308,9 +293,9 @@ AMOUNT_INC_SPD_R:
 	lda tmp1
 	add #8
 	sta CHR_BUFF+$4, y
-	lda CHR_ID, x
+	lda PLAYER_CHR_ID, x
 	sta CHR_BUFF+$5, y
-	lda CHR_ATTR, x
+	lda PLAYER_CHR_ATTR, x
 	sta CHR_BUFF+$6, y
 	lda tmp2
 	add #8
@@ -319,9 +304,9 @@ AMOUNT_INC_SPD_R:
 	inx
 	lda tmp1
 	sta CHR_BUFF+$8, y
-	lda CHR_ID, x
+	lda PLAYER_CHR_ID, x
 	sta CHR_BUFF+$9, y
-	lda CHR_ATTR, x
+	lda PLAYER_CHR_ATTR, x
 	sta CHR_BUFF+$a, y
 	lda tmp2
 	sta CHR_BUFF+$b, y
@@ -329,9 +314,9 @@ AMOUNT_INC_SPD_R:
 	inx
 	lda tmp1
 	sta CHR_BUFF+$c, y
-	lda CHR_ID, x
+	lda PLAYER_CHR_ID, x
 	sta CHR_BUFF+$d, y
-	lda CHR_ATTR, x
+	lda PLAYER_CHR_ATTR, x
 	sta CHR_BUFF+$e, y
 	lda tmp2
 	add #8
@@ -339,6 +324,7 @@ AMOUNT_INC_SPD_R:
 	rts
 	; ------------------------------
 .endproc
+*/
 
 
 ;*------------------------------------------------------------------------------

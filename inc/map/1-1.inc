@@ -1,5 +1,5 @@
 MAP_ARR_11:
-	.addr MAP_11_1
+	.addr MAP_11_1					; 1-1の1つ目
 	.addr MAP_11_2
 	.addr $ffff
 

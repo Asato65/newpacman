@@ -25,14 +25,12 @@
 .include "palette.inc"
 .include "struct.inc"
 .include "map_data.inc"
+.include "enemy_data.inc"
 
 .code									; ----- code -----
 
 .include "joypad.asm"
 .include "macro.asm"
-.include "map/1-1.inc"
-.include "map/1-2.inc"
-.include "map/1-3.inc"
 .include "subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
 .include "sprite.asm"
 .include "player_move.asm"

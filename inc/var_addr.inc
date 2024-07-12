@@ -64,7 +64,7 @@ spr_fix_val_y						: .res 6		; 加速度補正値
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
 spr_id_arr							: .res 6		; id = 0: no spr
-spr_attr_arr						: .res 6		; bit2: 上端を超えたとき, bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
+spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か，bit2: 上端を超えたとき, bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
 
 plt_datas							: .res 24
 bg_color							: .res 1

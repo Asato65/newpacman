@@ -134,6 +134,10 @@ bgm0:		.addr	DQBGM0
 	ldx	bgm0 + 1
 	jsr	_nsd_play_bgm
 
+	lda spr_attr_arr+$0
+	ora #BIT7
+	sta spr_attr_arr+$0
+
 		lda #0
 		sta is_updated_map
 

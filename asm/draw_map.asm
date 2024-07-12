@@ -370,12 +370,12 @@ fill_ground_start		: .byte 0
 		sta PPU_CTRL1
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
-		jsr _nsd_pause_bgm
-
-		ldx #PLAYER_SPR_ID					; spr id
+	jsr Enemy::_reset
+		jsr _nsd_pause_bgm				; Yレジスタ破壊
+		ldx #PLAYER_SPR_ID				; spr id
 		jsr Sprite::_moveSprite
-		ldx #PLAYER_SPR_ID					; spr id
-		ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
+		ldx #PLAYER_SPR_ID				; spr id
+		ldy #PLAYER_CHR_BUFF_INDEX		; buff index (0は0爆弾用のスプライト)
 		jsr Sprite::_tfrToChrBuff
 		pla
 		tay

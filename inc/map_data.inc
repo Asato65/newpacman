@@ -1,9 +1,15 @@
 ; MAP_DATA[stage][map_num][index]
 
+.include "map/1-1.inc"
+.include "map/1-2.inc"
+.include "map/1-3.inc"
+
+
 STAGE_ARR:
 	.addr MAP_ARR_11
 	.addr MAP_ARR_12
 	.addr MAP_ARR_13
+
 
 STAGE_PALETTE_ARR:
 	.byte $1, $0, $0
