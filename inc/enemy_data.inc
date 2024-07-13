@@ -9,19 +9,6 @@ STAGE_ENEMY_ARR:
 	.addr ENEMY_ARR_13
 
 
-ENEMY_ARR:
-	.addr $0000
-	.addr ENEMY_KURIBO				; 1
-	.addr $0000
-	.addr $0000
-	.addr $0000
-	.addr $0000
-	.addr $0000
-	.addr $0000
-	.addr $0000
-	.addr $0000
-
-
 ; PLAYERは1
 KURIBO_ID = $02
 
@@ -37,7 +24,7 @@ ENEMY_KURIBO:
 KURIBO_ANIMATION_ARR:
 	; anime0, walk1
 	.byte $20, $20, $21, $22		; chr
-	.byte %0000_0000, %0100_0000, %0000_0000, %0000_0000		; attr
+	.byte %0000_0011, %0100_0011, %0000_0011, %0000_0011		; attr
 	; anime1, walk2
 	.byte $20, $20, $22, $21
 	.byte %0000_0000, %0100_0000, %0100_0000, %0100_0000

@@ -86,18 +86,15 @@
 		; chr move
 	ldx #0
 @CHR_MOVE_LOOP:
-	stx tmp6						; buff index
+	stx Sprite::spr_buff_id
 	lda spr_attr_arr, x
 	and #BIT7
-	beq :+							; キャラクタが未使用ならスキップ
-	inx								; spr id（キャラに固有のIDではなくバッファ用の）
+	sta Sprite::is_spr_available
 	jsr Sprite::_moveSprite
-	ldx tmp6						; spr id
-	inx
-	ldy tmp6						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
+	ldx Sprite::spr_buff_id						; spr id
+	ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
 	jsr Sprite::_tfrToChrBuff
-	ldx tmp6
-:
+	ldx Sprite::spr_buff_id
 	inx
 	cpx #6
 	bne @CHR_MOVE_LOOP

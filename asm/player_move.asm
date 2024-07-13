@@ -893,7 +893,7 @@ EXIT:
 		add #$10-2
 		sta spr_posY_tmp_arr+$0
 
-		lda #0							; 初期化
+		lda #1							; 初期化
 		sta spr_velocity_y_arr+$0
 		sta spr_decimal_part_velocity_y_arr+$0
 		lda spr_force_fall_y+$0

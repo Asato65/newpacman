@@ -27,7 +27,7 @@ HI										= 1
 
 INIT = 0
 
-PLAYER_SPR_ID							= $1				; スプライトID
+PLAYER_SPR_ID							= $0				; スプライトID
 PLAYER_CHR_BUFF_INDEX					= $0				; スプライトRAMのインデックス（0爆弾の次に配置する）
 PLAYER_WIDTH							= $c
 PLAYER_PADDING							= $2

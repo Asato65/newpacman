@@ -1,5 +1,6 @@
 .scope Enemy
 
+/*
 .ZeroPage
 counter:						.res 1	; 敵が何体スポーンしたかのカウンタ
 arr_addr:						.res 2	; ステージごとの敵の配列の
@@ -111,5 +112,6 @@ arr_addr:						.res 2	; ステージごとの敵の配列の
 	rts
 	; ------------------------------
 .endproc
+*/
 
 .endscope

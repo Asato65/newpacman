@@ -26,33 +26,48 @@
 ***************************************/
 
 
-
-PLAYER_STANDING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
-PLAYER_WALK1_ATTR:			.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
-PLAYER_WALK2_ATTR:			.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
-PLAYER_WALK3_FALLING_ATTR:	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
-PLAYER_JUMPING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
-PLAYER_BRAKING_ATTR:		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
-
-PLAYER_STANDING:		.byte $03, $06, $0e, $0e
-PLAYER_WALK1:			.byte $01, $05, $09, $0f
-PLAYER_WALK2:			.byte $02, $06, $0a, $10
-PLAYER_WALK3_FALLING:	.byte $03, $06, $0b, $11
-PLAYER_JUMPING:			.byte $01, $08, $0d, $13
-PLAYER_BRAKING:			.byte $04, $07, $0c, $12
+SPRITE_ARR:
+	.addr PLAYER_MARIO
+	.addr ENEMY_KURIBO				; 1
+	.addr $0000
+	.addr $0000
+	.addr $0000
+	.addr $0000
+	.addr $0000
+	.addr $0000
+	.addr $0000
+	.addr $0000
 
 
-PLAYER_CHR_ATTR_TABLE:
-		.word PLAYER_STANDING_ATTR
-		.word PLAYER_WALK1_ATTR, PLAYER_WALK2_ATTR, PLAYER_WALK3_FALLING_ATTR
-		.word PLAYER_JUMPING_ATTR
-		.word PLAYER_BRAKING_ATTR
+PLAYER_MARIO:
+	; 定数は一旦0（何にも使っていない）
+	.byte $0				; 踏めるかどうか
+	.byte $0				; 死んだとき（踏まれたとき）のアニメーション(anime2)
+	.byte $0, $0			; アニメーションの範囲（anime0-1）
+	.addr PLAYER_ANIMATION_ARR
+	.addr $ffff
 
-PLAYER_CHR_ID_TABLE:
-		.word PLAYER_STANDING
-		.word PLAYER_WALK1, PLAYER_WALK2, PLAYER_WALK3_FALLING
-		.word PLAYER_JUMPING
-		.word PLAYER_BRAKING
+
+PLAYER_ANIMATION_ARR:
+	; standing
+	.byte $03, $06, $0e, $0e
+	.byte %0000_0000, %0000_0000, %0000_0000, %0100_0000
+	; walk1
+	.byte $01, $05, $09, $0f
+	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+	; walk2
+	.byte $02, $06, $0a, $10
+	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+	; walk3, falling
+	.byte $03, $06, $0b, $11
+	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+	; jumping
+	.byte $01, $08, $0d, $13
+	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+	; braking
+	.byte $04, $07, $0c, $12
+	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
+
 
 
 MAX_SPD_L:
@@ -71,6 +86,11 @@ AMOUNT_INC_SPD_R:
 
 .scope Sprite
 
+.ZeroPage
+	is_spr_available:			.res 1	; スプライトが利用できるか（有効なスプライトか）の一時フラグ（spr_attr_arrのbit7）
+	spr_buff_id:				.res 1	; バッファでのスプライトID
+
+
 .code									; ----- code -----
 
 ;*------------------------------------------------------------------------------
@@ -80,8 +100,13 @@ AMOUNT_INC_SPD_R:
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _moveSprite
-	dex									; sprid=0のときスプライトは無なので，必ず1から始まる→0から始まるように修正
-
+	cpx #0
+	beq :+
+	; 敵キャラなど
+	rts
+	; ------------------------------
+:
+	; マリオの移動
 	; Y方向
 	lda spr_posY_tmp_arr, x
 	sta spr_posY_arr, x
@@ -129,15 +154,26 @@ AMOUNT_INC_SPD_R:
 
 ;*------------------------------------------------------------------------------
 ; 通常の向きでスプライトをバッファ転送する
-; @PARAMS		x: sprite id（-1された状態)
+; @PARAMS		x: sprite buff id
 ; @PARAMS		y: buff index（ストアし始める最初のindex）
 ; @PARAMS		tmp1: posY
 ; @PARAMS		tmp2: posX
-; @CLOBBERS		A X Y tmp_rgstY
+; @CLOBBERS		A X Y tmp_rgstY tmp1
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _tfrSprToBuffNormal
-		; Upper left
+		lda spr_attr_arr, x
+		and #BIT7
+		bne :+
+		lda #$ff
+		sta CHR_BUFF+$3, y
+		sta CHR_BUFF+$b, y
+		sta CHR_BUFF+$7, y
+		sta CHR_BUFF+$f, y
+		rts
+		; --------------------------
+:
+
 		lda tmp1
 		sta CHR_BUFF+$0, y
 		sta CHR_BUFF+$4, y
@@ -153,43 +189,43 @@ AMOUNT_INC_SPD_R:
 		sta CHR_BUFF+$f, y
 
 
-		sty tmp_rgstY
+		sty tmp1
+		lda spr_id_arr, x			; キャラ固有のIDを取得
+		ldy #4
+		ldarr SPRITE_ARR
+		sta addr_tmp2+LO
+		iny
+		ldarr SPRITE_ARR
+		sta addr_tmp2+HI
 		lda spr_anime_num, x
-		tax
+		shl #3
+		tay
 
-		ldy #0
-		ldarr PLAYER_CHR_ATTR_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$2, y
-		ldy #1
-		ldarr PLAYER_CHR_ATTR_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$6, y
-		ldy #2
-		ldarr PLAYER_CHR_ATTR_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$a, y
-		ldy #3
-		ldarr PLAYER_CHR_ATTR_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$e, y
+		ldx tmp1
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$1, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$5, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$9, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$d, x
 
-		ldy #0
-		ldarr PLAYER_CHR_ID_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$1, y
-		ldy #1
-		ldarr PLAYER_CHR_ID_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$5, y
-		ldy #2
-		ldarr PLAYER_CHR_ID_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$9, y
-		ldy #3
-		ldarr PLAYER_CHR_ID_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$d, y
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$2, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$6, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$a, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$e, x
 
 		rts
 		; ------------------------------
@@ -198,14 +234,26 @@ AMOUNT_INC_SPD_R:
 
 ;*------------------------------------------------------------------------------
 ; 左右反転してスプライトをバッファ転送する
-; @PARAMS		x: sprite id（-1された状態)
+; @PARAMS		x: sprite buff id
 ; @PARAMS		y: buff index（ストアし始める最初のindex）
 ; @PARAMS		tmp1: posY
 ; @PARAMS		tmp2: posX
-; @CLOBBERS		A X Y
+; @CLOBBERS		A X Y addr_tmp1 tmp1
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _tfrSprToBuffFlipX
+		lda spr_attr_arr, x
+		and #BIT7
+		bne :+
+		lda #$ff
+		sta CHR_BUFF+$3, y
+		sta CHR_BUFF+$b, y
+		sta CHR_BUFF+$7, y
+		sta CHR_BUFF+$f, y
+		rts
+		; --------------------------
+:
+
 		lda tmp1
 		sta CHR_BUFF+$0, y
 		sta CHR_BUFF+$4, y
@@ -220,47 +268,47 @@ AMOUNT_INC_SPD_R:
 		sta CHR_BUFF+$3, y
 		sta CHR_BUFF+$b, y
 
-		sty tmp_rgstY
+		sty tmp1
+		lda spr_id_arr, x			; キャラ固有のIDを取得
+		ldy #4
+		ldarr SPRITE_ARR
+		sta addr_tmp2+LO
+		iny
+		ldarr SPRITE_ARR
+		sta addr_tmp2+HI
 		lda spr_anime_num, x
-		tax
+		shl #3
+		tay
 
-		ldy #0
-		ldarr PLAYER_CHR_ATTR_TABLE
-		eor #%0100_0000						; 左右反転
-		ldy tmp_rgstY
-		sta CHR_BUFF+$2, y
-		ldy #1
-		ldarr PLAYER_CHR_ATTR_TABLE
-		eor #%0100_0000
-		ldy tmp_rgstY
-		sta CHR_BUFF+$6, y
-		ldy #2
-		ldarr PLAYER_CHR_ATTR_TABLE
-		eor #%0100_0000
-		ldy tmp_rgstY
-		sta CHR_BUFF+$a, y
-		ldy #3
-		ldarr PLAYER_CHR_ATTR_TABLE
-		eor #%0100_0000
-		ldy tmp_rgstY
-		sta CHR_BUFF+$e, y
+		ldx tmp1
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$1, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$5, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$9, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$d, x
 
-		ldy #0
-		ldarr PLAYER_CHR_ID_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$1, y
-		ldy #1
-		ldarr PLAYER_CHR_ID_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$5, y
-		ldy #2
-		ldarr PLAYER_CHR_ID_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$9, y
-		ldy #3
-		ldarr PLAYER_CHR_ID_TABLE
-		ldy tmp_rgstY
-		sta CHR_BUFF+$d, y
+		iny
+		lda (addr_tmp2), y
+		eor #%0100_0000					; 左右反転
+		sta CHR_BUFF+$2, x
+		iny
+		lda (addr_tmp2), y
+		eor #%0100_0000
+		sta CHR_BUFF+$6, x
+		iny
+		lda (addr_tmp2), y
+		eor #%0100_0000
+		sta CHR_BUFF+$a, x
+		iny
+		lda (addr_tmp2), y
+		eor #%0100_0000
+		sta CHR_BUFF+$e, x
 
 		rts
 		; ------------------------------
@@ -269,7 +317,7 @@ AMOUNT_INC_SPD_R:
 
 ;*------------------------------------------------------------------------------
 ; 上下反転してスプライトをバッファ転送する
-; @PARAMS		x: sprite id（-1された状態)
+; @PARAMS		x: sprite buff id
 ; @PARAMS		y: buff index（ストアし始める最初のindex）
 ; @PARAMS		tmp1: posY
 ; @PARAMS		tmp2: posX
@@ -329,19 +377,19 @@ AMOUNT_INC_SPD_R:
 
 ;*------------------------------------------------------------------------------
 ; transfar to chr buff
-; @PARAMS		X: sprite id, Y = BUFF index
-; @CLOBBERS		A X Y
+; @PARAMS		X: sprite buff id
+; @PARAMS		Y: BUFF index
+; @CLOBBERS		A X Y tmp1 tmp2
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _tfrToChrBuff
-		cpx #0								; sprid=0 -> スプライトなし
-		beq @EXIT
-		dex									; spridを0～に変更
-
-		iny									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
 		tya
-		shl #2
+		shl #4
 		tay
+		iny									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
+		iny
+		iny
+		iny
 
 		lda spr_posY_arr, x
 		sta tmp1							; posY

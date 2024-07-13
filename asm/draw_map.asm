@@ -354,6 +354,9 @@ fill_ground_start		: .byte 0
 		sta spr_posY_arr+$0
 		sta spr_posY_tmp_arr+$0
 		sta spr_pos_y_origin+$0
+		lda #BIT7|BIT0
+		sta spr_attr_arr+$0
+
 
 		lda #'G'
 		sta DrawMap::fill_ground_block
@@ -370,7 +373,7 @@ fill_ground_start		: .byte 0
 		sta PPU_CTRL1
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
-	jsr Enemy::_reset
+	; jsr Enemy::_reset
 		jsr _nsd_pause_bgm				; Yレジスタ破壊
 		ldx #PLAYER_SPR_ID				; spr id
 		jsr Sprite::_moveSprite
