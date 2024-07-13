@@ -373,7 +373,7 @@ fill_ground_start		: .byte 0
 		sta PPU_CTRL1
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
-	; jsr Enemy::_reset
+	jsr Enemy::_reset
 		jsr _nsd_pause_bgm				; Yレジスタ破壊
 		ldx #PLAYER_SPR_ID				; spr id
 		jsr Sprite::_moveSprite

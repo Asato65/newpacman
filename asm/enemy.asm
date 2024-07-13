@@ -1,6 +1,6 @@
 .scope Enemy
 
-/*
+
 .ZeroPage
 counter:						.res 1	; 敵が何体スポーンしたかのカウンタ
 arr_addr:						.res 2	; ステージごとの敵の配列の
@@ -34,21 +34,24 @@ arr_addr:						.res 2	; ステージごとの敵の配列の
 ;*------------------------------------------------------------------------------
 ; 敵をスポーンさせる
 ; @PARAMS		None
-; @CLOBBERS		A X Y tmp1
+; @CLOBBERS		A X Y tmp1 tmp_addr1
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _spawn
 	ldy counter
-	lda (Enemy::arr_addr), y
-	cmp #$ff
+	lda (Enemy::arr_addr), y		; ENEMY_ARR_11などの配列のデータを取ってくる（マップ番号, 上位マリオX座標，下位敵Y座標，敵ID）
+	cmp #ENDCODE					; $ff
 	bne :+
 	rts
 	; ------------------------------
 :
+	; マップ番号と今いるマップの比較
 	cmp disp_cnt
 	beq :+
 	rts
 	; ------------------------------
+:
+	; 座標系取得
 	iny
 	lda (Enemy::arr_addr), y
 	sta tmp1
@@ -57,61 +60,49 @@ arr_addr:						.res 2	; ステージごとの敵の配列の
 	bcc :+
 	rts
 	; ------------------------------
-	; 指定X座標 < プレイヤーX座標
+	; 指定X座標 < プレイヤーX座標 →　マリオが敵をスポーンできる位置にいる
 :
-	; 敵のの格納場所を決定
+	; 敵のバッファ格納場所を決定
 	ldx #1							; マリオのフラグは確認を省く
 @CHECK_LOOP:
 	lda spr_attr_arr, x
+	bpl :+							; 上位ビットが立っていなければ次へ（検索完了）
 	inx
 	cpx #6							; spr_attr_arrは6要素しか入らないのでindex=6はあり得ない
-	bne :+
+	bcc @CHECK_LOOP
 	iny								; スポーンさせず終了
 	iny
 	sty counter
 	rts
 	; ------------------------------
 :
-	and #BIT7
-	bne @CHECK_LOOP
 
 	; MEMO: 敵の出すX座標はマップ上（画面上ではない！）の座標でもいいかも？scroll_xを使えば実装できそう
 	; MEMO: 右端を超えたフラグも用意できるかも
 
 	; 敵の座標をストア
 	lda #$ff
-	sta spr_posX_arr, x
+	sta spr_posX_arr, x				; 右端から
 	lda tmp1
 	and #BYT_GET_LO
-	adc #NEGATIVE $e
 	shl #4							; ピクセル単位の座標に変換
+	add #NEGATIVE $e0
+	cnn
 	sta spr_posY_arr, x
+	lda spr_attr_arr, x
+	ora #BIT7
+	sta spr_attr_arr, x
 
+	; 敵IDを取得
 	iny
-	txa
-	pha
-	tya
-	pha
-	lda (Enemy::arr_addr), y		; 敵のID番号
-	tax
-	ldy #4							; ANIMATION_ARRのあるアドレスを読み出す
-	ldarr ENEMY_ARR
-	sta addr_tmp2+LO
-	iny
-	ldarr ENEMY_ARR
-	sta addr_tmp2+HI
-	ldy #0
-	lda (addr_tmp2), y
-	pla
-	tay
-	pla
-	tax
+	lda (Enemy::arr_addr), y
+	sta spr_id_arr, x
 
 	iny
 	sty counter						; 各X座標（各列）で敵は一体のみの出現を想定
 	rts
 	; ------------------------------
 .endproc
-*/
+
 
 .endscope

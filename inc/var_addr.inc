@@ -10,6 +10,7 @@ tmp6					: .byte 0
 bg_buff_pointer			: .byte 0
 addr_tmp1				: .addr 0
 addr_tmp2				: .addr 0
+ldarr_addr_tmp			: .byte 0
 
 bg_map_buff_index		: .byte 0		; BG（マップ）専用バッファ
 

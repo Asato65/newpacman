@@ -81,7 +81,7 @@
 		jsr Player::_checkCollision
 		jsr Player::_animate
 
-		; jsr Enemy::_spawn
+		jsr Enemy::_spawn
 
 		; chr move
 	ldx #0
