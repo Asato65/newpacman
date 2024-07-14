@@ -104,11 +104,41 @@ AMOUNT_INC_SPD_R:
 ;*------------------------------------------------------------------------------
 .proc _moveSprite
 	cpx #0
-	beq :+
+	beq @PLAYER
 	; 敵キャラなど
+	lda spr_attr_arr, x
+	bmi :+
 	rts
 	; ------------------------------
 :
+	lda spr_posY_tmp_arr, x
+	sta spr_posY_arr, x
+	lda spr_posX_tmp_arr, x
+	sub scroll_amount
+	sta spr_posX_tmp_arr, x
+	bpl :+
+	lda spr_posX_arr, x
+	bmi :+
+	; 現在のX座標が負で前のX座標が正のとき
+	lda spr_attr_arr, x
+	ora #BIT1						; 左端を越えたフラグ
+	sta spr_attr_arr, x
+:
+	lda spr_posX_tmp_arr, x
+	cmp #$f1
+	bpl :+							; $f0より上
+	lda spr_attr_arr, x
+	and #BIT1
+	beq :+
+	lda spr_attr_arr, x
+	and #%0111_1111					; bit7（スプライト使用フラグ）を0に
+	sta spr_attr_arr, x
+:
+	lda spr_posX_tmp_arr, x
+	sta spr_posX_arr, x
+	rts
+	; ------------------------------
+@PLAYER:
 	; マリオの移動
 	; Y方向
 	lda spr_posY_tmp_arr, x
@@ -169,10 +199,10 @@ AMOUNT_INC_SPD_R:
 		and #BIT7
 		bne :+
 		lda #$ff
-		sta CHR_BUFF+$3, y
-		sta CHR_BUFF+$b, y
-		sta CHR_BUFF+$7, y
-		sta CHR_BUFF+$f, y
+		sta CHR_BUFF+$0, y
+		sta CHR_BUFF+$4, y
+		sta CHR_BUFF+$8, y
+		sta CHR_BUFF+$c, y
 		rts
 		; --------------------------
 :
@@ -252,21 +282,44 @@ AMOUNT_INC_SPD_R:
 		and #BIT7
 		bne :+
 		lda #$ff
-		sta CHR_BUFF+$3, y
-		sta CHR_BUFF+$b, y
-		sta CHR_BUFF+$7, y
-		sta CHR_BUFF+$f, y
+		sta CHR_BUFF+$0, y
+		sta CHR_BUFF+$4, y
+		sta CHR_BUFF+$8, y
+		sta CHR_BUFF+$c, y
 		rts
 		; --------------------------
 :
 
+		lda spr_attr_arr, x
+		and #BIT1					; 左端を超えたか
+		bne :+
 		lda tmp1
 		sta CHR_BUFF+$0, y
 		sta CHR_BUFF+$4, y
 		add #8
 		sta CHR_BUFF+$8, y
 		sta CHR_BUFF+$c, y
+		jmp @STORE_POS_Y
+:
+		lda tmp2
+		cmp #$f8
+		bcc :+
+		lda #$ff
+		sta CHR_BUFF+$4, y
+		sta CHR_BUFF+$c, y
+		lda tmp1
+		sta CHR_BUFF+$0, y
+		add #8
+		sta CHR_BUFF+$8, y
+		jmp @STORE_POS_Y
+:
+		lda #$ff
+		sta CHR_BUFF+$0, y
+		sta CHR_BUFF+$4, y
+		sta CHR_BUFF+$8, y
+		sta CHR_BUFF+$c, y
 
+@STORE_POS_Y:
 		lda tmp2
 		sta CHR_BUFF+$7, y
 		sta CHR_BUFF+$f, y

@@ -93,13 +93,14 @@ arr_addr:						.res 2	; ステージごとの敵の配列の
 
 	; 敵の座標をストア
 	lda #$ff
-	sta spr_posX_arr, x				; 右端から
+	sta spr_posX_tmp_arr, x				; 右端から
+	sta spr_posX_arr, x
 	lda tmp1
 	and #BYT_GET_LO
 	shl #4							; ピクセル単位の座標に変換
 	add #NEGATIVE $e0
 	cnn
-	sta spr_posY_arr, x
+	sta spr_posY_tmp_arr, x
 	lda spr_attr_arr, x
 	ora #BIT7
 	sta spr_attr_arr, x
@@ -138,7 +139,6 @@ arr_addr:						.res 2	; ステージごとの敵の配列の
 	clc
 	adc spr_posX_tmp_arr, x
 	sta spr_posX_tmp_arr, x
-	sta spr_posX_arr, x
 	lda tmp1
 	and #BYT_GET_LO
 	sta spr_decimal_part_velocity_x_arr, x
