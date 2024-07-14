@@ -41,7 +41,13 @@
 		jsr _nsd_main_bgm
 
 	; inc timer
-	inc spr_anime_timer+$0
+	ldx #0
+:
+	inc spr_anime_timer, x
+	inc spr_move_timer_arr, x
+	inx
+	cpx #6
+	bne :-
 
 	jsr Func::_scroll
 
@@ -82,6 +88,7 @@
 		jsr Player::_animate
 
 		jsr Enemy::_spawn
+		jsr Enemy::_physicsXAllEnemy
 
 		; chr move
 	ldx #0
@@ -94,6 +101,8 @@
 	ldx Sprite::spr_buff_id						; spr id
 	ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
 	jsr Sprite::_tfrToChrBuff
+	ldx Sprite::spr_buff_id
+	jsr Sprite::_loadMoveArr
 	ldx Sprite::spr_buff_id
 	inx
 	cpx #6

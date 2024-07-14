@@ -10,7 +10,7 @@ tmp6					: .byte 0
 bg_buff_pointer			: .byte 0
 addr_tmp1				: .addr 0
 addr_tmp2				: .addr 0
-ldarr_addr_tmp			: .byte 0
+ldarr_addr_tmp			: .addr 0
 
 bg_map_buff_index		: .byte 0		; BG（マップ）専用バッファ
 
@@ -61,11 +61,15 @@ spr_decimal_part_force_y			: .res 6		; 現在の加速度
 spr_force_fall_y					: .res 6		; 降下時の加速度
 spr_pos_y_decimal_part				: .res 6
 spr_fix_val_y						: .res 6		; 加速度補正値
+spr_float_velocity_y_arr			: .res 6
 
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
 spr_id_arr							: .res 6		; キャラに固有のID（マリオは最初から0でセット済み）
 spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か，bit2: 上端を超えたとき, bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
+spr_move_timer_arr					: .res 6		; マリオの領域は未使用
+spr_move_counter					: .res 6		; $ffで初期化する
+spr_move_timer_max_arr				: .res 6
 
 plt_datas							: .res 24
 bg_color							: .res 1

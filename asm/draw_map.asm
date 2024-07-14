@@ -375,11 +375,6 @@ fill_ground_start		: .byte 0
 		jsr Subfunc::_restorePPUSet
 	jsr Enemy::_reset
 		jsr _nsd_pause_bgm				; Yレジスタ破壊
-		ldx #PLAYER_SPR_ID				; spr id
-		jsr Sprite::_moveSprite
-		ldx #PLAYER_SPR_ID				; spr id
-		ldy #PLAYER_CHR_BUFF_INDEX		; buff index (0は0爆弾用のスプライト)
-		jsr Sprite::_tfrToChrBuff
 		pla
 		tay
 

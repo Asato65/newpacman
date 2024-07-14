@@ -18,6 +18,7 @@ ENEMY_KURIBO:
 	.byte $2				; 死んだとき（踏まれたとき）のアニメーション(anime2)
 	.byte $0, $2			; アニメーションの範囲（anime0-1）
 	.addr KURIBO_ANIMATION_ARR
+	.byte $1				; move_arrで設定している動きの数
 	.addr KURIBO_MOVE_ARR
 
 
@@ -34,7 +35,7 @@ KURIBO_ANIMATION_ARR:
 
 
 KURIBO_MOVE_ARR:
-	.byte $0, NEGATIVE $16, $0, $0, $0, $ff		; タイマー, X速度, Y速度（タイマーが0のとき、速度を後から更新しない）, X加速度, Y加速度、エンドコード（ff以外ならアニメーション番号を設定する）
+	.byte $0, NEGATIVE $10, $0, $0, $0, $ff		; タイマー, X速度, Y速度（タイマーが0のとき、速度を後から更新しない）, X加速度, Y加速度、エンドコード（ff以外ならアニメーション番号を設定する）
 	/* パックンフラワーなら:
 	.byte 32, $0, NEGATIVE $08, $0, $0, $0		; 約0.5秒上昇、アニメーションは0番目で固定
 	.byte 120, $0, 0,           $0, $0, $ff		; 2秒停止、アニメーションする

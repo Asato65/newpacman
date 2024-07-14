@@ -45,7 +45,7 @@ PLAYER_MARIO:
 	.byte $0				; 死んだとき（踏まれたとき）のアニメーション(anime2)
 	.byte $0, $0			; アニメーションの範囲（anime0-1）
 	.addr PLAYER_ANIMATION_ARR
-	.addr $ffff
+	.addr PLAYER_MOVE_ARR
 
 
 PLAYER_ANIMATION_ARR:
@@ -68,6 +68,9 @@ PLAYER_ANIMATION_ARR:
 	.byte $04, $07, $0c, $12
 	.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 
+
+PLAYER_MOVE_ARR:
+	.byte $0, $0, $0, $0, $0, $ff		; タイマー(0なので速度を更新しない), X速度, Y速度, X加速度, Y加速度、エンドコード
 
 
 MAX_SPD_L:
@@ -190,13 +193,16 @@ AMOUNT_INC_SPD_R:
 
 
 		sty tmp1
+		stx tmp2
 		lda spr_id_arr, x			; キャラ固有のIDを取得
-		ldy #4
+		tax
+		ldy #4						; 配列ENEMY_enemyname[4]を取得
 		ldarr SPRITE_ARR
 		sta addr_tmp2+LO
 		iny
 		ldarr SPRITE_ARR
 		sta addr_tmp2+HI
+		ldx tmp2
 		lda spr_anime_num, x
 		shl #3
 		tay
@@ -269,13 +275,16 @@ AMOUNT_INC_SPD_R:
 		sta CHR_BUFF+$b, y
 
 		sty tmp1
+		stx tmp2
 		lda spr_id_arr, x			; キャラ固有のIDを取得
+		tax
 		ldy #4
 		ldarr SPRITE_ARR
 		sta addr_tmp2+LO
 		iny
 		ldarr SPRITE_ARR
 		sta addr_tmp2+HI
+		ldx tmp2
 		lda spr_anime_num, x
 		shl #3
 		tay
@@ -413,6 +422,67 @@ AMOUNT_INC_SPD_R:
 @EXIT:
 		rts
 		; ------------------------------
+.endproc
+
+
+.proc _loadMoveArr
+	lda is_spr_available
+	bne :+
+	rts
+	; ------------------------------
+:
+	lda spr_move_counter, x
+	sta tmp1
+	cmp #$ff
+	bne @SKIP1
+	; 初期化
+	lda #$00
+	sta spr_move_counter, x
+	lda spr_id_arr, x				; キャラ固有のIDを取得
+	tax
+	ldy #2
+	ldarr SPRITE_ARR
+	sta spr_anime_num, x			; アニメーション開始番号
+	ldy #7
+	ldarr SPRITE_ARR
+	sta addr_tmp1+LO
+	iny
+	ldarr SPRITE_ARR
+	sta addr_tmp1+HI
+
+	lda #0
+	sta spr_anime_timer, x			; 初期化
+	ldy #0
+	lda (addr_tmp1), y
+	sta spr_move_timer_max_arr, x
+	iny
+	lda (addr_tmp1), y				; X速度
+	sta spr_float_velocity_x_arr, x
+	iny
+	lda (addr_tmp1), y
+	sta spr_float_velocity_y_arr, x
+	iny								; 加速度は一旦実装を飛ばす
+	iny
+	iny
+	lda (addr_tmp1), y
+	cmp #$ff
+	beq :+							; エンドコードが来たら処理は終了
+	; エンドコードがセットされていなかったとき
+	sta spr_anime_num, x			; アニメーションを上書き
+:
+	rts
+	; ------------------------------
+@SKIP1:
+	; すでにセット済みのとき
+	lda spr_move_counter, x
+	sta tmp1
+	lda spr_move_timer_max_arr, x
+	bne :+
+	rts
+	; ------------------------------
+:
+	; ここに処理を追加する（速度が一定ではなく，動きがいくつかある敵用）
+	rts
 .endproc
 
 

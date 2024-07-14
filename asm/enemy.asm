@@ -17,13 +17,24 @@ arr_addr:						.res 2	; ステージごとの敵の配列の
 .proc _reset
 	tya
 	pha
+
 	shl #1
+	tay
 	lda STAGE_ENEMY_ARR, y
 	sta Enemy::arr_addr+LO
 	lda STAGE_ENEMY_ARR+1, y
 	sta Enemy::arr_addr+HI
 	lda #0
 	sta Enemy::counter
+
+	ldy #0							; マリオの領域もリセットしてしまう
+:
+	lda #$ff						; moveカウンターは初期値ff
+	sta spr_move_counter, y
+	iny
+	cpy #6
+	bne :-
+
 	pla
 	tay
 	rts
@@ -100,6 +111,41 @@ arr_addr:						.res 2	; ステージごとの敵の配列の
 
 	iny
 	sty counter						; 各X座標（各列）で敵は一体のみの出現を想定
+	rts
+	; ------------------------------
+.endproc
+
+
+.proc _physicsXAllEnemy
+	ldx #1
+@LOOP:
+	lda spr_attr_arr, x
+	bpl @SKIP1
+	lda spr_float_velocity_x_arr, x
+	tay
+	bpl :+
+	cnn
+:
+	clc
+	adc spr_decimal_part_velocity_x_arr, x
+	sta tmp1
+	shr #4
+	cpy #0
+	bpl :+
+	cnn
+:
+	sta spr_velocity_x_arr, x
+	clc
+	adc spr_posX_tmp_arr, x
+	sta spr_posX_tmp_arr, x
+	sta spr_posX_arr, x
+	lda tmp1
+	and #BYT_GET_LO
+	sta spr_decimal_part_velocity_x_arr, x
+@SKIP1:
+	inx
+	cpx #6
+	bne @LOOP
 	rts
 	; ------------------------------
 .endproc

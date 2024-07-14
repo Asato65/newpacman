@@ -112,9 +112,6 @@ bgm0:		.addr	DQBGM0
 	sta spr_posX_tmp_arr+0
 	lda #$c0
 	sta spr_posY_tmp_arr+0
-	ldx #PLAYER_SPR_ID					; spr id
-	ldy #PLAYER_CHR_BUFF_INDEX			; buff index (0は0爆弾用のスプライト)
-	jsr Sprite::_tfrToChrBuff
 
 	lda #1							; Y方向の加速度が正（下向き）の場合
 	sta spr_velocity_y_arr+$0

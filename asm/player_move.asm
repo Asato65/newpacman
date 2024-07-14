@@ -290,7 +290,7 @@ EXIT:
 		lda #1
 @ANIMATE:								; タイマーと速度に応じた値を比較しアニメーションを進める
 		cmp spr_anime_timer+$0
-		bpl @NO_CHANGE_CHR
+		bcs @NO_CHANGE_CHR
 
 		lda #0							; アニメーション変更
 		sta spr_anime_timer+$0
