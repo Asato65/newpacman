@@ -198,6 +198,7 @@ AMOUNT_INC_SPD_R:
 		lda spr_attr_arr, x
 		and #BIT7
 		bne :+
+		; 非表示
 		lda #$ff
 		sta CHR_BUFF+$0, y
 		sta CHR_BUFF+$4, y
@@ -281,6 +282,7 @@ AMOUNT_INC_SPD_R:
 		lda spr_attr_arr, x
 		and #BIT7
 		bne :+
+		; 非表示
 		lda #$ff
 		sta CHR_BUFF+$0, y
 		sta CHR_BUFF+$4, y
@@ -292,7 +294,20 @@ AMOUNT_INC_SPD_R:
 
 		lda spr_attr_arr, x
 		and #BIT1					; 左端を超えたか
-		bne :+
+		bne @OVER_LEFT
+		lda tmp2
+		cmp #$f8
+		bcc :+
+		; 右端を超えたとき
+		lda #$ff
+		sta CHR_BUFF+$0, y
+		sta CHR_BUFF+$8, y
+		lda tmp1
+		sta CHR_BUFF+$4, y
+		add #8
+		sta CHR_BUFF+$c, y
+		jmp @STORE_POS_Y
+:
 		lda tmp1
 		sta CHR_BUFF+$0, y
 		sta CHR_BUFF+$4, y
@@ -300,7 +315,7 @@ AMOUNT_INC_SPD_R:
 		sta CHR_BUFF+$8, y
 		sta CHR_BUFF+$c, y
 		jmp @STORE_POS_Y
-:
+@OVER_LEFT:
 		lda tmp2
 		cmp #$f8
 		bcc :+
@@ -489,6 +504,8 @@ AMOUNT_INC_SPD_R:
 	cmp #$ff
 	bne @SKIP1
 	; 初期化
+	txa
+	pha
 	lda #$00
 	sta spr_move_counter, x
 	lda spr_id_arr, x				; キャラ固有のIDを取得
@@ -503,6 +520,8 @@ AMOUNT_INC_SPD_R:
 	ldarr SPRITE_ARR
 	sta addr_tmp1+HI
 
+	pla
+	tax
 	lda #0
 	sta spr_anime_timer, x			; 初期化
 	ldy #0
@@ -536,6 +555,12 @@ AMOUNT_INC_SPD_R:
 :
 	; ここに処理を追加する（速度が一定ではなく，動きがいくつかある敵用）
 	rts
+.endproc
+
+
+.proc _shuffle
+
+
 .endproc
 
 

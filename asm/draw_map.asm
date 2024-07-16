@@ -367,14 +367,14 @@ fill_ground_start		: .byte 0
 		tax
 		lda BG_COLORS, x
 		sta bg_color
-		jsr Subfunc::_trfPltDataToBuff
+	jsr Enemy::_reset
+		jsr Subfunc::_trfPltDataToBuff	; Yレジスタ破壊
 		lda ppu_ctrl1_cpy
 		and #%1111_1011					; ストア時のインクリメントを+1にする
 		sta PPU_CTRL1
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
-	jsr Enemy::_reset
-		jsr _nsd_pause_bgm				; Yレジスタ破壊
+		jsr _nsd_pause_bgm
 		pla
 		tay
 
