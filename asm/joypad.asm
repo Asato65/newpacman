@@ -16,6 +16,7 @@ joy1_prev				: .byte 0
 joy2_prev				: .byte 0
 joy1_pushstart			: .byte 0
 joy2_pushstart			: .byte 0
+joy1_pushstart_btn_a	: .byte 0
 
 
 ;*------------------------------------------------------------------------------
@@ -58,6 +59,10 @@ joy2_pushstart			: .byte 0
 		eor #%11111111
 		and Joypad::joy2
 		sta Joypad::joy2_pushstart
+
+		lda Joypad::joy1_pushstart
+		shl #1							; bit7，Aボタンの情報をキャリーにセット
+		rol Joypad::joy1_pushstart_btn_a	; 格納
 
 		rts
 		; ------------------------------

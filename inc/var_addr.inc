@@ -29,6 +29,7 @@ scroll_amount			: .byte 0
 
 main_disp				: .byte 0
 disp_cnt				: .byte 0		; 画面が切り替わった回数
+standing_disp			: .byte 0		; マリオが立っている位置の画面番号
 
 nmi_cnt					: .byte 0
 frm_cnt					: .byte 0
@@ -41,6 +42,8 @@ is_updated_map			: .byte 0
 is_scroll_locked		: .byte 0
 
 is_jumping				: .byte 0
+
+map_num					: .byte 0
 
 
 .segment "USER_MEM"
@@ -66,13 +69,20 @@ spr_float_velocity_y_arr			: .res 6
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
 spr_id_arr							: .res 6		; キャラに固有のID（マリオは最初から0でセット済み）
-spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か，bit2: 上端を超えたとき, bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
+spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か，bit4: 当たり判定なし，bit3: 倒された，bit2: マリオ：上端を超えたとき／敵：下端を超えた時, bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
 spr_move_timer_arr					: .res 6		; マリオの領域は未使用
 spr_move_counter					: .res 6		; $ffで初期化する
 spr_move_timer_max_arr				: .res 6
+spr_standing_disp					: .res 6
 
 plt_datas							: .res 24
 bg_color							: .res 1
+
+timer_dec_num_arr					: .res 3
+
+engine								: .res 1		; 0: game, 1: pause
+engine_flag							: .res 1
+engine_timer						: .res 2		; upper: seconds, lower: frame
 
 
 .code

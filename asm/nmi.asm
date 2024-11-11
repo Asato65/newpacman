@@ -109,7 +109,7 @@
 @PRINT:
 		lda #0
 		cmp bg_buff_pointer
-		beq @STORE_CHR
+		beq @STORE_HIT_BLOCK
 		tax
 		lda bg_buff, x
 @SET_MODE:
@@ -158,6 +158,53 @@
 		; 	2: 99 cycle,	7 bytes
 		; 	3: 123 cycle,	8 bytes
 		; 	4~: 128 cycle,	8 bytes (str2)
+@STORE_HIT_BLOCK:
+	lda Player::player_hit_block_is_drawed
+	beq @STORE_CHR
+
+	lda ppu_ctrl1_cpy
+	and #%11111011					; Mask direction flag(Horizontal(+1)/Vertical(+32))
+	sta ppu_ctrl1_cpy
+	sta PPU_CTRL1					; Not use restorePPUSet()
+
+	lda hit_block_arr+$0
+	sta PPU_ADDR
+	lda hit_block_arr+$1
+	sta PPU_ADDR
+	lda hit_block_arr+$2
+	sta PPU_DATA
+	lda hit_block_arr+$3
+	sta PPU_DATA
+
+	lda hit_block_arr+$0
+	sta PPU_ADDR
+	lda hit_block_arr+$1
+	add #$20
+	sta PPU_ADDR
+	lda hit_block_arr+$4
+	sta PPU_DATA
+	lda hit_block_arr+$5
+	sta PPU_DATA
+
+	lda hit_block_arr+$6
+	sta PPU_ADDR
+	lda hit_block_arr+$7
+	sta PPU_ADDR
+	lda PPU_DATA
+	lda PPU_DATA
+	and hit_block_arr+$8
+	sta tmp1
+
+	lda hit_block_arr+$6
+	sta PPU_ADDR
+	lda hit_block_arr+$7
+	sta PPU_ADDR
+	lda tmp1
+	sta PPU_DATA
+
+	lda #0
+	sta Player::player_hit_block_is_drawed
+
 @STORE_CHR:
 		lda #0
 		sta OAM_ADDR

@@ -1,5 +1,5 @@
 ;*------------------------------------------------------------------------------
-; Calcurate BG address
+; Calcurate BG address（BE=Big Endian）
 ; @PARAMS	 ptx: X coordinate
 ; @PARAMS	 pty: Y coordinate
 ; @PARAMS	 scn: Screen number

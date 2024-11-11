@@ -1,7 +1,7 @@
 .scope Subfunc
 
 ;*------------------------------------------------------------------------------
-; Restore PPU setting
+; PPU設定をリストア
 ; @PARAMS		None
 ; @CLOBBERS		A
 ; @RETURNS		None
@@ -21,8 +21,7 @@
 
 
 ;*------------------------------------------------------------------------------
-; Set scroll position & change disp
-; Use during NMI or executing raster scroll.
+; スクロール位置の変更（表示画面も変更する）
 ; @PARAMS		None
 ; @CLOBBERS		A
 ; @RETURNS		None
@@ -52,7 +51,7 @@
 
 
 ;*------------------------------------------------------------------------------
-; Wait starting vblank
+; Vblank開始まで待つ
 ; @PARAMS		None
 ; @CLOBBERS		None
 ; @RETURNS		None
@@ -69,7 +68,7 @@
 
 
 ;*------------------------------------------------------------------------------
-; Disp status text
+; ステータステキストを表示
 ; @PARAMS		None
 ; @CLOBBERS		A X Y
 ; @RETURNS		None
@@ -95,7 +94,7 @@
 .rodata									; ----- data -----
 @TEXT:
 		.byte PPU_VERTICAL_MODE
-		ADDR_BG_BE 2, 1, 0
+		ADDR_BG_BE 2, 2, 0
 		.byte "SCORE XXXXXX  C:YY  TIME ZZZ"
 @TEXT_END:
 
@@ -103,7 +102,7 @@
 
 
 ;*------------------------------------------------------------------------------
-; Sleep for one frame
+; 1フレーム待機（画面の乱れを防いだりするのに使用しているはず）
 ; @PARAMS		None
 ; @CLOBBERS		A
 ; @RETURNS		None (A = 1)
@@ -124,6 +123,8 @@
 ;*------------------------------------------------------------------------------
 ; 基本パレットデータをRAM上のバッファに転送する
 ; @PARAMS		X: パレット番号
+; @CLOBBERS		A Y
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _trfPltDataToBuff
 	ldy #0

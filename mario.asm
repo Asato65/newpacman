@@ -29,11 +29,12 @@
 
 .code									; ----- code -----
 
-.include "joypad.asm"
 .include "macro.asm"
+.include "joypad.asm"
+.include "time.asm"
 .include "subfunc.asm"			; インクルードが必要ないような，深い階層で使われる関数群
-.include "sprite.asm"
 .include "player_move.asm"
+.include "sprite.asm"
 .include "enemy.asm"
 .include "draw_map.asm"
 .include "nes.inc"
@@ -41,6 +42,7 @@
 .include "nmi.asm"
 .include "init.asm"
 .include "func.asm"				; いくつかのファイルのインクルードが必要な関数群
+.include "engine.asm"
 .include "main.asm"
 
 

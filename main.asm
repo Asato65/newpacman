@@ -9,109 +9,37 @@
 		lda is_processing_main
 		beq _main
 
-		; ----------- 0爆弾前 -----------
-
-		lda ppu_ctrl1_cpy				; ステータス表示の為$2000の画面を表示
-		and #%1111_1100
-		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない -> ??? 分かったら書き換えておいて
-
-		lda #0							; ステータス表示の為リセット
-		sta PPU_SCROLL
-		sta PPU_SCROLL
-
-@WAIT_FINISH_VBLANK:
-		bit PPU_STATUS
-		bvs @WAIT_FINISH_VBLANK
-
-		jsr Joypad::_getJoyData
-
-@WAIT_ZERO_BOMB:
-		bit PPU_STATUS
-		bvc @WAIT_ZERO_BOMB
-
-		ldy #20							; 10ぐらいまで乱れる，余裕もって20に
+	lda engine
+	bne :+
+	jmp Engine::_gameEngine
 :
-		dey
-		bne :-
-
-		; ----------- 0爆弾後 -----------
-
-		jsr Subfunc::_setScroll
-
-		jsr _nsd_main_bgm
-
-	; inc timer
-	ldx #0
+	cmp #1
+	bne :+
+	jmp Engine::_pauseEngine
 :
-	inc spr_anime_timer, x
-	inc spr_move_timer_arr, x
-	inx
-	cpx #6
-	bne :-
+	cmp #2
+	bne :+
+	jmp Engine::_deathEngine
+:
+	cmp #3
+	bne :+
+	jmp Engine::_titleEngine
+:
+	cmp #4
+	bne :++
+	jsr _nsd_stop_se
+	jsr _nsd_stop_bgm
+	ldy map_num
+	cpy #2
+	bne :+
+	ldy #$ff
+:
+	iny
+	sty map_num
+	jsr DrawMap::_changeStage
+	lda #0
+	sta engine
+:
+	jmp Engine::_gameEngine
 
-	jsr Func::_scroll
-
-		; Aボタン
-		lda Joypad::joy1_pushstart
-		and #Joypad::BTN_A
-		beq @NO_PUSHED_BTN_A
-
-		; jsr DrawMap::_updateOneLine
-@NO_PUSHED_BTN_A:
-		; Bボタン
-		lda Joypad::joy1
-		and #Joypad::BTN_B
-		beq @NO_PUSHED_BTN_B
-
-		; pass
-@NO_PUSHED_BTN_B:
-		; ↑ボタン
-		lda Joypad::joy1_pushstart
-		and #Joypad::BTN_U
-		beq @NO_PUSHED_BTN_U
-
-		ldy #2
-		jsr DrawMap::_changeStage
-@NO_PUSHED_BTN_U:
-		; ↓ボタン
-		lda Joypad::joy1_pushstart
-		and #Joypad::BTN_D
-		beq @NO_PUSHED_BTN_D
-
-		; pass
-@NO_PUSHED_BTN_D:
-
-		jsr Player::_physicsX
-		jsr Player::_jumpCheck
-		jsr Player::_moveYProcess
-		jsr Player::_checkCollision
-		jsr Player::_animate
-
-		jsr Enemy::_spawn
-		jsr Enemy::_physicsXAllEnemy
-
-		; chr move
-	ldx #0
-@CHR_MOVE_LOOP:
-	stx Sprite::spr_buff_id
-	lda spr_attr_arr, x
-	and #BIT7
-	sta Sprite::is_spr_available
-	jsr Sprite::_moveSprite
-	ldx Sprite::spr_buff_id						; spr id
-	ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
-	jsr Sprite::_tfrToChrBuff
-	ldx Sprite::spr_buff_id
-	jsr Sprite::_loadMoveArr
-	ldx Sprite::spr_buff_id
-	inx
-	cpx #6
-	bne @CHR_MOVE_LOOP
-
-
-		; ----- End main -----
-		lda #0
-		sta is_processing_main
-		jmp _main
-		; ------------------------------
 .endproc

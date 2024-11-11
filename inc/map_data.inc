@@ -16,27 +16,27 @@ STAGE_PALETTE_ARR:
 
 
 
-BROCK_ID_ARR:
+BLOCK_ID_ARR:
 	; 40 = %0100
 	.addr OBJ_SKY						; @ (or 0)
 	.addr $0000							; A
-	.addr OBJ_BROCK						; B
+	.addr OBJ_BLOCK						; B
 	.addr $0000							; C
 	.addr $0000							; D
 	.addr $0000							; E
 	.addr $0000							; F
 	.addr OBJ_GROUND					; G
-	.addr OBJ_HARD_BROCK				; H
-	.addr $0000							; I
+	.addr OBJ_HARD_BLOCK				; H
+	.addr OBJ_INVISIBLE_BLOCK			; I
 	.addr $0000							; J
 	.addr $0000							; K
 	.addr $0000							; L
 	.addr $0000							; M
-	.addr $0000							; N
+	.addr OBJ_HARD2_BLOCK				; N
 	.addr $0000							; O
 	; 50 = %0101
 	.addr $0000							; P
-	.addr OBJ_QBROCK					; Q
+	.addr OBJ_QBLOCK					; Q
 	.addr $0000							; R
 	.addr $0000							; S
 	.addr $0000							; T
@@ -60,7 +60,7 @@ BROCK_ID_ARR:
 	.addr OBJ_GOAL_BALL					; e
 	.addr $0000							; f
 	.addr $0000							; g
-	.addr $0000							; h
+	.addr OBJ_HIDE_BLOCK				; h
 	.addr $0000							; i
 	.addr $0000							; j
 	.addr $0000							; k
@@ -90,11 +90,11 @@ OBJ_SKY:
 	.byte $00, $00
 	.byte $00, $00
 
-OBJ_QBROCK:
+OBJ_QBLOCK:
 	.byte $90, $91
 	.byte $92, $93
 
-OBJ_BROCK:
+OBJ_BLOCK:
 	.byte $94, $94
 	.byte $95, $95
 
@@ -106,7 +106,7 @@ OBJ_GROUND:
 	.byte $80, $81
 	.byte $82, $83
 
-OBJ_HARD_BROCK:
+OBJ_HARD_BLOCK:
 	.byte $8c, $8d
 	.byte $8e, $8f
 
@@ -134,7 +134,7 @@ OBJ_GOAL_BALL:
 	.byte $00, $00
 	.byte $a6, $a7
 
-BG_BROCK:
+BG_BLOCK:
 	.byte $95, $95
 	.byte $95, $95
 
@@ -157,3 +157,15 @@ BG_FORT_2:
 BG_FORT_3:
 	.byte $95, $03
 	.byte $95, $03
+
+OBJ_HIDE_BLOCK:
+	.byte $00, $00
+	.byte $00, $00
+
+OBJ_HARD2_BLOCK:
+	.byte $88, $89
+	.byte $8a, $8b
+
+OBJ_INVISIBLE_BLOCK:
+	.byte $00, $00
+	.byte $00, $00

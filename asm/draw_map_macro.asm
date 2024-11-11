@@ -8,9 +8,9 @@
 ;*------------------------------------------------------------------------------
 
 .macro trfToBgMapBuf
-		lda BROCK_ID_ARR+LO, x
+		lda BLOCK_ID_ARR+LO, x
 		sta addr_tmp2+LO
-		lda BROCK_ID_ARR+HI, x
+		lda BLOCK_ID_ARR+HI, x
 		sta addr_tmp2+HI
 
 		ldx bg_map_buff_index

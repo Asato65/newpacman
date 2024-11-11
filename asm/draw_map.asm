@@ -344,6 +344,9 @@ fill_ground_start		: .byte 0
 		sta Player::is_fly
 		sta Player::is_jumping
 		sta spr_velocity_x_arr+$0
+		sta scroll_amount
+		sta is_updated_map
+		sta standing_disp
 		lda #1
 		sta spr_velocity_y_arr+$0
 		sta spr_float_velocity_x_arr+$0
@@ -375,12 +378,19 @@ fill_ground_start		: .byte 0
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
 		jsr _nsd_pause_bgm
+		jsr _nsd_stop_se
 		pla
 		tay
 
 		jsr DrawMap::_setStageAddr		; Y破壊（ステージ番号）
 		ldy #0
 		jsr DrawMap::_setMapAddr
+
+		lda #4
+		sta timer_dec_num_arr+$0
+		lda #0
+		sta timer_dec_num_arr+$1
+		sta timer_dec_num_arr+$2
 
 		lda #$18
 @DISP_LOOP:
@@ -407,12 +417,10 @@ fill_ground_start		: .byte 0
 
 		jsr Subfunc::_setScroll
 
-		lda #0
-		sta is_updated_map
 		jsr Subfunc::_sleepOneFrame
 
 		lda	bgm0
-		ldx	bgm0 + 1
+		ldx	bgm0+1
 		jsr	_nsd_play_bgm
 
 		lda #%00011110

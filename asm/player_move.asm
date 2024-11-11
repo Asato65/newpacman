@@ -25,8 +25,24 @@ player_block_pos_X:			.byte 0		; ブロック単位での座標
 player_block_pos_Y:			.byte 0
 player_block_pos_right:		.byte 0
 player_block_pos_bottom:	.byte 0
+player_hit_block_lo:		.byte 0
+player_hit_block_hi:		.byte 0
+player_hit_block_ppu_hi:	.byte 0
+player_hit_block_ppu_lo:	.byte 0
+player_hit_block_left_hi:	.byte 0
+player_hit_block_left_lo:	.byte 0
+player_hit_block_right_hi:	.byte 0
+player_hit_block_right_lo:	.byte 0
+player_hit_block_plt_lo:	.byte 0
+player_hit_block_plt_hi:	.byte 0
+player_hit_block_is_drawed:	.byte 0
+player_hide_block_collision_flags: .byte 0
 
 .code
+
+.import MARIOSE2
+
+se_jump:		.addr	MARIOSE2
 
 ;*------------------------------------------------------------------------------
 ; player physics
@@ -324,8 +340,9 @@ EXIT:
 ; smbdisでは6060行目のPlayerPhysicsSubで実行？
 ;*------------------------------------------------------------------------------
 .proc _jumpCheck
-		lda Joypad::joy1_pushstart
-		and #Joypad::BTN_A
+		; 4Fの猶予がある
+		lda Joypad::joy1_pushstart_btn_a
+		and #%0000_1111
 		beq @EXIT
 		lda Player::is_fly
 		bne @EXIT
@@ -383,6 +400,10 @@ EXIT:
 		sta spr_decimal_part_velocity_y_arr+$0
 		lda INITIAL_VER_SPEED_DATA, x
 		sta spr_velocity_y_arr+$0
+
+		lda	se_jump
+		ldx	se_jump+1
+		jsr	_nsd_play_se
 
 		rts
 		; ------------------------------
@@ -475,10 +496,22 @@ EXIT:
 @DOWN:
 	lda spr_attr_arr+$0
 	and #%0000_0100
-	beq @EXIT
-	; 画面外（上部）にいるとき
+	bne :+
 	lda spr_posY_tmp_arr+$0
-	add #$10
+	cmp #$f0
+	bcc :+
+	; 落下死
+	lda #2
+	sta engine
+	bne @EXIT
+:
+	lda engine
+	cmp #2
+	beq @EXIT
+	lda spr_attr_arr+$0
+	and #BIT2
+	beq @EXIT
+	lda spr_posY_tmp_arr+$0
 	bmi @EXIT
 	; posYが正（画面上部）に戻ってきたとき
 	lda spr_attr_arr+$0
@@ -491,7 +524,7 @@ EXIT:
 
 
 ;*------------------------------------------------------------------------------
-; あたり判定
+; あたり判定チェック（ブロック）
 ; @PARAMS		None
 ; @CLOBBERS		A X
 ; @RETURNS		None
@@ -501,6 +534,13 @@ EXIT:
 		sta player_offset_flags
 		sta player_collision_flags
 		sta is_collision_down
+
+		lda spr_attr_arr+$0
+		and #BIT4
+		beq :+
+		rts
+		; ------------------------------
+:
 
 		lda spr_posX_tmp_arr+$0
 		cmp #$f0+PLAYER_PADDING
@@ -560,11 +600,29 @@ EXIT:
 		stx tmp1
 :
 		add scroll_x
-		sta player_actual_pos_left
+		sta tmp2
 		lda main_disp
 		adc tmp1						; キャリーが立っている／tmp1が1ならそれを足す
 		and #%0000_0001
 		sta player_current_screen
+
+		lda tmp2
+		ldx player_actual_pos_left
+		cmp #$f0
+		bcc :+
+		cpx #$10
+		bcs :+
+		; f0 <= newpos < 0 && 0 <= pos < 10
+		dec standing_disp
+:
+		cmp #$10
+		bcs :+
+		cpx #$f0
+		bcc :+
+		; 0 <= newpos < 10 && f0 <= pos < 0
+		inc standing_disp
+:
+		sta player_actual_pos_left
 
 		lda player_actual_pos_left
 		shr #4
@@ -604,14 +662,39 @@ EXIT:
 		clc								; 後で使うためにキャリークリア
 		lda player_current_screen
 		bne :+
+		lda #4
+		sta tmp1
+		stx tmp2
 		lda $0400, x
 		bcc :++	; ----------------------
 :
+		lda #5
+		sta tmp1
+		stx tmp2
 		lda $0500, x
 :
-		beq :+							; ブロック判定
-		sec								; ブロックがあったときキャリーセット
+		beq @ROL1					; ブロック判定
+		cmp #'B'
+		beq @SKIP2_1
+		cmp #'Q'
+		beq @SKIP2_1
+		cmp #'h'
+		bne :+
+		lda #%0000_1000
+		sta player_hide_block_collision_flags
+		clc
+		bcc @SKIP2_2
 :
+		sec								; 当たり判定があって叩いたときの動作がないブロック
+		bcs @ROL1
+@SKIP2_1:
+		sec								; ブロックがあったときキャリーセット
+@SKIP2_2:
+		lda tmp1
+		sta player_hit_block_left_hi
+		lda tmp2
+		sta player_hit_block_left_lo
+@ROL1:
 		rol player_collision_flags		; キャリーを入れていく（あと三回ローテートするのでbit3に格納される）
 
 		; ----- 右上 -----
@@ -625,9 +708,15 @@ EXIT:
 		clc
 		lda player_current_screen
 		bne :+
+		lda #5
+		sta tmp1
+		stx tmp2
 		lda $0500, x					; 今いる画面とは違う方の画面を使う
 		bcc @CHECK1	; ------------------
 :
+		lda #4
+		sta tmp1
+		stx tmp2
 		lda $0400, x
 		bcc @CHECK1	; ------------------
 @NORMAL1:
@@ -639,14 +728,56 @@ EXIT:
 		clc
 		lda player_current_screen
 		bne :+
+		lda #4
+		sta tmp1
+		stx tmp2
 		lda $0400, x
 		bcc @CHECK1	; ------------------
 :
+		lda #5
+		sta tmp1
+		stx tmp2
 		lda $0500, x
 @CHECK1:
+		beq @ROL2						; ブロック判定
+		cmp #$64						; ゴールポール
+		beq @COLLISION_GOAL_POAL
+		cmp #'B'
+		beq @SKIP3_1
+		cmp #'Q'
+		beq @SKIP3_1
+		cmp #'h'
+		bne :++
+		lda player_offset_flags
+		and #%0000_0010
 		beq :+
-		sec
+		lda #%0000_0100
+		sta player_hide_block_collision_flags
 :
+		clc
+		bcc @SKIP3_2
+:
+		sec
+		bcs @ROL2
+@COLLISION_GOAL_POAL:
+		lda player_offset_flags
+		and #%0000_0010
+		beq @SKIP3_2
+		lda player_actual_pos_right
+		and #BYT_GET_LO
+		cmp #8
+		bcc @SKIP3_2
+		lda #4
+		sta engine
+		bne @ROL2
+@SKIP3_1:
+		sec
+@SKIP3_2:
+		lda tmp1
+		sta player_hit_block_right_hi
+		lda tmp2
+		sta player_hit_block_right_lo
+@ROL2:
 		rol player_collision_flags
 
 		; ----- 左下 -----
@@ -662,7 +793,12 @@ EXIT:
 :
 		lda $0500, x
 :
-		beq :+
+		beq :++
+		cmp #'h'
+		bne :+
+		clc
+		bcc :++
+:
 		sec
 :
 		rol player_collision_flags
@@ -696,11 +832,30 @@ EXIT:
 :
 		lda $0500, x
 @CHECK2:
-		beq :+
+		beq :++							; ブロック判定
+		cmp #$64
+		bne @SKIP3
+		lda player_offset_flags
+		and #%0000_0010
+		beq @SKIP4_2
+		lda player_actual_pos_right
+		and #BYT_GET_LO
+		cmp #8
+		bcc @SKIP4_2
+		lda #4
+		sta engine
+		clc
+		bcc :++
+@SKIP3:
+		cmp #'h'
+		bne :+
+		clc
+		bcc :++
+:
 		sec
 :
 		rol player_collision_flags
-
+@SKIP4_2:
 
 		; フラグを元にしてあたり判定・位置調整
 		lda player_offset_flags
@@ -732,8 +887,17 @@ EXIT:
 .endproc
 
 
+;*------------------------------------------------------------------------------
+; 衝突修正
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
+;*------------------------------------------------------------------------------
 .proc _fixCollision
 		lda player_collision_flags
+		bne :+
+		lda player_hide_block_collision_flags
+		sta player_collision_flags
 		bne :+
 		rts
 		; ------------------------------
@@ -779,10 +943,14 @@ EXIT:
 		jsr _fixCollisionDown
 		rts
 @UPPER_RIGHT:
+		lda #0
+		sta player_hide_block_collision_flags
 		jsr _fixCollisionRight
 		jsr _fixCollisionUp
 		rts
 @UPPER_LEFT:
+		lda #0
+		sta player_hide_block_collision_flags
 		jsr _fixCollisionLeft
 		jsr _fixCollisionUp
 		rts
@@ -796,10 +964,10 @@ EXIT:
 		beq @LOWER
 		lda player_actual_pos_right
 		and #BYT_GET_LO
-		sta tmp1
+		sta tmp3
 		lda player_pos_bottom
 		and #BYT_GET_LO
-		cmp tmp1
+		cmp tmp3
 		bcc @LOWER						; right-bottom<0 → right<bottom（左右<上下）
 		beq @LOWER_RIGHT
 		bcs @RIGHT						; 上下のずれ < 左右のずれ
@@ -812,10 +980,10 @@ EXIT:
 		lda player_actual_pos_left
 		cnn
 		and #BYT_GET_LO
-		sta tmp1
+		sta tmp3
 		lda player_pos_bottom
 		and #BYT_GET_LO
-		cmp tmp1
+		cmp tmp3
 		bcc @LOWER
 		beq @LOWER_LEFT
 		bcs @LEFT						; 上下のずれ < 左右のずれ
@@ -827,13 +995,14 @@ EXIT:
 		beq @RIGHT2
 		lda player_actual_pos_right
 		and #BYT_GET_LO
-		sta tmp1
+		sta tmp3
 		lda player_pos_top
+		cnn
 		and #BYT_GET_LO
-		cmp tmp1
-		bcc @UPPER2
+		cmp tmp3
+		bcc @UPPER2						; 上下のずれ <= 左右のずれ
 		beq @UPPER_RIGHT2
-		bcs @RIGHT2						; 上下のずれ <= 左右のずれ
+		bcs @RIGHT2
 @CHECK_UPPER_LEFT:
 		cmp #%0000_1000					; 左上
 		bne :+
@@ -842,10 +1011,10 @@ EXIT:
 		beq @LEFT2
 		lda player_actual_pos_left
 		and #BYT_GET_LO
-		sta tmp1
+		sta tmp3
 		lda player_pos_top
 		and #BYT_GET_LO
-		cmp tmp1
+		cmp tmp3
 		bcc @LEFT2
 		beq @UPPER_LEFT2
 		bcs @UPPER2						; 上下のずれ <= 左右のずれ
@@ -874,10 +1043,14 @@ EXIT:
 		jsr _fixCollisionLeft
 		rts
 @UPPER_RIGHT2:
+		lda #0
+		sta player_hide_block_collision_flags
 		jsr _fixCollisionUp
 		jsr _fixCollisionRight
 		rts
 @UPPER_LEFT2:
+		lda #0
+		sta player_hide_block_collision_flags
 		jsr _fixCollisionUp
 		jsr _fixCollisionLeft
 		rts
@@ -885,7 +1058,19 @@ EXIT:
 .endproc
 
 
+;*------------------------------------------------------------------------------
+; 上衝突修正
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
+;*------------------------------------------------------------------------------
 .proc _fixCollisionUp
+		lda spr_velocity_y_arr+$0
+		bmi :+
+		rts
+:
+		lda player_hide_block_collision_flags
+		bne :+
 		; 上で衝突→下にずらす
 		lda player_pos_top
 		sub #2							; 上のパディング分
@@ -898,12 +1083,171 @@ EXIT:
 		sta spr_decimal_part_velocity_y_arr+$0
 		lda spr_force_fall_y+$0
 		sta spr_decimal_part_force_y+$0
+:
+
+		; 衝突したブロックの変更ルーチン（レンガブロック等）
+		lda #0
+		sta tmp1						; bit1: 左上のブロックが存在するか, bit0: 右上のブロックが存在するか
+		lda player_hit_block_left_hi
+		beq :+
+		lda #%0000_0010
+		ora tmp1
+		sta tmp1
+:
+		lda player_hit_block_right_hi
+		beq :+
+		lda #%0000_0001
+		ora tmp1
+		sta tmp1
+:
+		lda player_offset_flags
+		and #%0000_0010
+		bne :+							; X方向のずれがあるときスキップ（左上と右上両方使う）
+		lda tmp1						; X方向のずれがないとき
+		and #%0000_0010					; 右上のブロックはマスク
+		sta tmp1
+:
+		lda tmp1
+		bne :+
 		rts
 		; ------------------------------
+:
+		cmp #%0000_0011
+		bne :+
+		lda player_actual_pos_left
+		add #PLAYER_WIDTH/2
+		shr #4
+		cmp player_block_pos_X
+		beq @HIT_UPPER_LEFT
+		bne @HIT_UPPER_RIGHT
+		; ------------------------------
+:
+		cmp #%0000_0010
+		bne @HIT_UPPER_RIGHT
+@HIT_UPPER_LEFT:
+		lda player_hit_block_left_hi
+		sta player_hit_block_hi
+		lda player_hit_block_left_lo
+		sta player_hit_block_lo
+		jmp :+
+@HIT_UPPER_RIGHT:
+		lda player_hit_block_right_hi
+		sta player_hit_block_hi
+		lda player_hit_block_right_lo
+		sta player_hit_block_lo
+:
+		ldy #0
+		; $2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
+		lda player_hit_block_hi
+		and #%0000_0001
+		shl #2
+		ora #$20
+		sta player_hit_block_ppu_hi
+		add #3
+		sta player_hit_block_plt_hi
+
+		lda player_hit_block_lo
+		shl
+		and #%0001_1111
+		sta tmp1						; posX
+		lda player_hit_block_lo
+		add #$20
+		shr #4
+		shl
+		sta tmp2
+		sta tmp3						; posY
+		ldx #$20-1
+:
+		lda tmp2
+		add tmp3
+		sta tmp2
+		lda player_hit_block_ppu_hi
+		adc #0
+		sta player_hit_block_ppu_hi
+		dex
+		bne :-
+
+		lda tmp2
+		add tmp1
+		sta player_hit_block_ppu_lo
+		lda player_hit_block_ppu_hi
+		adc #0
+		sta player_hit_block_ppu_hi
+
+		; plt
+		lda tmp1
+		shr #2
+		and #%0000_1111
+		sta tmp2
+		lda tmp3
+		shl
+		and #%1111_1000
+		ora tmp2
+		add #$c0
+		sta player_hit_block_plt_lo
+
+		lda #%0000_0011
+		sta tmp2
+		lda tmp1
+		and #%0000_0010
+		beq :+
+		lda tmp2
+		shl #2
+		sta tmp2
+:
+		lda tmp3
+		shr
+		and #%0000_0001
+		beq :+
+		lda tmp2
+		shl #4
+		sta tmp2
+:
+		lda tmp2
+		eor #%11111111
+		sta tmp2						; plt data
+
+		lda player_hit_block_ppu_hi
+		sta hit_block_arr+$0
+		lda player_hit_block_ppu_lo
+		sta hit_block_arr+$1
+		lda #$88
+		sta hit_block_arr+$2
+		lda #$89
+		sta hit_block_arr+$3
+		lda #$8a
+		sta hit_block_arr+$4
+		lda #$8b
+		sta hit_block_arr+$5
+		lda player_hit_block_plt_hi
+		sta hit_block_arr+$6
+		lda player_hit_block_plt_lo
+		sta hit_block_arr+$7
+		lda tmp2
+		sta hit_block_arr+$8
+
+		lda #1
+		sta player_hit_block_is_drawed
+
+		ldy #0
+		lda #'N'
+		sta (player_hit_block_lo), y
+@EXIT:
+		rts
+	; ------------------------------
+
 .endproc
 
 
+;*------------------------------------------------------------------------------
+; 下衝突修正
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
+;*------------------------------------------------------------------------------
 .proc _fixCollisionDown
+		lda player_hide_block_collision_flags
+		bne :+
 		lda player_pos_bottom
 		and #BYT_GET_HI
 		sub player_pos_bottom
@@ -913,9 +1257,8 @@ EXIT:
 		sta is_collision_down
 		lda spr_velocity_y_arr+$0
 		bmi :+
-		ldx #0
-		; stx is_fly
-		stx is_jumping
+		lda #0
+		sta is_jumping
 		lda #1							; Y方向の加速度が正（下向き）の場合
 		sta spr_velocity_y_arr+$0
 		sta spr_decimal_part_velocity_y_arr+$0
@@ -925,21 +1268,29 @@ EXIT:
 .endproc
 
 
+;*------------------------------------------------------------------------------
+; 右衝突修正
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
+;*------------------------------------------------------------------------------
 .proc _fixCollisionRight
+		lda player_hide_block_collision_flags
+		bne :+
 		; 右で衝突→左にずらす
 		lda player_actual_pos_right
 		and #BYT_GET_HI
 		sub player_actual_pos_right
 		add spr_posX_tmp_arr+$0
-		sta tmp1
+		sta tmp4
 		lda spr_posX_tmp_arr+$0
 		bmi @CHANGE_VELOCITY
 		; 元のX座標が正で
-		lda tmp1
+		lda tmp4
 		bpl @CHANGE_VELOCITY
 		; 変更後のX座標が負のとき->左端を超えたとき
 		lda #0
-		sta tmp1
+		sta tmp4
 		lda player_collision_flags
 		and #%0000_0101					; 右側のブロック情報だけ取り出す
 		cmp #%0000_0100
@@ -953,7 +1304,7 @@ EXIT:
 		; 右上にブロックがあるとき->下降
 		jsr _fixCollisionUp
 @CHANGE_VELOCITY:
-		lda tmp1
+		lda tmp4
 		sta spr_posX_tmp_arr+$0
 		lda spr_velocity_x_arr+$0
 		bmi :+
@@ -965,7 +1316,15 @@ EXIT:
 .endproc
 
 
+;*------------------------------------------------------------------------------
+; 左衝突修正
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None
+;*------------------------------------------------------------------------------
 .proc _fixCollisionLeft
+		lda player_hide_block_collision_flags
+		bne :+
 		lda player_actual_pos_left
 		and #BYT_GET_HI
 		add #$10

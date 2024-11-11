@@ -1,8 +1,8 @@
 .code									; ----- code -----
 
-.import DQBGM0
+.import MARIOBGM0
 
-bgm0:		.addr	DQBGM0
+bgm0:		.addr	MARIOBGM0
 
 .macro init
 		sei								; Ban IRQ
@@ -38,21 +38,16 @@ bgm0:		.addr	DQBGM0
 		inx
 		bne @CLR_MEM
 
+		sta is_scroll_locked
+		sta is_updated_map
+		lda #3
+		sta engine
+
 		lda #$ff
 @CLR_CHR_MEM:
 		sta $0700, x
 		inx
 		bne @CLR_CHR_MEM
-
-		; Zero sprite
-		lda #$10-2-1
-		sta CHR_BUFF+0
-		lda #$ff
-		sta CHR_BUFF+1
-		lda #%0000_0010
-		sta CHR_BUFF+2
-		lda #$0f
-		sta CHR_BUFF+3
 
 		jsr Subfunc::_waitVblank		; 2nd time
 
@@ -98,25 +93,6 @@ bgm0:		.addr	DQBGM0
 		lda #$00
 		sta PPU_ADDR
 
-	lda #'G'
-	sta DrawMap::fill_ground_block
-
-	lda #0
-	sta is_scroll_locked
-
-		jsr Subfunc::_dispStatus
-
-	; sprite
-	lda #$20
-	sta spr_posX_arr+0
-	sta spr_posX_tmp_arr+0
-	lda #$c0
-	sta spr_posY_tmp_arr+0
-
-	lda #1							; Y方向の加速度が正（下向き）の場合
-	sta spr_velocity_y_arr+$0
-	sta spr_decimal_part_velocity_y_arr+$0
-
 	lda APU_CHANCTRL
 	ora #%00000001
 	sta APU_CHANCTRL
@@ -127,25 +103,5 @@ bgm0:		.addr	DQBGM0
 
 	jsr _nsd_init
 
-	lda	bgm0
-	ldx	bgm0 + 1
-	jsr	_nsd_play_bgm
-
-	lda spr_attr_arr+$0
-	ora #BIT7
-	sta spr_attr_arr+$0
-
-		lda #0
-		sta is_updated_map
-
-		lda ppu_ctrl1_cpy				; NMI ON
-		ora #%10000000
-		sta ppu_ctrl1_cpy
-		jsr Subfunc::_restorePPUSet
-
-		jsr Subfunc::_sleepOneFrame		; draw disp status
-
-		ldy #0
-		jsr DrawMap::_changeStage
 
 .endmacro

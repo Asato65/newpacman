@@ -10,6 +10,25 @@ MAP_13_1:
 	.byte $bd
 	.byte 'B'
 	.byte %00000000, %00000000
+	.byte (GET_OBJ_POS $3, $8), 'H'
+	.byte (GET_OBJ_POS $3, $b), 'H'
+	.byte (GET_OBJ_POS $4, $8), 'H'
+	.byte (GET_OBJ_POS $4, $9), 'H'
+	.byte (GET_OBJ_POS $4, $a), 'H'
+	.byte (GET_OBJ_POS $4, $b), 'H'
+	.byte (GET_OBJ_POS $4, $c), 'H'
+	.byte (GET_OBJ_POS $5, $8), 'H'
+	.byte (GET_OBJ_POS $6, $a), 'H'
+	.byte (GET_OBJ_POS $7, $a), 'H'
+	.byte (GET_OBJ_POS $8, $a), 'H'
+	.byte (GET_OBJ_POS $a, $8), 'H'
+	.byte (GET_OBJ_POS $a, $b), 'H'
+	.byte (GET_OBJ_POS $b, $8), 'H'
+	.byte (GET_OBJ_POS $b, $9), 'H'
+	.byte (GET_OBJ_POS $b, $a), 'H'
+	.byte (GET_OBJ_POS $b, $b), 'H'
+	.byte (GET_OBJ_POS $b, $c), 'H'
+	.byte (GET_OBJ_POS $c, $8), 'H'
 	.byte OBJMAP_NEXT
 	.byte (GET_OBJ_POS $0, $5), 'Q'
 	.byte (GET_OBJ_POS $4, $5), 'B'
@@ -47,6 +66,7 @@ MAP_13_1:
 	.byte (GET_OBJ_POS $a, $4), 'b'
 	.byte (GET_OBJ_POS $a, $5), 'c'
 	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $0, $6), 'h'
 	.byte (GET_OBJ_POS $5, $0), 0
 	.byte (GET_OBJ_POS $5, $1), 0
 	.byte (GET_OBJ_POS $6, $0), 0

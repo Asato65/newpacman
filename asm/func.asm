@@ -43,4 +43,37 @@
 .endproc
 
 
+.proc _waitDispStatus
+		; ----------- 0爆弾前 -----------
+		lda ppu_ctrl1_cpy				; ステータス表示の為$2000の画面を表示
+		and #%1111_1100
+		sta PPU_CTRL1					; 後でrestoreできるようにRAMにはコピーを取らない -> ??? 分かったら書き換えておいて
+
+		lda #0							; ステータス表示の為リセット
+		sta PPU_SCROLL
+		sta PPU_SCROLL
+
+@WAIT_FINISH_VBLANK:
+		bit PPU_STATUS
+		bvs @WAIT_FINISH_VBLANK
+
+		jsr Joypad::_getJoyData
+
+@WAIT_ZERO_BOMB:
+		bit PPU_STATUS
+		bvc @WAIT_ZERO_BOMB
+
+		ldy #20							; 10ぐらいまで乱れる，余裕もって20に
+:
+		dey
+		bne :-
+
+		; ----------- 0爆弾後 -----------
+
+		jsr Subfunc::_setScroll
+		rts
+		; ------------------------------
+.endproc
+
+
 .endscope
