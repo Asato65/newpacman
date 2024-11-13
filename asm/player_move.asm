@@ -11,32 +11,32 @@ INITIAL_VER_FORCE_DATA:					; 初期加速度(a)
 		.byte $00, $00, $00, $00, $00
 
 .ZeroPage
-is_fly: 					.byte 0		; 空中にいるか
-is_jumping:					.byte 0		; ジャンプ中か（ジャンプ後の下降中もフラグオン）
-is_collision_down:			.byte 0		; collisionDownの関数を通ったか（床に触れたか）
-player_current_screen:		.byte 0		; プレイヤーのいる画面番号
-player_actual_pos_left:		.byte 0		; 画面上の座標ではなく，実際の座標
-player_actual_pos_right:	.byte 0
-player_pos_top:				.byte 0
-player_pos_bottom:			.byte 0
-player_offset_flags:		.byte 0		; ずれのフラグ（bit1: X方向，bit0: Y方向）
-player_collision_flags:		.byte 0		; マリオ周辺のブロックフラグ（ブロックがあれば1, bit3-0は左上，右上，左下，右下の順）
-player_block_pos_X:			.byte 0		; ブロック単位での座標
-player_block_pos_Y:			.byte 0
-player_block_pos_right:		.byte 0
-player_block_pos_bottom:	.byte 0
-player_hit_block_lo:		.byte 0
-player_hit_block_hi:		.byte 0
-player_hit_block_ppu_hi:	.byte 0
-player_hit_block_ppu_lo:	.byte 0
-player_hit_block_left_hi:	.byte 0
-player_hit_block_left_lo:	.byte 0
-player_hit_block_right_hi:	.byte 0
-player_hit_block_right_lo:	.byte 0
-player_hit_block_plt_lo:	.byte 0
-player_hit_block_plt_hi:	.byte 0
-player_hit_block_is_drawed:	.byte 0
-player_hide_block_collision_flags: .byte 0
+is_fly: 						.byte 0		; 空中にいるか
+is_jumping:						.byte 0		; ジャンプ中か（ジャンプ後の下降中もフラグオン）
+is_collision_down:				.byte 0		; collisionDownの関数を通ったか（床に触れたか）
+player_current_screen:			.byte 0		; プレイヤーのいる画面番号
+player_actual_pos_left:			.byte 0		; 画面上の座標ではなく，実際の座標
+player_actual_pos_right:		.byte 0
+player_pos_top:					.byte 0
+player_pos_bottom:				.byte 0
+player_offset_flags:			.byte 0		; ずれのフラグ（bit1: X方向，bit0: Y方向）
+player_collision_flags:			.byte 0		; マリオ周辺のブロックフラグ（ブロックがあれば1, bit3-0は左上，右上，左下，右下の順）
+player_block_pos_X:				.byte 0		; ブロック単位での座標
+player_block_pos_Y:				.byte 0
+player_block_pos_right:			.byte 0
+player_block_pos_bottom:		.byte 0
+player_hit_block_lo:			.byte 0
+player_hit_block_hi:			.byte 0
+player_hit_block_ppu_hi:		.byte 0
+player_hit_block_ppu_lo:		.byte 0
+player_hit_block_left_hi:		.byte 0
+player_hit_block_left_lo:		.byte 0
+player_hit_block_right_hi:		.byte 0
+player_hit_block_right_lo:		.byte 0
+player_hit_block_plt_lo:		.byte 0
+player_hit_block_plt_hi:		.byte 0
+player_hit_block_is_drawed:			.byte 0
+player_hide_block_collision_flags:	.byte 0
 
 .code
 
@@ -45,7 +45,7 @@ player_hide_block_collision_flags: .byte 0
 se_jump:		.addr	MARIOSE2
 
 ;*------------------------------------------------------------------------------
-; player physics
+; プレイヤーX方向移動
 ; @PARAMS		None
 ; @CLOBBERS		A X
 ; @RETURNS		None
@@ -220,7 +220,7 @@ EXIT:
 
 
 ;*------------------------------------------------------------------------------
-; player animate
+; プレイヤーアニメーション
 ; @PARAMS		None
 ; @CLOBBERS		A tmp1
 ; @RETURNS		None
@@ -411,7 +411,8 @@ EXIT:
 
 
 ;*------------------------------------------------------------------------------
-; Y方向の速度決定前のちょっとした動作（よくわかんない）
+; Y方向の速度決定前のちょっとした動作
+; Aボタンの押されている状況や速度に応じて重力を変更
 ; @PARAMS		None
 ; @CLOBBERS		A
 ; @RETURNS		None
@@ -427,7 +428,7 @@ EXIT:
 		and #Joypad::BTN_A
 		beq @SKIP2
 @SKIP1:
-		; Aボタンが離されたタイミング
+		; Aボタンが離されたタイミング or 速度が正（上向き）の時
 		lda spr_force_fall_y+$0
 		sta spr_decimal_part_force_y+$0	; 初期化
 @SKIP2:
@@ -478,45 +479,46 @@ EXIT:
 		lda #0
 		sta spr_decimal_part_velocity_y_arr+$0
 :
-	lda spr_velocity_y_arr+$0
-	bpl @DOWN
-	; 上昇中
-	lda spr_posY_tmp_arr+$0
-	add #$10
-	bpl @EXIT
-	; 移動後のposYが負（画面下部、画面外）
-	lda spr_posY_arr+$0
-	add #$10
-	bmi @EXIT
-	; 元のposYが正（画面上部）
-	lda spr_attr_arr+$0
-	ora #%0000_0100
-	sta spr_attr_arr+$0
-	bne @EXIT	; ------------------
+		lda spr_velocity_y_arr+$0
+		bpl @DOWN
+		; 上昇中
+		lda spr_posY_tmp_arr+$0
+		add #$10
+		bpl @EXIT
+		; 移動後のposYが負（画面下部、画面外）
+		lda spr_posY_arr+$0
+		add #$10
+		bmi @EXIT
+		; 元のposYが正（画面上部）
+		lda spr_attr_arr+$0
+		ora #%0000_0100
+		sta spr_attr_arr+$0
+		bne @EXIT
+		; ------------------------------
 @DOWN:
-	lda spr_attr_arr+$0
-	and #%0000_0100
-	bne :+
-	lda spr_posY_tmp_arr+$0
-	cmp #$f0
-	bcc :+
-	; 落下死
-	lda #2
-	sta engine
-	bne @EXIT
+		lda spr_attr_arr+$0
+		and #%0000_0100
+		bne :+
+		lda spr_posY_tmp_arr+$0
+		cmp #$f0
+		bcc :+
+		; 落下死
+		lda #2
+		sta engine
+		bne @EXIT
 :
-	lda engine
-	cmp #2
-	beq @EXIT
-	lda spr_attr_arr+$0
-	and #BIT2
-	beq @EXIT
-	lda spr_posY_tmp_arr+$0
-	bmi @EXIT
-	; posYが正（画面上部）に戻ってきたとき
-	lda spr_attr_arr+$0
-	and #%1111_1011
-	sta spr_attr_arr+$0
+		lda engine
+		cmp #2
+		beq @EXIT
+		lda spr_attr_arr+$0
+		and #BIT2
+		beq @EXIT
+		lda spr_posY_tmp_arr+$0
+		bmi @EXIT
+		; posYが正（画面上部）に戻ってきたとき
+		lda spr_attr_arr+$0
+		and #%1111_1011
+		sta spr_attr_arr+$0
 @EXIT:
 		rts
 		; ------------------------------

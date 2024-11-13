@@ -2,7 +2,8 @@
 
 .import MARIOBGM0
 
-bgm0:		.addr	MARIOBGM0
+bgm0:
+		.addr	MARIOBGM0
 
 .macro init
 		sei								; Ban IRQ
@@ -93,15 +94,15 @@ bgm0:		.addr	MARIOBGM0
 		lda #$00
 		sta PPU_ADDR
 
-	lda APU_CHANCTRL
-	ora #%00000001
-	sta APU_CHANCTRL
-	lda #%10011111
-	sta APU_PULSE1CTRL						; Duty50%(2)、ループ無し、音響固定、ボリューム最大(4)
-	lda #%00000000
-	sta APU_PULSE1RAMP						; 周波数変化なし（bit7）、他は設定せず
+		lda APU_CHANCTRL
+		ora #%00000001
+		sta APU_CHANCTRL
+		lda #%10011111
+		sta APU_PULSE1CTRL						; Duty50%(2)、ループ無し、音響固定、ボリューム最大(4)
+		lda #%00000000
+		sta APU_PULSE1RAMP						; 周波数変化なし（bit7）、他は設定せず
 
-	jsr _nsd_init
+		jsr _nsd_init
 
 
 .endmacro
