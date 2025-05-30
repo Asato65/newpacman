@@ -538,11 +538,31 @@ EXIT:
 		sta is_collision_down
 
 		lda spr_attr_arr+$0
-		and #BIT4
-		beq :+
+		and #BIT2
+		beq @NO_UPDATE_POS_LEFT
+		lda spr_posX_tmp_arr+$0
+		add #PLAYER_PADDING
+		adc scroll_x
+
+		ldx player_actual_pos_left
+		cmp #$f0
+		bcc :+
+		cpx #$10
+		bcs :+
+		; f0 <= newpos < 0 && 0 <= pos < 10
+		dec standing_disp
+:
+		cmp #$10
+		bcs :+
+		cpx #$f0
+		bcc :+
+		; 0 <= newpos < 10 && f0 <= pos < 0
+		inc standing_disp
+:
+		sta player_actual_pos_left		; 敵のスポーンにも使用
 		rts
 		; ------------------------------
-:
+@NO_UPDATE_POS_LEFT:
 
 		lda spr_posX_tmp_arr+$0
 		cmp #$f0+PLAYER_PADDING
@@ -572,11 +592,31 @@ EXIT:
 		lda spr_posY_tmp_arr+$0
 		add #2							; マリオの上部分のあたり判定を緩くする（2ピクセル分下げる）
 		shr #4
-		cmp #2
+		cmp #1
+		bcs @CHK_COLLISION
+		lda spr_posX_tmp_arr+$0
+		add #PLAYER_PADDING
+		adc scroll_x
+
+		ldx player_actual_pos_left
+		cmp #$f0
+		bcc :+
+		cpx #$10
 		bcs :+
+		; f0 <= newpos < 0 && 0 <= pos < 10
+		dec standing_disp
+:
+		cmp #$10
+		bcs :+
+		cpx #$f0
+		bcc :+
+		; 0 <= newpos < 10 && f0 <= pos < 0
+		inc standing_disp
+:
+		sta player_actual_pos_left		; 敵のスポーンにも使用
 		rts								; 上1列にマリオ（の頭）がいるとき
 		; ------------------------------
-:
+@CHK_COLLISION:
 		sub #2							; 上2列分は使わないので、3列目を1列目としてカウントする
 		sta player_block_pos_Y
 
@@ -626,6 +666,7 @@ EXIT:
 :
 		sta player_actual_pos_left
 
+
 		lda player_actual_pos_left
 		shr #4
 		sta player_block_pos_X
@@ -659,6 +700,11 @@ EXIT:
 		; ----- 左上 -----
 		lda player_block_pos_Y
 		shl #4
+		cmp #$d0
+		bcc :+
+		clc
+		bcc @ROL1
+:
 		ora player_block_pos_X
 		tax
 		clc								; 後で使うためにキャリークリア
@@ -706,6 +752,11 @@ EXIT:
 		; マリオのいる位置とその右側の位置で画面が違うとき
 		lda player_block_pos_Y
 		shl #4							; 下位（X座標）は0
+		cmp #$d0
+		bcc :+
+		clc
+		jmp @ROL2
+:
 		tax
 		clc
 		lda player_current_screen
@@ -724,6 +775,11 @@ EXIT:
 @NORMAL1:
 		lda player_block_pos_Y
 		shl #4
+		cmp #$d0
+		bcc :+
+		clc
+		bcc @ROL2
+:
 		ora player_block_pos_X
 		add #1							; X座標を右に一つずらす
 		tax
@@ -785,6 +841,11 @@ EXIT:
 		; ----- 左下 -----
 		lda player_block_pos_bottom
 		shl #4
+		cmp #$d0
+		bcc :+
+		clc
+		bcc @ROL3
+:
 		ora player_block_pos_X
 		tax
 		clc
@@ -795,14 +856,14 @@ EXIT:
 :
 		lda $0500, x
 :
-		beq :++
+		beq @ROL3
 		cmp #'h'
 		bne :+
 		clc
-		bcc :++
+		bcc @ROL3
 :
 		sec
-:
+@ROL3:
 		rol player_collision_flags
 
 		; ----- 右下 -----
@@ -811,6 +872,11 @@ EXIT:
 		bne @NORMAL2
 		lda player_block_pos_bottom
 		shl #4
+		cmp #$d0
+		bcc :+
+		clc
+		bcc @ROL4
+:
 		tax
 		clc
 		lda player_current_screen
@@ -823,6 +889,11 @@ EXIT:
 @NORMAL2:
 		lda player_block_pos_bottom
 		shl #4
+		cmp #$d0
+		bcc :+
+		clc
+		bcc @ROL4
+:
 		ora player_block_pos_X
 		add #1
 		tax
@@ -834,7 +905,7 @@ EXIT:
 :
 		lda $0500, x
 @CHECK2:
-		beq :++							; ブロック判定
+		beq @ROL4							; ブロック判定
 		cmp #$64
 		bne @SKIP3
 		lda player_offset_flags
@@ -847,15 +918,15 @@ EXIT:
 		lda #4
 		sta engine
 		clc
-		bcc :++
+		bcc @ROL4
 @SKIP3:
 		cmp #'h'
 		bne :+
 		clc
-		bcc :++
+		bcc @ROL4
 :
 		sec
-:
+@ROL4:
 		rol player_collision_flags
 @SKIP4_2:
 
@@ -1138,6 +1209,8 @@ EXIT:
 		lda player_hit_block_right_lo
 		sta player_hit_block_lo
 :
+	; アイテムの出現
+
 		ldy #0
 		; $2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
 		lda player_hit_block_hi

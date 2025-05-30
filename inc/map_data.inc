@@ -4,6 +4,8 @@
 .include "map/1-2.inc"
 .include "map/1-3.inc"
 
+.include "asm/collision_func_list.asm"
+
 
 STAGE_ARR:
 	.addr MAP_ARR_11
@@ -46,7 +48,7 @@ BLOCK_ID_ARR:
 	.addr $0000							; X
 	.addr $0000							; Y
 	.addr $0000							; Z
-	.addr $0000							; [
+	.addr OBJ_QBLOCK					; [（フラワーが出るブロック）
 	.addr $0000							; \
 	.addr $0000							; ]
 	.addr OBJ_COIN						; ^
@@ -85,6 +87,96 @@ BLOCK_ID_ARR:
 	.addr $0000							; }
 	.addr $0000							; ~
 
+
+BLOCK_COLLISION_SETTING:
+	; BIT7は、当たり判定を全方位同じにするかどうか（0で全方位同じ）
+	; BIT6は、当たり判定を行うかどうか（0のとき当たり判定無効）
+	; ほかの7ビットで、当たり判定の処理のポインターリストのインデックスを指定する
+	; 40 = %0100
+	.byte $00							; @
+	.byte $00							; A
+	.byte $C0+$00						; B
+	.byte $00							; C
+	.byte $00							; D
+	.byte $00							; E
+	.byte $00							; F
+	.byte $40+$02						; G
+	.byte $40+$03						; H
+	.byte $C0+$04						; I
+	.byte $00							; J
+	.byte $00							; K
+	.byte $00							; L
+	.byte $00							; M
+	.byte $40+$06						; N
+	.byte $00							; O
+	; 50 = %0101
+	.byte $00							; P
+	.byte $C0+$07						; Q
+	.byte $00							; R
+	.byte $00							; S
+	.byte $00							; T
+	.byte $00							; U
+	.byte $00							; V
+	.byte $00							; W
+	.byte $00							; X
+	.byte $00							; Y
+	.byte $00							; Z
+	.byte $C0+$09						; [
+	.byte $00							; \
+	.byte $00							; ]
+	.byte $40+$0b						; ^
+	.byte $00							; _
+	; 60
+	.byte $40+$0c						; `
+	.byte $40+$0d						; a
+	.byte $40+$0e						; b
+	.byte $40+$0f						; c
+	.byte $40+$10						; d
+	.byte $40+$11						; e
+	.byte $00							; f
+	.byte $00							; g
+	.byte $C0+$12						; h
+	.byte $00							; i
+	.byte $00							; j
+	.byte $00							; k
+	.byte $00							; l
+	.byte $00							; m
+	.byte $00							; n
+	.byte $00							; o
+	; 70
+	.byte $00							; p
+	.byte $00							; q
+	.byte $00							; r
+	.byte $00							; s
+	.byte $00							; t
+	.byte $00							; u
+	.byte $00							; v
+	.byte $00							; w
+	.byte $00							; x
+	.byte $00							; y
+	.byte $00							; z
+	.byte $00							; {
+	.byte $00							; |
+	.byte $00							; }
+	.byte $00							; ~
+
+
+BLOCK_COLLISION_FUNC:
+	.addr _collisionHardBlock, _collisionRengaBlock
+	.addr _collisionHardBlock
+	.addr _collisionHardBlock
+	.addr _void, _collisionCoinBlock
+	.addr _collisionHardBlock
+	.addr _collisionHardBlock, _collisionCoinBlock
+	.addr _collisionHardBlock, _collisionFlowerBlock
+	.addr _collisionCoin
+	.addr _collisionHardBlock
+	.addr _collisionHardBlock
+	.addr _collisionHardBlock
+	.addr _collisionHardBlock
+	.addr _collisionGoal
+	.addr _collisionGoal
+	.addr _void, _collisionCoinBlock
 
 OBJ_SKY:
 	.byte $00, $00

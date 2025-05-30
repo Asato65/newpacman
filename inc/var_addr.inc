@@ -69,10 +69,11 @@ spr_float_velocity_y_arr			: .res 6
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
 spr_id_arr							: .res 6		; キャラに固有のID（マリオは最初から0でセット済み）
-spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か，bit4: 当たり判定なし，bit3: 倒された，bit2: マリオ：上端を超えたとき／敵：下端を超えた時, bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
+spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か、bit5: 右端を超えたとき（敵のみ使用）、bit4: 当たり判定なし，bit3: 倒された，bit2: マリオ…上端を超えたとき／敵：下端を超えた時、敵…非表示、 bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
 spr_move_timer_arr					: .res 6		; マリオの領域は未使用
 spr_move_counter					: .res 6		; $ffで初期化する
 spr_move_timer_max_arr				: .res 6
+spr_move_num						: .res 6		; 移動リストのインデックス
 spr_standing_disp					: .res 6
 
 plt_datas							: .res 24
@@ -83,6 +84,14 @@ timer_dec_num_arr					: .res 3
 engine								: .res 1		; 0: game, 1: pause
 engine_flag							: .res 1
 engine_timer						: .res 2		; upper: seconds, lower: frame
+
+item_id								: .res 1
+item_timer							: .res 1
+item_standing_disp					: .res 1
+item_posX_arr						: .res 1
+item_posY_arr						: .res 1
+item_velocity_X_arr					: .res 1
+item_velocity_y_arr					: .res 1
 
 
 .code

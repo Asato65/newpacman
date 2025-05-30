@@ -67,7 +67,7 @@ enemy_block_pos_bottom:		.byte 0
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _spawn
-		ldy counter
+		ldy Enemy::counter
 		lda (Enemy::arr_addr), y		; ENEMY_ARR_11などの配列のデータを取ってくる（マップ番号, 上位マリオX座標，下位敵Y座標，敵ID）
 		cmp #ENDCODE					; $ff
 		bne :+
@@ -113,12 +113,14 @@ enemy_block_pos_bottom:		.byte 0
 		lda #$ff
 		sta spr_posX_tmp_arr, x				; 右端から
 		sta spr_posX_arr, x
+
 		lda tmp1
 		and #BYT_GET_LO
 		shl #4							; ピクセル単位の座標に変換
 		add #NEGATIVE $e0
 		cnn
 		sta spr_posY_tmp_arr, x
+
 		lda #BIT7
 		sta spr_attr_arr, x
 
@@ -133,12 +135,35 @@ enemy_block_pos_bottom:		.byte 0
 		; アニメーション初期化
 		stx tmp1						; バッファINDEX
 		lda spr_id_arr, x
+		cmp #FLOWER_ID
+		bne :+
+		; ファイヤーフラワーの設定
+		pha
+		lda scroll_x
+		add scroll_amount				; scroll_xは前のフレームの値のままなので、scroll_amount（更新済み）を足す
+		cnn
+		add #8
+		add scroll_amount				; moveSprite()で引くので±0にできるように足しておく
+		and #%0000_1111
+		sta spr_posX_tmp_arr, x
+		sta spr_posX_arr, x
+		pla
+:
 		tax
+		stx tmp2
 		ldy #2
 		ldarr SPRITE_ARR
 		shr #4
 		ldx tmp1
 		sta spr_anime_num, x
+
+		ldx tmp2
+		ldy #9
+		ldarr SPRITE_ARR
+		ldx tmp1
+		ora spr_attr_arr, x
+		sta spr_attr_arr, x
+
 
 		lda #$ff
 		sta spr_move_counter, x
@@ -159,6 +184,7 @@ enemy_block_pos_bottom:		.byte 0
 @LOOP:
 		lda spr_attr_arr, x
 		bpl @SKIP1
+		; X軸方向の移動
 		lda spr_float_velocity_x_arr, x
 		tay
 		bpl :+
@@ -179,6 +205,31 @@ enemy_block_pos_bottom:		.byte 0
 		lda tmp1
 		and #BYT_GET_LO
 		sta spr_decimal_part_velocity_x_arr, x
+
+		; Y軸方向の移動
+		lda spr_float_velocity_y_arr, x
+		tay
+		bpl :+
+		; 絶対値をとる
+		cnn
+:
+		clc
+		adc spr_decimal_part_velocity_y_arr, x
+		sta tmp1
+		shr #4
+		cpy #0
+		bpl :+
+		; 速度が負のとき、負の値に戻す
+		cnn
+:
+		sta spr_velocity_y_arr, x
+		clc
+		adc spr_posY_tmp_arr, x
+		sta spr_posY_tmp_arr, x
+		lda tmp1
+		and #BYT_GET_LO
+		sta spr_decimal_part_velocity_y_arr, x
+
 @SKIP1:
 		inx
 		cpx #6

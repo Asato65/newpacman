@@ -35,7 +35,7 @@ se_stepped_on:
 SPRITE_ARR:
 		.addr PLAYER_MARIO
 		.addr ENEMY_KURIBO				; 1
-		.addr $0000
+		.addr ENEMY_FLOWER				; 2
 		.addr $0000
 		.addr $0000
 		.addr $0000
@@ -114,7 +114,9 @@ AMOUNT_INC_SPD_R:
 ;*------------------------------------------------------------------------------
 .proc _moveSprite
 		cpx #0
-		beq @PLAYER
+		bne @OTHER
+		jmp @PLAYER
+@OTHER:
 		; 敵キャラなど
 		lda spr_attr_arr, x
 		bmi :+
@@ -133,29 +135,59 @@ AMOUNT_INC_SPD_R:
 :
 		lda spr_posY_tmp_arr, x
 		sta spr_posY_arr, x
+
 		lda spr_posX_tmp_arr, x
 		sub scroll_amount
 		sta spr_posX_tmp_arr, x
-		cmp #$f0
-		bcc :+
+		cmp #$ef
+		bcc @RIGHT_OVER_CHK
+		; $f0 <= newX < 0のとき以下の処理
 		lda spr_posX_arr, x
-		cmp #$10
-		bcs :+
-		; 現在のX座標が負で前のX座標が正のとき
+		cmp #$11
+		bcs @RIGHT_OVER_CHK
+		; 0 <= oldX <= $10のとき以下の処理
+		; 前のX座標が正で現在のX座標が負のとき
+		lda spr_attr_arr, x
+		and #BIT5						; 右端を超えたフラグ
+		bne @RIGHT_OVER_FLAG_OFF
+		; 左端超えたフラグをON
 		lda spr_attr_arr, x
 		ora #BIT1						; 左端を越えたフラグ
 		sta spr_attr_arr, x
-:
+		jmp @STORE_POS_X
+@RIGHT_OVER_FLAG_OFF:
+		eor spr_attr_arr, x				; AレジスタはBIT5だけ立っているので、XORでBIT5を0に
+		sta spr_attr_arr, x
+		jmp @STORE_POS_X
+		; ------------------------------
+@RIGHT_OVER_CHK:
+		; 敵が右移動していて、右端を超えた場合
+		lda spr_posX_arr, x
+		cmp #$f0
+		bcc @ERASE_ENEMY_CHK
 		lda spr_posX_tmp_arr, x
+		cmp #$11
+		bcs @ERASE_ENEMY_CHK
+		lda spr_attr_arr, x
+		and #%0111_1111
+		sta spr_attr_arr, x
+		jmp @STORE_POS_X
+		; ------------------------------
+@ERASE_ENEMY_CHK:
+		lda spr_posX_tmp_arr, x
+		cmp #$e1
+		bcc @STORE_POS_X				; newX < $e1 ならばジャンプ
 		cmp #$f1
-		bpl :+							; $f0より上
+		bcs @STORE_POS_X				; $f1 <= newX ならばジャンプ
+		; $e1 <= X <= $f0 のとき
 		lda spr_attr_arr, x
 		and #BIT1
-		beq :+
+		beq @STORE_POS_X
+		; 画面左端にいる
 		lda spr_attr_arr, x
-		and #%0111_1111					; bit7（スプライト使用フラグ）を0に
+		and #%0111_1111					; bit7（スプライト使用フラグ）を0に（敵を消去）
 		sta spr_attr_arr, x
-:
+@STORE_POS_X:
 		lda spr_posX_tmp_arr, x
 		sta spr_posX_arr, x
 		rts
@@ -229,7 +261,7 @@ AMOUNT_INC_SPD_R:
 		and #BIT7
 		beq :+
 		lda spr_attr_arr, x
-		and #BIT2
+		and #BIT5|BIT2
 		beq :++
 :
 		; 非表示
@@ -242,6 +274,7 @@ AMOUNT_INC_SPD_R:
 		; --------------------------
 :
 
+		; Y座標
 		lda tmp1
 		sta CHR_BUFF+$0, y
 		sta CHR_BUFF+$4, y
@@ -249,6 +282,7 @@ AMOUNT_INC_SPD_R:
 		sta CHR_BUFF+$8, y
 		sta CHR_BUFF+$c, y
 
+		; X座標
 		lda tmp2
 		sta CHR_BUFF+$3, y
 		sta CHR_BUFF+$b, y
@@ -272,6 +306,7 @@ AMOUNT_INC_SPD_R:
 		shl #3
 		tay
 
+		; tile id
 		ldx tmp1
 		lda (addr_tmp2), y
 		sta CHR_BUFF+$1, x
@@ -317,7 +352,7 @@ AMOUNT_INC_SPD_R:
 		and #BIT7
 		beq :+
 		lda spr_attr_arr, x
-		and #BIT2
+		and #BIT5|BIT2
 		beq :++
 :
 		; 非表示
@@ -605,7 +640,7 @@ AMOUNT_INC_SPD_R:
 ; この関数を使えば，パックンフラワー，ハンマーブロス，下から上がってくる炎，などが作れる）
 ; TODO: 動きが一定でないキャラを実装し，この関数の続きを作る
 ; @PARAMS		x: sprite buff id
-; @CLOBBERS		A Y
+; @CLOBBERS		A Y tmp1
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
@@ -619,7 +654,10 @@ AMOUNT_INC_SPD_R:
 	lda spr_move_counter, x
 	; sta tmp1						; tmp1はどこに使う？
 	cmp #$ff
-	bne @SKIP1
+	beq @INIT
+	jmp @SKIP1
+
+@INIT:
 	; 初期化
 	txa
 	pha
@@ -638,9 +676,9 @@ AMOUNT_INC_SPD_R:
 	iny
 	ldarr SPRITE_ARR
 	sta addr_tmp1+HI
-
 	pla
 	tax
+
 	lda #0
 	sta spr_anime_timer, x			; 初期化
 	ldy #0
@@ -661,14 +699,16 @@ AMOUNT_INC_SPD_R:
 	; エンドコードがセットされていなかったとき
 	sta spr_anime_num, x			; アニメーションを上書き
 :
+	iny
+	tya
+	sta spr_move_num, x
 	rts
 	; ------------------------------
 @SKIP1:
 	; すでにセット済みのとき
-	lda spr_move_counter, x
 	sta tmp1							; どこに使用？
 	lda spr_move_timer_max_arr, x		; XXX_MOVE_ARRのタイマーの値
-	bne @COMPLEX_MOVE
+	bne @COMPLEX_MOVE					; move_num_maxではなく、timer_max==0かで判定している（どっちでもいいはず）
 	; 動きが一定（クリボーなど）はアニメーションだけする
 	cpx #0
 	beq :+
@@ -677,7 +717,69 @@ AMOUNT_INC_SPD_R:
 	rts
 	; ------------------------------
 @COMPLEX_MOVE:
-	; ここに処理を追加する（速度が一定ではなく，動きがいくつかある敵用）
+	; TODO: ここに処理を追加する（速度が一定ではなく動きがいくつかある敵の移動データを適用）
+	cmp spr_move_counter, x
+	beq :+
+	inc spr_move_counter, x
+	jmp @NO_UPDATE_MOVE
+:
+	; x = sprite buff id
+	stx tmp1
+	; init
+	lda #0
+	sta spr_move_counter, x
+
+	lda spr_id_arr, x				; キャラ固有のIDを取得
+	tax
+	ldy #2
+	ldarr SPRITE_ARR
+	shr #4
+	ldx tmp1
+	sta spr_anime_num, x			; アニメーション開始番号
+	; [enemyname]_MOVE_ARRを読みこむ
+	lda spr_id_arr, x
+	tax
+	ldy #7
+	ldarr SPRITE_ARR
+	sta addr_tmp1+LO
+	iny
+	ldarr SPRITE_ARR
+	sta addr_tmp1+HI
+	; end using tmp1
+
+	ldx tmp1
+	lda spr_move_num, x
+	tay
+	lda (addr_tmp1), y
+	sta spr_move_timer_max_arr, x
+	iny
+	lda (addr_tmp1), y				; X速度
+	sta spr_float_velocity_x_arr, x
+	iny
+	lda (addr_tmp1), y
+	sta spr_float_velocity_y_arr, x
+	iny								; 加速度は一旦実装を飛ばす
+	iny
+	iny
+	lda (addr_tmp1), y
+	cmp #$ff
+	beq :+							; エンドコードが来たら処理は終了
+	; エンドコードがセットされていなかったとき
+	sta spr_anime_num, x			; アニメーションを上書き
+:
+	; move_numのリセット処理
+	iny
+	lda (addr_tmp1), y
+	bne @NO_MOVE_NUM_RESET
+	ldy #0
+@NO_MOVE_NUM_RESET:
+	tya
+	sta spr_move_num, x
+	lda #0
+	sta spr_move_timer_arr, x
+	sta spr_decimal_part_velocity_y_arr, x
+
+@NO_UPDATE_MOVE:
 	lda spr_attr_arr, x
 	and #BIT3						; 倒されたフラグ
 	beq :+
@@ -688,6 +790,7 @@ AMOUNT_INC_SPD_R:
 	and #%0111_1111					; スプライト存在フラグ
 	sta spr_attr_arr, x
 :
+	jsr _animate
 	rts
 .endproc
 
@@ -723,7 +826,7 @@ AMOUNT_INC_SPD_R:
 @next_anime:
 	ldx tmp2
 	ldy #2
-	ldarr SPRITE_ARR
+	ldarr SPRITE_ARR				; animation_maxを求める
 	and #BYT_GET_LO
 	sub #1
 	ldx tmp1
@@ -751,6 +854,7 @@ AMOUNT_INC_SPD_R:
 ;*------------------------------------------------------------------------------
 ; 敵キャラとの衝突を検出
 ; これは関数内でスプライトのバッファidをループするので引数は不要
+; TODO: 敵キャラの当たり判定ボックスを可変にする（その前に敵キャラのサイズを指定できるようにする）
 ; @PARAMS		None
 ; @CLOBBERS		A tmp1
 ; @RETURNS		None

@@ -264,7 +264,7 @@ TITLE_DATA1:
 		.byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $b0, $b1, $00, $00, $00, $00, $00, $00, $b2, $b3, $00, $00
 
 TITLE_DATA2:
-		.byte $40, "2024 ASATO", $3c, "REIN", $3c, "NENE"
+		.byte $40, "2024", $3a, "2025 VER1", $3d, "0"
 
 TITLE_DATA3:
 		.byte "PUSH START BUTTON"
@@ -351,13 +351,13 @@ TITLE_DATA3:
 		ldy #0
 		lda #$23
 		sta PPU_ADDR
-		lda #$26
+		lda #$28
 		sta PPU_ADDR
 :
 		lda TITLE_DATA2, y
 		sta PPU_DATA
 		iny
-		cpy #21
+		cpy #17
 		bne :-
 
 		ldy #0
