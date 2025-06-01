@@ -65,7 +65,7 @@
 
 
 .proc _irq
-		rti
+		jmp _reset
 .endproc
 
 

@@ -29,7 +29,7 @@ BLOCK_ID_ARR:
 	.addr $0000							; F
 	.addr OBJ_GROUND					; G
 	.addr OBJ_HARD_BLOCK				; H
-	.addr OBJ_INVISIBLE_BLOCK			; I
+	.addr $0000							; I
 	.addr $0000							; J
 	.addr $0000							; K
 	.addr $0000							; L
@@ -89,29 +89,30 @@ BLOCK_ID_ARR:
 
 
 BLOCK_COLLISION_SETTING:
-	; BIT7は、当たり判定を全方位同じにするかどうか（0で全方位同じ）
-	; BIT6は、当たり判定を行うかどうか（0のとき当たり判定無効）
+	; BIT7：当たり判定を下から叩いたとき変更するか（0で全方位同じ）
+	; BIT6：当たり判定を行うかどうか（0のとき当たり判定無効）
+	; BIT5：プレイヤーの座標の修正が必要なブロックか（コインなどなら0，レンガは1）
 	; ほかの7ビットで、当たり判定の処理のポインターリストのインデックスを指定する
 	; 40 = %0100
 	.byte $00							; @
 	.byte $00							; A
-	.byte $C0+$00						; B
+	.byte %11100000+$00						; B
 	.byte $00							; C
 	.byte $00							; D
 	.byte $00							; E
 	.byte $00							; F
-	.byte $40+$02						; G
-	.byte $40+$03						; H
-	.byte $C0+$04						; I
+	.byte %01100000+$02						; G
+	.byte %01100000+$03						; H
+	.byte $00							; I
 	.byte $00							; J
 	.byte $00							; K
 	.byte $00							; L
 	.byte $00							; M
-	.byte $40+$06						; N
+	.byte %01100000+$04						; N
 	.byte $00							; O
 	; 50 = %0101
 	.byte $00							; P
-	.byte $C0+$07						; Q
+	.byte %11100000+$05						; Q
 	.byte $00							; R
 	.byte $00							; S
 	.byte $00							; T
@@ -121,21 +122,21 @@ BLOCK_COLLISION_SETTING:
 	.byte $00							; X
 	.byte $00							; Y
 	.byte $00							; Z
-	.byte $C0+$09						; [
+	.byte %11100000+$07						; [
 	.byte $00							; \
 	.byte $00							; ]
-	.byte $40+$0b						; ^
+	.byte %01000000+$09						; ^
 	.byte $00							; _
 	; 60
-	.byte $40+$0c						; `
-	.byte $40+$0d						; a
-	.byte $40+$0e						; b
-	.byte $40+$0f						; c
-	.byte $40+$10						; d
-	.byte $40+$11						; e
+	.byte %01100000+$0a						; `
+	.byte %01100000+$0b						; a
+	.byte %01100000+$0c						; b
+	.byte %01100000+$0d						; c
+	.byte %01000000+$0e						; d
+	.byte %01000000+$0f						; e
 	.byte $00							; f
 	.byte $00							; g
-	.byte $C0+$12						; h
+	.byte %11100000+$10						; h
 	.byte $00							; i
 	.byte $00							; j
 	.byte $00							; k
@@ -165,7 +166,6 @@ BLOCK_COLLISION_FUNC:
 	.addr _collisionHardBlock, _collisionRengaBlock
 	.addr _collisionHardBlock
 	.addr _collisionHardBlock
-	.addr _void, _collisionCoinBlock
 	.addr _collisionHardBlock
 	.addr _collisionHardBlock, _collisionCoinBlock
 	.addr _collisionHardBlock, _collisionFlowerBlock

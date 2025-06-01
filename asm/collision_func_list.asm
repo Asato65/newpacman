@@ -1,4 +1,4 @@
-.proc _void:
+.proc _void
 	rts
 .endproc
 
