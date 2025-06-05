@@ -3,12 +3,14 @@ ZP					= $00
 bg_map_buff			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
 bg_plt_buff			= $0134				; size = 8
 fill_block_arr		= $013c				; size = 13 ($d)
-hit_block_arr		= $0149				; size = 2(addr) + 4(data) + 2(pltaddr) + 1(pltdata) = 9
-bg_buff				= $0152
+hit_block_arr		= $0149				; size = 2(addr) + 4(data) = 6
+anime_block_arr		= $014f				; size = 2(addr) + 4(data) = 6
+bg_buff			 	= $0155
 CHR_BUFF			= $0700
 MAP1				= $0400
 MAP2				= $0500
 USER_MEM			= $0700
+SPR_BLOCK_ANIMATION	= $07f0
 
 PLT_TABLE_ADDR		= $3f00
 

@@ -234,6 +234,7 @@ enemy_block_pos_bottom:		.byte 0
 		inx
 		cpx #6
 		bne @LOOP
+
 		rts
 		; ------------------------------
 .endproc

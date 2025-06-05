@@ -41,7 +41,10 @@ player_hit_block_plt_hi:		.byte 0
 player_collision_flags:			.byte 0
 player_collision_fix_flags:			.byte 0
 player_hide_block_collision_flags:	.byte 0
-player_hit_block_is_drawed:		.byte 0
+player_hit_block_is_drawed:			.byte 0
+player_animation_block_is_drawed:	.byte 0
+func_index:						.res 4
+anime_block_plt_shift_cnt:		.byte 0
 
 .code
 
@@ -924,177 +927,34 @@ for (i = 0; i < 4; i++) {
 	if (attr.bit6 == 0 || playerCollisionID[x] == 0) continue
 	res1 = x < 2 && playerCollisonID[x] == 'h'
 
-	if (attr.bit5 == 1 || res1) {
-		playerCollisionFixFlags += 1 << (3 - x)
-	}
-
 	if (attr.bit7 == 1) {
 		carry = 1
 	}
 
 	funcIndex = attr & 0b00011111 + carry
 
-	blockCollisionFunc[funcIndex]()
+	if (attr.bit5 == 1 || res1) {
+		playerCollisionFixFlags += 1 << (3 - x)
+		func_index[x] = funcIndex
+		; あとでplayerCollisionFlagsを適用したときに，
+		; 一部のfunc_indexの要素は使用しない可能性があるので
+		; スタックではなく配列に
+	} else {
+		blockCollisionFunc[funcIndex]()
+	}
+
 }
 
-playerCollisionFixFlagsをもとに座標修正
-
-
-	ldx #0
-@LOOP1:
-	stx tmp1
-	lda PLAYER_COLLISION_ID_LU, x
-	sta blockIdChecking					; blockID
-	tax
-	lda BLOCK_COLLISION_SETTING, x
-	sta attr							; attr
-
-	lda #0
-	ldx tmp1
-	cpx #2
-	bcs :+
-	lda #1
-:
-	sta res1
-	lda #0
-	ldx blockIdChecking
-	cpx #'h'
-	beq :+
-	lda #1
-:
-	and res1
-	sta res1
-
-	lda attr
-	and #BIT6
-	beq @LOOP1
-
-	lda attr
-	and #BIT5
-	bne @SET_FIX_FLAGS
-	lda res
-	beq @END_SET_FIX_FLAGS
-@SET_FIX_FLAGS:
-	lda tmp1
-	cnn
-	add #3
-	tax
-	lda #1
-@LOOP2_START:
-	cpx #0
-	beq @LOOP2_END
-	shl #1
-	dex
-	jmp @LOOP2_START
-@LOOP2_END:
-	ora PLAYER_COLLISION_FIX_FLAGS
-	sta PLAYER_COLLISION_FIX_FLAGS
-
-	lda attr
-	shl #1
-
-	lda attr
-	and #%0001_1111
-	adc #0
-	tax
-
-	lda BLOCK_COLLISION_FUNC, x
-	sta addr_tmp1+HI
-	lda BLOCK_COLLISION_FUNC+1, x
-	sub #1
-	sta addr_tmp1+LO
-
-	lda #>@RETURN
-	pha
-	lda #<@RETURN
-	sub #1
-	pha
-	jmp (addr_tmp1)
-@RETURN:
-	ldx tmp1
-	inx
-	cpx #4
-	bne @LOOP1
-
-*/
-
-/*
-@LOOP1:
-	ldy #0
-@LOOP2:
-	lsr player_collision_flags
-
-	bcc @LOOP1
-	stx tmp1
-	tax
-	lda BLOCK_COLLISION_SETTING, x
-	sta tmp2
-	and #BIT6						; 当たり判定の有無のフラグ
-	beq @LOOP1
-	lda tmp2
-	and #BIT7						; 下からの当たり判定の処理が別かのフラグ
-	beq @CALC_ADDR
-	; 下から当たったときの当たり判定の処理が異なっている場合
-	txa
-	and #%0000_0010
-	bne @CALC_ADDR
-	; これから当たり判定の処理をするブロックが上側のブロックならば
-	lda player_collision_id_ld, x
-	cmp #'h'
-	bne @SKIP1
-	txa
-	cnn
-	add #4
-	pha
-:
-	lda #1
-	shl #1
-	dex
-	bne :-
-
-	pla
-	tax
-
-	ora player_hide_block_collision_flags
-	sta player_hide_block_collision_flags
-@SKIP1:
-	sec
-@CALC_ADDR:
-	lda tmp2
-	and #%0011_1111					; 当たり判定処理のINDEXを取り出す
-	adc #0							; 上側のブロック判定をするときのフラグを考慮する
-	tay
-
-	lda BLOCK_COLLISION_FUNC, y
-	sta addr_tmp1+HI
-	lda BLOCK_COLLISION_FUNC+1, y
-	sta addr_tmp1+LO
-
-	txa
-	pha
-
-	lda tmp2
-	and #BIT5						; マリオが通過できないブロックか
-	beq :+
-	; フラグを立てる
-	sec
-	rol player_collision_fix_flags
-:
-	; アニメーションやアイテム処理
-	lda #>@RETURNS
-	pha
-	lda #<@RETURNS
-	sub #1
-	pha
-	jmp (addr_tmp1)
-@RETURNS:
-	; この時点で，座標修正は一切していない
-	pla
-	tax
-	inx
-	cpx #4
-	bcc @LOOP1
-
+playerCollisionFixFlags &= playerCollisionFlags
+for (x = 0; x < 4; x++) {
+	if (playerCollisionFixFlags.bit[x]) {
+		funcIndex = func_index[x]
+		blockCollisionFunc[funcIndex]()
+	}
+}
+switch(playerColllisionFixFlags) {
+	case "0011": ...
+}
 */
 
 	ldx #$ff
@@ -1103,7 +963,9 @@ playerCollisionFixFlagsをもとに座標修正
 	ldx tmp1
 	inx
 	cpx #4
-	beq @EXEC_FIX
+	bne :+
+	jmp @EXEC_FIX
+:
 	stx tmp1
 	lda player_collision_id_lu, x
 	sta tmp4
@@ -1125,7 +987,7 @@ playerCollisionFixFlagsをもとに座標修正
 	bcs :+
 	lda #1
 :
-	sta tmp3
+	sta tmp3							; res1
 	lda tmp4
 	tax
 	lda #0
@@ -1135,6 +997,15 @@ playerCollisionFixFlagsをもとに座標修正
 :
 	and tmp3
 	sta tmp3
+
+	lda tmp2
+	shl #1							; set carry
+
+	lda tmp2
+	and #%0001_1111
+	adc #0
+	shl #1
+	sta tmp4						; funcIndex
 
 	lda tmp2
 	and #BIT5
@@ -1156,36 +1027,75 @@ playerCollisionFixFlagsをもとに座標修正
 @LOOP2_END:
 	ora player_collision_fix_flags
 	sta player_collision_fix_flags
+	lda tmp4							; funcIndex
+	ldx tmp1
+	sta func_index, x
+	jmp @LOOP1
 
 @END_SET_FIX_FLAGS:
-	; calc addr / set addr
-	lda tmp2
-	shl #1							; set carry
-
-	lda tmp2
-	and #%0001_1111
-	adc #0
-	shl #1
-	tax
-
+	ldx tmp4
 	lda BLOCK_COLLISION_FUNC, x
 	sta addr_tmp1+LO
 	lda BLOCK_COLLISION_FUNC+1, x
 	sta addr_tmp1+HI
 
-	lda #>@RETURN
+	lda #>@LOOP1
 	pha
-	lda #<@RETURN
+	lda #<@LOOP1
 	sub #1
 	pha
+
 	jmp (addr_tmp1)
-@RETURN:
-	jmp @LOOP1
+	;* ----------------------------------
+
+
 
 @EXEC_FIX:
 	lda player_collision_fix_flags
 	and player_collision_flags
 	sta player_collision_fix_flags
+	sta tmp1
+
+	ldx #0
+@LOOP2:
+	stx tmp2							; loop index
+	lsr tmp1
+	beq @RETURN2
+
+	; (0,0): x=0: bit3
+	; (1,0): x=1: bit2
+	; (0,1): x=2: bit1
+	; (1,1): x=3: bit0
+	txa									; ここのXはブロック位置に対応したindex
+	cnn
+	add #3
+	tax									; 取り出すBIT
+	lda player_collision_fix_flags
+	and NUM2BIT, x							; xbit以外マスク
+	beq @RETURN2
+
+	ldx tmp2
+	lda func_index, x
+	tax
+	lda BLOCK_COLLISION_FUNC, x
+	sta addr_tmp1+LO
+	lda BLOCK_COLLISION_FUNC+1, x
+	sta addr_tmp1+HI
+
+	lda #>@RETURN2
+	pha
+	lda #<@RETURN2
+	sub #1
+	pha
+
+	jmp (addr_tmp1)
+@RETURN2:
+	ldx tmp2
+	inx
+	cpx #4
+	bne @LOOP2
+
+	lda player_collision_fix_flags
 
 		cmp #%0000_1100
 		beq @UPPER
@@ -1362,161 +1272,6 @@ playerCollisionFixFlagsをもとに座標修正
 		sta spr_decimal_part_force_y+$0
 :
 		rts
-
-/*
-		; 衝突したブロックの変更ルーチン（レンガブロック等）
-		lda #0
-		sta tmp1						; bit1: 左上のブロックが存在するか, bit0: 右上のブロックが存在するか
-		lda player_hit_block_left_hi
-		beq :+
-		lda #%0000_0010
-		ora tmp1
-		sta tmp1
-:
-		lda player_hit_block_right_hi
-		beq :+
-		lda #%0000_0001
-		ora tmp1
-		sta tmp1
-:
-		lda player_offset_flags
-		and #%0000_0010
-		bne :+							; X方向のずれがあるときスキップ（左上と右上両方使う）
-		lda tmp1						; X方向のずれがないとき
-		and #%0000_0010					; 右上のブロックはマスク
-		sta tmp1
-:
-		lda tmp1
-		bne :+
-		rts
-		; ------------------------------
-:
-		cmp #%0000_0011
-		bne :+
-		lda player_actual_pos_left
-		add #PLAYER_WIDTH/2
-		shr #4
-		cmp player_block_pos_X
-		beq @HIT_UPPER_LEFT
-		bne @HIT_UPPER_RIGHT
-		; ------------------------------
-:
-		cmp #%0000_0010
-		bne @HIT_UPPER_RIGHT
-@HIT_UPPER_LEFT:
-		lda player_hit_block_left_hi
-		sta player_hit_block_hi
-		lda player_hit_block_left_lo
-		sta player_hit_block_lo
-		jmp :+
-@HIT_UPPER_RIGHT:
-		lda player_hit_block_right_hi
-		sta player_hit_block_hi
-		lda player_hit_block_right_lo
-		sta player_hit_block_lo
-:
-	; アイテムの出現
-
-		ldy #0
-		; $2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
-		lda player_hit_block_hi
-		and #%0000_0001
-		shl #2
-		ora #$20
-		sta player_hit_block_ppu_hi
-		add #3
-		sta player_hit_block_plt_hi
-
-		lda player_hit_block_lo
-		shl
-		and #%0001_1111
-		sta tmp1						; posX
-		lda player_hit_block_lo
-		add #$20
-		shr #4
-		shl
-		sta tmp2
-		sta tmp3						; posY
-		ldx #$20-1
-:
-		lda tmp2
-		add tmp3
-		sta tmp2
-		lda player_hit_block_ppu_hi
-		adc #0
-		sta player_hit_block_ppu_hi
-		dex
-		bne :-
-
-		lda tmp2
-		add tmp1
-		sta player_hit_block_ppu_lo
-		lda player_hit_block_ppu_hi
-		adc #0
-		sta player_hit_block_ppu_hi
-
-		; plt
-		lda tmp1
-		shr #2
-		and #%0000_1111
-		sta tmp2
-		lda tmp3
-		shl
-		and #%1111_1000
-		ora tmp2
-		add #$c0
-		sta player_hit_block_plt_lo
-
-		lda #%0000_0011
-		sta tmp2
-		lda tmp1
-		and #%0000_0010
-		beq :+
-		lda tmp2
-		shl #2
-		sta tmp2
-:
-		lda tmp3
-		shr
-		and #%0000_0001
-		beq :+
-		lda tmp2
-		shl #4
-		sta tmp2
-:
-		lda tmp2
-		eor #%11111111
-		sta tmp2						; plt data
-
-		lda player_hit_block_ppu_hi
-		sta hit_block_arr+$0
-		lda player_hit_block_ppu_lo
-		sta hit_block_arr+$1
-		lda #$88
-		sta hit_block_arr+$2
-		lda #$89
-		sta hit_block_arr+$3
-		lda #$8a
-		sta hit_block_arr+$4
-		lda #$8b
-		sta hit_block_arr+$5
-		lda player_hit_block_plt_hi
-		sta hit_block_arr+$6
-		lda player_hit_block_plt_lo
-		sta hit_block_arr+$7
-		lda tmp2
-		sta hit_block_arr+$8
-
-		lda #1
-		sta player_hit_block_is_drawed
-
-		ldy #0
-		lda #'N'
-		sta (player_hit_block_lo), y
-@EXIT:
-		rts
-	; ------------------------------
-*/
 .endproc
 
 
@@ -1621,5 +1376,338 @@ playerCollisionFixFlagsをもとに座標修正
 		; ------------------------------
 .endproc
 
+
+
+BLOCK_COLLISION_FUNC:
+	.addr _void, _collisionRengaBlock
+	.addr _void
+	.addr _void
+	.addr _void
+	.addr _void, _collisionCoinBlock
+	.addr _void, _collisionFlowerBlock
+	.addr _collisionCoin
+	.addr _void
+	.addr _void
+	.addr _void
+	.addr _void
+	.addr _collisionGoal
+	.addr _collisionGoal
+	.addr _void, _collisionCoinBlock
+
+
+BLOCK_ANIMATION_TILESET:
+	.byte $f1, $f1, $f2, $f2
+	.byte $f0, $f0, $f0, $f0
+	.byte $f0, $f0, $f0, $f0
+
+BLOCK_ANIMATION_TILE_ATTRSET:
+	.byte $01, $01, $01, $01
+	.byte %00000001, %01000001, %10000001, %11000001
+	.byte %00000001, %01000001, %10000001, %11000001
+
+
+.proc _void
+	rts
+.endproc
+
+
+.proc _startBlockAnimation
+		lda tmp1
+		pha
+		lda tmp2
+		pha
+		lda tmp3
+		pha
+		lda tmp4
+		pha
+		txa
+		pha
+
+		lda #0
+		sta tmp4						; is executed _endAnimeBlock
+
+		lda block_anime_timer
+		cmp #$ff
+		beq :+
+		jsr _endAnimeBlock
+		lda #1
+		sta tmp4
+:
+		lda #0
+		sta block_anime_timer
+		sta tmp1						; bit1: 左上のブロックが存在するか, bit0: 右上のブロックが存在するか
+		lda player_hit_block_left_hi
+		beq :+
+		lda #%0000_0010
+		ora tmp1
+		sta tmp1
+:
+		lda player_hit_block_right_hi
+		beq :+
+		lda #%0000_0001
+		ora tmp1
+		sta tmp1
+:
+		lda player_offset_flags
+		and #%0000_0010
+		bne :+							; X方向のずれがあるときスキップ（左上と右上両方使う）
+		lda tmp1						; X方向のずれがないとき
+		and #%0000_0010					; 右上のブロックはマスク
+		sta tmp1
+:
+		lda tmp1
+		bne :+
+		pla
+		jmp @EXIT
+		; ------------------------------
+:
+		cmp #%0000_0011
+		bne :+
+		lda player_actual_pos_left
+		add #PLAYER_WIDTH/2
+		shr #4
+		cmp player_block_pos_X
+		beq @HIT_UPPER_LEFT
+		bne @HIT_UPPER_RIGHT
+		; ------------------------------
+:
+		cmp #%0000_0010
+		bne @HIT_UPPER_RIGHT
+@HIT_UPPER_LEFT:
+		lda player_hit_block_left_hi
+		sta player_hit_block_hi
+		lda player_hit_block_left_lo
+		sta player_hit_block_lo
+		jmp :+
+@HIT_UPPER_RIGHT:
+		lda player_hit_block_right_hi
+		sta player_hit_block_hi
+		lda player_hit_block_right_lo
+		sta player_hit_block_lo
+:
+		; $04cbの場合lo = cb
+		and #BYT_GET_HI				; $c0
+		add #$20
+		sta SPR_BLOCK_ANIMATION+0*4+0
+		sta SPR_BLOCK_ANIMATION+1*4+0
+		add #8
+		sta SPR_BLOCK_ANIMATION+2*4+0
+		sta SPR_BLOCK_ANIMATION+3*4+0
+		lda player_hit_block_lo
+		shl #4						; $b0
+		sub scroll_x
+		sta SPR_BLOCK_ANIMATION+0*4+3
+		sta SPR_BLOCK_ANIMATION+2*4+3
+		add #8
+		sta SPR_BLOCK_ANIMATION+1*4+3
+		sta SPR_BLOCK_ANIMATION+3*4+3
+
+		lda #0
+		sta block_anime_tmp1
+
+		pla
+		shl #2
+		tax
+		beq :+						; レンガブロックのみスキップ
+		ldy #0
+		lda #'N'
+		sta (player_hit_block_lo), y
+		iny
+		sty block_anime_tmp1
+:
+		lda BLOCK_ANIMATION_TILESET+0, x
+		sta SPR_BLOCK_ANIMATION+0*4+1
+		lda BLOCK_ANIMATION_TILESET+1, x
+		sta SPR_BLOCK_ANIMATION+1*4+1
+		lda BLOCK_ANIMATION_TILESET+2, x
+		sta SPR_BLOCK_ANIMATION+2*4+1
+		lda BLOCK_ANIMATION_TILESET+3, x
+		sta SPR_BLOCK_ANIMATION+3*4+1
+
+		lda BLOCK_ANIMATION_TILE_ATTRSET+0, x
+		sta SPR_BLOCK_ANIMATION+0*4+2
+		lda BLOCK_ANIMATION_TILE_ATTRSET+1, x
+		sta SPR_BLOCK_ANIMATION+1*4+2
+		lda BLOCK_ANIMATION_TILE_ATTRSET+2, x
+		sta SPR_BLOCK_ANIMATION+2*4+2
+		lda BLOCK_ANIMATION_TILE_ATTRSET+3, x
+		sta SPR_BLOCK_ANIMATION+3*4+2
+
+		ldy #0
+		; $2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
+		lda player_hit_block_hi
+		and #%0000_0001
+		shl #2
+		ora #$20
+		sta player_hit_block_ppu_hi		; $20 or $24
+		add #3
+		sta player_hit_block_plt_hi		; $23 or $27
+
+		lda player_hit_block_lo			; $cb = %11001011なら
+		shl #1
+		and #%0001_1111					; %00010110
+		sta tmp1						; posX
+		lda player_hit_block_lo
+		add #$20						; $eb（Y座標が実際の高さになる）
+		shr #4							; $0e
+		shl								; %00011100（shr #3だと%00011110になる）
+		sta tmp2
+		sta tmp3						; posY
+
+		; ppuのアドレス上位の計算（インクリメント）
+		ldx #$20-1
+:
+		lda tmp2
+		add tmp3
+		sta tmp2
+		lda player_hit_block_ppu_hi
+		adc #0
+		sta player_hit_block_ppu_hi
+		dex
+		bne :-
+
+		lda tmp2
+		add tmp1
+		sta player_hit_block_ppu_lo		; X + Y
+		lda player_hit_block_ppu_hi
+		adc #0
+		sta player_hit_block_ppu_hi		; インクリメント
+
+		lda player_hit_block_ppu_hi
+		sta hit_block_arr+$0
+		sta anime_block_arr+$0
+		lda player_hit_block_ppu_lo
+		sta hit_block_arr+$1
+		sta anime_block_arr+$1
+		lda #0
+		sta hit_block_arr+$2
+		lda #0
+		sta hit_block_arr+$3
+		lda #0
+		sta hit_block_arr+$4
+		lda #0
+		sta hit_block_arr+$5
+
+		lda #1
+		sta player_hit_block_is_drawed
+@EXIT:
+		pla
+		sta tmp4
+		pla
+		sta tmp3
+		pla
+		sta tmp2
+		pla
+		sta tmp1
+
+		rts
+.endproc
+
+
+.proc _collisionRengaBlock
+	ldx #0
+	jsr _startBlockAnimation
+	rts
+.endproc
+
+
+.proc _collisionCoinBlock
+	ldx #1
+	jsr _startBlockAnimation
+	rts
+.endproc
+
+.proc _collisionCoin
+	rts
+.endproc
+
+.proc _collisionFlowerBlock
+	ldx #2
+	jsr _startBlockAnimation
+	rts
+.endproc
+
+.proc _collisionGoal
+	lda #4
+	sta engine
+	rts
+.endproc
+
+
+ANIME_Y_LIST:
+	.byte $fe, $fe, $fe, $ff, $ff
+	.byte $00
+	.byte $01, $01, $02, $02, $02
+	.byte $f0
+
+
+.proc _animeBlock
+	ldx block_anime_timer
+	cpx #$ff
+	beq @EXIT
+	lda ANIME_Y_LIST, x
+	inx
+	cmp #$f0
+	bne :+
+	jsr _endAnimeBlock
+	rts
+:
+	sta tmp1
+	stx block_anime_timer
+	ldx #0
+:
+	lda SPR_BLOCK_ANIMATION, x
+	add tmp1
+	sta SPR_BLOCK_ANIMATION, x
+
+	add x, #4
+
+	cpx #$10
+	bne :-
+
+@EXIT:
+	rts
+
+.endproc
+
+
+.proc _endAnimeBlock
+	lda #$ff
+	sta block_anime_timer
+
+	lda block_anime_tmp1
+	beq :+
+
+		lda #$88
+		sta anime_block_arr+$2
+		lda #$89
+		sta anime_block_arr+$3
+		lda #$8a
+		sta anime_block_arr+$4
+		lda #$8b
+		sta anime_block_arr+$5
+		bne :++
+
+:
+	lda #$94
+	sta anime_block_arr+$2
+	sta anime_block_arr+$3
+	lda #$95
+	sta anime_block_arr+$4
+	sta anime_block_arr+$5
+:
+
+		lda #1
+		sta player_animation_block_is_drawed
+
+		lda #$ff
+		sta SPR_BLOCK_ANIMATION+0
+		sta SPR_BLOCK_ANIMATION+4
+		sta SPR_BLOCK_ANIMATION+8
+		sta SPR_BLOCK_ANIMATION+$c
+
+		rts
+
+.endproc
 
 .endscope

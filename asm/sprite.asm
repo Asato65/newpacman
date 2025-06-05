@@ -57,25 +57,25 @@ PLAYER_MARIO:
 PLAYER_ANIMATION_ARR:
 		; standing
 		.byte $04, $05, $06, $07
-		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0001
+		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 		; walk1
 		.byte $08, $09, $0a, $0b
-		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0001
+		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 		; walk2
 		.byte $0c, $0d, $0e, $0f
-		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0001
+		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 		; walk3, falling
 		.byte $10, $11, $12, $13
-		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0001
+		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 		; jumping
 		.byte $14, $15, $16, $17
-		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0001
+		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 		; braking
 		.byte $18, $19, $1a, $1b
-		.byte %0000_0000, %0000_0000, %0000_0001, %0000_0000
+		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 		; death
 		.byte $1c, $1d, $1e, $1f
-		.byte %0000_0000, %0000_0000, %0000_0001, %0000_0001
+		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 
 
 PLAYER_MOVE_ARR:
@@ -113,9 +113,28 @@ AMOUNT_INC_SPD_R:
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _moveSprite
+		cpx #$ff
+		beq @BLOCK_ANIMATION
 		cpx #0
 		bne @OTHER
 		jmp @PLAYER
+@BLOCK_ANIMATION:
+	ldx #0
+:
+	lda SPR_BLOCK_ANIMATION+3, x
+	sta tmp1
+	sub scroll_amount
+	sta SPR_BLOCK_ANIMATION+3, x
+	bcs :+
+	lda tmp1
+	bmi :+
+	lda #$ff
+	sta SPR_BLOCK_ANIMATION+0, x
+:
+	add x, #4
+	cpx #$10
+	bne :--
+	rts
 @OTHER:
 		; 敵キャラなど
 		lda spr_attr_arr, x
@@ -271,7 +290,7 @@ AMOUNT_INC_SPD_R:
 		sta CHR_BUFF+$8, y
 		sta CHR_BUFF+$c, y
 		rts
-		; --------------------------
+		; ------------------------------
 :
 
 		; Y座標
@@ -602,10 +621,7 @@ AMOUNT_INC_SPD_R:
 		tya
 		shl #4
 		tay
-		iny									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
-		iny
-		iny
-		iny
+		add y, #4									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
 
 		lda spr_posY_arr, x
 		sta tmp1							; posY

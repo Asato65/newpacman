@@ -50,6 +50,8 @@ bgm0:
 		inx
 		bne @CLR_CHR_MEM
 
+		sta block_anime_timer
+
 		jsr Subfunc::_waitVblank		; 2nd time
 
 		; ------- PPU stabilizes -------

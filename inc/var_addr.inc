@@ -94,4 +94,9 @@ item_velocity_X_arr					: .res 1
 item_velocity_y_arr					: .res 1
 
 
+block_anime_spr_id					: .res 1
+block_anime_timer					: .res 1
+block_anime_tmp1					: .res 1   ; 今は叩いたあとの背景データのIDに使う
+; block_anime_addr					: .res 2
+
 .code

@@ -4,8 +4,6 @@
 .include "map/1-2.inc"
 .include "map/1-3.inc"
 
-.include "asm/collision_func_list.asm"
-
 
 STAGE_ARR:
 	.addr MAP_ARR_11
@@ -52,7 +50,7 @@ BLOCK_ID_ARR:
 	.addr $0000							; \
 	.addr $0000							; ]
 	.addr OBJ_COIN						; ^
-	.addr $0000							; _
+	.addr OBJ_HIDE_BLOCK				; _
 	; 60 = %0110
 	.addr OBJ_PIPE_LEFT					; `
 	.addr OBJ_PIPE_UPPER_LEFT			; a
@@ -62,7 +60,7 @@ BLOCK_ID_ARR:
 	.addr OBJ_GOAL_BALL					; e
 	.addr $0000							; f
 	.addr $0000							; g
-	.addr OBJ_HIDE_BLOCK				; h
+	.addr $0000							; h
 	.addr $0000							; i
 	.addr $0000							; j
 	.addr $0000							; k
@@ -126,7 +124,7 @@ BLOCK_COLLISION_SETTING:
 	.byte $00							; \
 	.byte $00							; ]
 	.byte %01000000+$09						; ^
-	.byte $00							; _
+	.byte %11100000+$10					; _
 	; 60
 	.byte %01100000+$0a						; `
 	.byte %01100000+$0b						; a
@@ -136,7 +134,7 @@ BLOCK_COLLISION_SETTING:
 	.byte %01000000+$0f						; e
 	.byte $00							; f
 	.byte $00							; g
-	.byte %11100000+$10						; h
+	.byte $00							; h
 	.byte $00							; i
 	.byte $00							; j
 	.byte $00							; k
@@ -161,22 +159,6 @@ BLOCK_COLLISION_SETTING:
 	.byte $00							; }
 	.byte $00							; ~
 
-
-BLOCK_COLLISION_FUNC:
-	.addr _collisionHardBlock, _collisionRengaBlock
-	.addr _collisionHardBlock
-	.addr _collisionHardBlock
-	.addr _collisionHardBlock
-	.addr _collisionHardBlock, _collisionCoinBlock
-	.addr _collisionHardBlock, _collisionFlowerBlock
-	.addr _collisionCoin
-	.addr _collisionHardBlock
-	.addr _collisionHardBlock
-	.addr _collisionHardBlock
-	.addr _collisionHardBlock
-	.addr _collisionGoal
-	.addr _collisionGoal
-	.addr _void, _collisionCoinBlock
 
 OBJ_SKY:
 	.byte $00, $00

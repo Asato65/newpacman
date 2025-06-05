@@ -32,12 +32,12 @@ MAP_13_1:
 	.byte (GET_OBJ_POS $c, $8), 'H'
 	.byte OBJMAP_NEXT
 	.byte (GET_OBJ_POS $0, $5), 'Q'
-	.byte (GET_OBJ_POS $4, $5), 'B'
-	.byte (GET_OBJ_POS $5, $5), 'Q'
-	.byte (GET_OBJ_POS $6, $5), 'B'
+	.byte (GET_OBJ_POS $4, $3), 'B'
+	.byte (GET_OBJ_POS $5, $3), 'Q'
+	.byte (GET_OBJ_POS $6, $3), 'B'
 	.byte (GET_OBJ_POS $6, $9), 'Q'
-	.byte (GET_OBJ_POS $7, $5), 'Q'
-	.byte (GET_OBJ_POS $8, $5), 'B'
+	.byte (GET_OBJ_POS $7, $3), 'Q'
+	.byte (GET_OBJ_POS $8, $3), 'B'
 	.byte (GET_OBJ_POS $c, $2), '`'		; 土管1
 	.byte (GET_OBJ_POS $c, $3), 'a'
 	.byte (GET_OBJ_POS $d, $2), 'b'
@@ -67,7 +67,7 @@ MAP_13_1:
 	.byte (GET_OBJ_POS $a, $4), 'b'
 	.byte (GET_OBJ_POS $a, $5), 'c'
 	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $6), 'h'
+	.byte (GET_OBJ_POS $0, $6), '_'		; 隠しブロック
 	.byte (GET_OBJ_POS $5, $0), 0
 	.byte (GET_OBJ_POS $5, $1), 0
 	.byte (GET_OBJ_POS $6, $0), 0

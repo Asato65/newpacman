@@ -33,3 +33,7 @@ PLAYER_WIDTH							= $c
 PLAYER_PADDING							= $2
 
 PLAYER_MAX_POSX							= $70				; マリオの行ける最大X座標（スクロールロックが無いとき）
+
+
+NUM2BIT:
+	.byte $01, $02, $04, $08, $10, $20, $40, $80
