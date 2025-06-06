@@ -14,6 +14,7 @@ INITIAL_VER_FORCE_DATA:					; 初期加速度(a)
 is_fly: 						.byte 0		; 空中にいるか
 is_jumping:						.byte 0		; ジャンプ中か（ジャンプ後の下降中もフラグオン）
 is_collision_down:				.byte 0		; collisionDownの関数を通ったか（床に触れたか）
+one_block_jump:					.byte 0		; 1ブロックの隙間でのジャンプが直近で実行されたか
 player_current_screen:			.byte 0		; プレイヤーのいる画面番号
 player_actual_pos_left:			.byte 0		; 画面上の座標ではなく，実際の座標
 player_actual_pos_right:		.byte 0
@@ -348,12 +349,23 @@ EXIT:
 ; smbdisでは6060行目のPlayerPhysicsSubで実行？
 ;*------------------------------------------------------------------------------
 .proc _jumpCheck
-		; 4Fの猶予がある
-		lda Joypad::joy1_pushstart_btn_a
-		and #%0000_1111
-		beq @EXIT
 		lda Player::is_fly
 		bne @EXIT
+
+		lda Player::one_block_jump
+		bne @SMALL_JUMP
+		; 4Fの猶予がある
+		lda Joypad::joy1_pushstart_btn_a
+		and #%0001_1111
+		beq @EXIT
+		bne @PREPARE_JUMP
+@SMALL_JUMP:
+		lda #0
+		sta Player::one_block_jump
+		lda Joypad::joy1_pushstart_btn_a
+		shr #1
+		bcc @EXIT
+@PREPARE_JUMP:
 		; 地面にいるときジャンプ開始準備
 		jsr Player::_prepareJumping
 @EXIT:
@@ -439,6 +451,15 @@ EXIT:
 		; Aボタンが離されたタイミング or 速度が正（上向き）の時
 		lda spr_force_fall_y+$0
 		sta spr_decimal_part_force_y+$0	; 初期化
+	lda spr_posY_arr+$0
+	sub spr_pos_y_origin
+	bpl :+
+	cnn
+:
+	cmp #8
+	bcs @SKIP2
+	lda #1
+	sta one_block_jump
 @SKIP2:
 		jsr Player::_physicsY
 		rts
@@ -1045,7 +1066,7 @@ switch(playerColllisionFixFlags) {
 	sub #1
 	pha
 
-	jmp (addr_tmp1)
+	jmp (addr_tmp1)						; TODO: player_collision_flagsを考慮しておらず，コインの取得でバグがあるかも，修正
 	;* ----------------------------------
 
 
@@ -1054,6 +1075,18 @@ switch(playerColllisionFixFlags) {
 	lda player_collision_fix_flags
 	and player_collision_flags
 	sta player_collision_fix_flags
+
+	lda player_actual_pos_left
+	add #PLAYER_WIDTH/2
+	shr #4
+	cmp player_block_pos_X
+	bne @HIT_UR
+	lda #%0000_1000
+	bne @STORE_ANIME_BLOCK_FLAGS
+@HIT_UR:
+	lda #%0000_0100
+@STORE_ANIME_BLOCK_FLAGS:
+	and player_collision_fix_flags
 	sta tmp1
 
 	ldx #0
@@ -1075,6 +1108,22 @@ switch(playerColllisionFixFlags) {
 	beq @RETURN2
 
 	ldx tmp2
+	beq @LEFT_UPPER_ADDR_SET
+	cpx #1
+	bne @RETURN2
+	; right upper addr set
+	lda player_hit_block_right_hi
+	sta player_hit_block_hi
+	lda player_hit_block_right_lo
+	sta player_hit_block_lo
+	jmp @EXEC_ANIME
+@LEFT_UPPER_ADDR_SET:
+	lda player_hit_block_left_hi
+	sta player_hit_block_hi
+	lda player_hit_block_left_lo
+	sta player_hit_block_lo
+
+@EXEC_ANIME:
 	lda func_index, x
 	tax
 	lda BLOCK_COLLISION_FUNC, x
@@ -1401,9 +1450,9 @@ BLOCK_ANIMATION_TILESET:
 	.byte $f0, $f0, $f0, $f0
 
 BLOCK_ANIMATION_TILE_ATTRSET:
-	.byte $01, $01, $01, $01
-	.byte %00000001, %01000001, %10000001, %11000001
-	.byte %00000001, %01000001, %10000001, %11000001
+	.byte $03, $03, $03, $03
+	.byte %00000011, %01000011, %10000011, %11000011
+	.byte %00000011, %01000011, %10000011, %11000011
 
 
 .proc _void
@@ -1411,6 +1460,7 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 .endproc
 
 
+; ブロックが叩かれたときのアニメーションを実行する
 .proc _startBlockAnimation
 		lda tmp1
 		pha
@@ -1418,74 +1468,22 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		pha
 		lda tmp3
 		pha
-		lda tmp4
+		txa						; 処理を分岐するためのID
 		pha
-		txa
-		pha
-
-		lda #0
-		sta tmp4						; is executed _endAnimeBlock
 
 		lda block_anime_timer
-		cmp #$ff
+		cmp #$ff					; ffが初期値となっている
 		beq :+
-		jsr _endAnimeBlock
-		lda #1
-		sta tmp4
+		jsr _endAnimeBlock			; ffでない＝アニメーション中ならそれを中断
 :
 		lda #0
 		sta block_anime_timer
-		sta tmp1						; bit1: 左上のブロックが存在するか, bit0: 右上のブロックが存在するか
-		lda player_hit_block_left_hi
-		beq :+
-		lda #%0000_0010
-		ora tmp1
-		sta tmp1
-:
-		lda player_hit_block_right_hi
-		beq :+
-		lda #%0000_0001
-		ora tmp1
-		sta tmp1
-:
-		lda player_offset_flags
-		and #%0000_0010
-		bne :+							; X方向のずれがあるときスキップ（左上と右上両方使う）
-		lda tmp1						; X方向のずれがないとき
-		and #%0000_0010					; 右上のブロックはマスク
-		sta tmp1
-:
-		lda tmp1
-		bne :+
-		pla
-		jmp @EXIT
-		; ------------------------------
-:
-		cmp #%0000_0011
-		bne :+
-		lda player_actual_pos_left
-		add #PLAYER_WIDTH/2
-		shr #4
-		cmp player_block_pos_X
-		beq @HIT_UPPER_LEFT
-		bne @HIT_UPPER_RIGHT
-		; ------------------------------
-:
-		cmp #%0000_0010
-		bne @HIT_UPPER_RIGHT
-@HIT_UPPER_LEFT:
-		lda player_hit_block_left_hi
-		sta player_hit_block_hi
-		lda player_hit_block_left_lo
-		sta player_hit_block_lo
-		jmp :+
-@HIT_UPPER_RIGHT:
-		lda player_hit_block_right_hi
-		sta player_hit_block_hi
-		lda player_hit_block_right_lo
-		sta player_hit_block_lo
-:
+		sta block_anime_tmp1		; これが0ならばレンガのスプライトが描画される
+
+		; 以下スプライトRAMの操作
+		; y座標
 		; $04cbの場合lo = cb
+		lda player_hit_block_lo
 		and #BYT_GET_HI				; $c0
 		add #$20
 		sta SPR_BLOCK_ANIMATION+0*4+0
@@ -1493,6 +1491,8 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		add #8
 		sta SPR_BLOCK_ANIMATION+2*4+0
 		sta SPR_BLOCK_ANIMATION+3*4+0
+
+		; x座標
 		lda player_hit_block_lo
 		shl #4						; $b0
 		sub scroll_x
@@ -1502,10 +1502,7 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		sta SPR_BLOCK_ANIMATION+1*4+3
 		sta SPR_BLOCK_ANIMATION+3*4+3
 
-		lda #0
-		sta block_anime_tmp1
-
-		pla
+		pla							; 分岐のID
 		shl #2
 		tax
 		beq :+						; レンガブロックのみスキップ
@@ -1533,6 +1530,7 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		lda BLOCK_ANIMATION_TILE_ATTRSET+3, x
 		sta SPR_BLOCK_ANIMATION+3*4+2
 
+		; BGのアドレス取得，BG操作
 		ldy #0
 		; $2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
 		lda player_hit_block_hi
@@ -1540,8 +1538,6 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		shl #2
 		ora #$20
 		sta player_hit_block_ppu_hi		; $20 or $24
-		add #3
-		sta player_hit_block_plt_hi		; $23 or $27
 
 		lda player_hit_block_lo			; $cb = %11001011なら
 		shl #1
@@ -1569,30 +1565,24 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		lda tmp2
 		add tmp1
 		sta player_hit_block_ppu_lo		; X + Y
+
 		lda player_hit_block_ppu_hi
 		adc #0
 		sta player_hit_block_ppu_hi		; インクリメント
 
 		lda player_hit_block_ppu_hi
 		sta hit_block_arr+$0
-		sta anime_block_arr+$0
 		lda player_hit_block_ppu_lo
 		sta hit_block_arr+$1
-		sta anime_block_arr+$1
 		lda #0
 		sta hit_block_arr+$2
-		lda #0
 		sta hit_block_arr+$3
-		lda #0
 		sta hit_block_arr+$4
-		lda #0
 		sta hit_block_arr+$5
 
 		lda #1
 		sta player_hit_block_is_drawed
 @EXIT:
-		pla
-		sta tmp4
 		pla
 		sta tmp3
 		pla
@@ -1604,36 +1594,44 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 .endproc
 
 
+
+; 以下はそれぞれブロックにぶつかったときのカスタム処理
 .proc _collisionRengaBlock
-	ldx #0
-	jsr _startBlockAnimation
-	rts
+		ldx #0							; 処理を分けるためのID（レンガブロックのスプライトが使用される）
+		jsr _startBlockAnimation
+		rts
 .endproc
 
 
 .proc _collisionCoinBlock
-	ldx #1
-	jsr _startBlockAnimation
-	rts
+		ldx #1
+		jsr _startBlockAnimation
+		rts
 .endproc
+
 
 .proc _collisionCoin
-	rts
+		rts
 .endproc
+
 
 .proc _collisionFlowerBlock
-	ldx #2
-	jsr _startBlockAnimation
-	rts
+		ldx #2							; 現在はCoinBlockとIDを分けているが，一緒でもいい
+		; もしIDを分けるなら，_startBlockAnimation()内でフラワーを出すアニメーションも開始させる必要がある
+		jsr _startBlockAnimation
+		rts
 .endproc
+
+
 
 .proc _collisionGoal
-	lda #4
-	sta engine
-	rts
+		lda #4
+		sta engine
+		rts
 .endproc
 
 
+; ブロックを叩いたときY座標の変化量（1fで1byteずつ）
 ANIME_Y_LIST:
 	.byte $fe, $fe, $fe, $ff, $ff
 	.byte $00
@@ -1641,6 +1639,8 @@ ANIME_Y_LIST:
 	.byte $f0
 
 
+; ブロックを叩いたときのアニメーション（Y座標の変更）を実行する
+; 毎フレーム実行される
 .proc _animeBlock
 	ldx block_anime_timer
 	cpx #$ff
@@ -1671,13 +1671,19 @@ ANIME_Y_LIST:
 .endproc
 
 
+
+; ブロックのアニメーションを終了させるときの処理
+; タイマーが切れる or 新たにアニメーションが開始されたときに実行
 .proc _endAnimeBlock
-	lda #$ff
-	sta block_anime_timer
+		lda hit_block_arr+$0			; ppu addr hi
+		sta anime_block_arr+$0
+		lda hit_block_arr+$1			; ppu addr lo
+		sta anime_block_arr+$1
 
-	lda block_anime_tmp1
-	beq :+
+		lda block_anime_tmp1
+		beq :+
 
+		; 叩けないブロック
 		lda #$88
 		sta anime_block_arr+$2
 		lda #$89
@@ -1689,12 +1695,13 @@ ANIME_Y_LIST:
 		bne :++
 
 :
-	lda #$94
-	sta anime_block_arr+$2
-	sta anime_block_arr+$3
-	lda #$95
-	sta anime_block_arr+$4
-	sta anime_block_arr+$5
+		; レンガブロック
+		lda #$94
+		sta anime_block_arr+$2
+		sta anime_block_arr+$3
+		lda #$95
+		sta anime_block_arr+$4
+		sta anime_block_arr+$5
 :
 
 		lda #1
@@ -1705,6 +1712,7 @@ ANIME_Y_LIST:
 		sta SPR_BLOCK_ANIMATION+4
 		sta SPR_BLOCK_ANIMATION+8
 		sta SPR_BLOCK_ANIMATION+$c
+		sta block_anime_timer
 
 		rts
 

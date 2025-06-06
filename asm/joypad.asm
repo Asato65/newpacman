@@ -16,7 +16,7 @@ joy1_prev				: .byte 0
 joy2_prev				: .byte 0
 joy1_pushstart			: .byte 0
 joy2_pushstart			: .byte 0
-joy1_pushstart_btn_a	: .byte 0
+joy1_pushstart_btn_a	: .byte 0		; pushstartのaボタンの情報が入っていく（左シフトで格納されていく）
 
 
 ;*------------------------------------------------------------------------------

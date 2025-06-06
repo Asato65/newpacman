@@ -25,6 +25,7 @@ ppu_ctrl1_cpy			: .byte 0		; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|S
 ppu_ctrl2_cpy			: .byte 0		; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 
 scroll_x				: .byte 0
+scroll_x_old			: .byte 0
 scroll_amount			: .byte 0
 
 main_disp				: .byte 0

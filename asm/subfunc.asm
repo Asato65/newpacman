@@ -34,9 +34,22 @@
 		; bne @EXIT
 
 		lda scroll_x
+		sta scroll_x_old
+		add scroll_amount
+		sta scroll_x
 		sta PPU_SCROLL
 		lda #0
 		sta PPU_SCROLL
+
+		lda scroll_x_old
+		bpl :+
+		lda scroll_x
+		bmi :+
+		lda main_disp
+		eor #%0000_0001
+		sta main_disp
+		inc disp_cnt
+:
 
 		lda ppu_ctrl1_cpy
 		and #%1111_1110

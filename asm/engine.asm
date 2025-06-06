@@ -23,6 +23,7 @@ bgm_dq:
 		jsr Func::_waitDispStatus
 
 		jsr _nsd_main
+		jsr Func::_scroll
 
 		; inc timer
 		ldx #0
@@ -40,7 +41,6 @@ bgm_dq:
 		sta Player::player_hit_block_right_hi
 		sta Player::player_hide_block_collision_flags
 
-		jsr Func::_scroll
 
 		; Aボタン
 		lda Joypad::joy1_pushstart
@@ -193,6 +193,12 @@ bgm_dq:
 		bne :+
 		lda #1
 		sta engine_flag
+
+		lda #0
+		sta scroll_amount
+		sta spr_decimal_part_velocity_x_arr+$0
+		sta spr_velocity_x_arr+$0
+
 		; 3.5s
 		lda #3
 		sta engine_timer+$0
@@ -231,6 +237,10 @@ bgm_dq:
 :
 		ldx #0
 		jsr Sprite::_moveSprite
+
+		lda #0
+		sta scroll_amount
+
 		ldx #0						; spr id
 		ldy #0						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
 		jsr Sprite::_tfrToChrBuff
