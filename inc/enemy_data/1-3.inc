@@ -1,5 +1,5 @@
 ENEMY_ARR_13:
-	.byte $00, $c2, KURIBO_ID			; マップ0, X=cにマリオが来たら、Y=2にクリボー
+	; .byte $00, $c2, KURIBO_ID			; マップ0, X=cにマリオが来たら、Y=2にクリボー
 	.byte $01, $33, FLOWER_ID
 	.byte $02, $12, KURIBO_ID			; マップ0, X=cにマリオが来たら、Y=2にクリボー
 	.byte $02, $82, KURIBO_ID			; マップ0, X=cにマリオが来たら、Y=2にクリボー

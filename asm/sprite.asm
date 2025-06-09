@@ -661,7 +661,8 @@ AMOUNT_INC_SPD_R:
 ;*------------------------------------------------------------------------------
 
 .proc _loadMoveArr
-	lda is_spr_available
+	lda spr_attr_arr, x
+	and #BIT7
 	bne :+
 	rts
 	; ------------------------------

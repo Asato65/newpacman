@@ -12,7 +12,6 @@ MAP_13_1:
 	.byte %00000000, %00000000
 	.byte (GET_OBJ_POS $3, $8), 'H'
 	.byte (GET_OBJ_POS $3, $b), 'H'
-	.byte (GET_OBJ_POS $4, $5), 'B'
 	.byte (GET_OBJ_POS $4, $8), 'H'
 	.byte (GET_OBJ_POS $4, $9), 'H'
 	.byte (GET_OBJ_POS $4, $a), 'H'

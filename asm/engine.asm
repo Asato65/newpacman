@@ -39,7 +39,6 @@ bgm_dq:
 		sta Player::player_hit_block_left_hi
 		sta Player::player_hit_block_right_lo
 		sta Player::player_hit_block_right_hi
-		sta Player::player_hide_block_collision_flags
 
 
 		; Aボタン
@@ -173,6 +172,22 @@ bgm_dq:
 		jsr _nsd_resume_bgm
 @NO_PUSHED_BTN_T:
 
+		jsr Sprite::_shuffle
+
+		ldx #0
+@CHR_MOVE_LOOP:
+		stx Sprite::spr_buff_id
+		lda spr_attr_arr, x
+		and #BIT7
+		sta Sprite::is_spr_available
+		ldx Sprite::spr_buff_id						; spr id
+		ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
+		jsr Sprite::_tfrToChrBuff
+		ldx Sprite::spr_buff_id
+		inx
+		cpx #6
+		bne @CHR_MOVE_LOOP
+
 		lda #0
 		sta is_processing_main
 		jmp _main
@@ -263,6 +278,22 @@ bgm_dq:
 :
 		dex
 		stx engine_timer+$1
+
+		jsr Sprite::_shuffle
+
+		ldx #0
+@CHR_MOVE_LOOP:
+		stx Sprite::spr_buff_id
+		lda spr_attr_arr, x
+		and #BIT7
+		sta Sprite::is_spr_available
+		ldx Sprite::spr_buff_id						; spr id
+		ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
+		jsr Sprite::_tfrToChrBuff
+		ldx Sprite::spr_buff_id
+		inx
+		cpx #6
+		bne @CHR_MOVE_LOOP
 
 		lda #0
 		sta is_processing_main

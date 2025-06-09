@@ -646,6 +646,10 @@ enemy_block_pos_bottom:		.byte 0
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _fixCollisionUp
+	lda spr_velocity_y_arr, x
+	bmi :+
+	rts
+:
 		; 上で衝突→下にずらす
 		lda enemy_pos_top
 		sub #2							; 上のパディング分
@@ -673,7 +677,8 @@ enemy_block_pos_bottom:		.byte 0
 		lda enemy_pos_bottom
 		and #BYT_GET_HI
 		sub enemy_pos_bottom
-		add spr_posY_tmp_arr, x
+		clc
+		adc spr_posY_tmp_arr, x
 		sta spr_posY_tmp_arr, x
 		; lda #1
 		; sta is_collision_down
