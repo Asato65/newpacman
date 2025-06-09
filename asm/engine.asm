@@ -60,14 +60,14 @@ bgm_dq:
 		and #Joypad::BTN_U
 		beq @NO_PUSHED_BTN_U
 
-; 		ldy map_num
-; 		cpy #2
-; 		bne :+
-; 		ldy #$ff
-; :
-; 		iny
-; 		sty map_num
-; 		jsr DrawMap::_changeStage
+		ldy map_num
+		cpy #2
+		bne :+
+		ldy #$ff
+:
+		iny
+		sty map_num
+		jsr DrawMap::_changeStage
 @NO_PUSHED_BTN_U:
 		; ↓ボタン
 		lda Joypad::joy1_pushstart
@@ -340,6 +340,7 @@ TITLE_DATA3:
 		; init
 		; jsr Subfunc::_sleepOneFrame
 :
+		jsr Subfunc::_waitVblank
 		; Change bg color (black)
 		lda #$3f
 		sta PPU_ADDR
@@ -428,6 +429,7 @@ TITLE_DATA3:
 		cpy #17
 		bne :-
 
+		jsr Subfunc::_waitVblank
 
 		; Restore bg color
 		lda #$3f
@@ -436,6 +438,10 @@ TITLE_DATA3:
 		sta PPU_ADDR
 		lda #$22
 		sta PPU_DATA
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
 		lda ppu_ctrl1_cpy				; NMI ON
 		ora #%10000000
@@ -453,99 +459,28 @@ TITLE_DATA3:
 		ldx bgm_dq+1
 		jsr _nsd_play_bgm
 
+		jsr Subfunc::_waitVblankUsingNmi
+
 		lda #%00011110
 		sta ppu_ctrl2_cpy
 		jsr Subfunc::_restorePPUSet		; Display ON
 @SKIP1:
-
 		jsr _nsd_main_bgm
 		jsr Joypad::_getJoyData
 		lda Joypad::joy1_pushstart
 		and #Joypad::BTN_T
-		bne :+
+		bne @START_GAME
 		jmp @EXIT
-:
+		; -----------------------------
 
-		lda #0
-		sta PPU_CTRL1
-		sta PPU_CTRL2
-
-		; Clear VRAM
-		lda #$20
-		sta PPU_ADDR
-		lda #$00
-		sta PPU_ADDR
-
-		ldy #8
-		ldx #0
-@CLR_VRAM:
-		sta PPU_DATA
-		inx
-		bne @CLR_VRAM
-		dey
-		bne @CLR_VRAM
-
-		; Change bg color (black)
-		lda #$3f
-		sta PPU_ADDR
-		lda #$00
-		sta PPU_ADDR
-		lda #$0f
-		sta PPU_DATA
-		lda #$3f
-		sta PPU_ADDR
-		lda #$00
-		sta PPU_ADDR
-
-		; Zero sprite
-		lda #$8*3-2-1
-		sta CHR_BUFF+0
-		lda #$ff
-		sta CHR_BUFF+1
-		lda #%0000_0010
-		sta CHR_BUFF+2
-		lda #$0f
-		sta CHR_BUFF+3
-
-		lda #'G'
-		sta DrawMap::fill_ground_block
-
-		jsr Subfunc::_dispStatus
-
-		; sprite
-		lda #$20
-		sta spr_posX_arr+0
-		sta spr_posX_tmp_arr+0
-		lda #$c0
-		sta spr_posY_tmp_arr+0
-
-		lda #1
-		sta spr_velocity_y_arr+$0
-		sta spr_decimal_part_velocity_y_arr+$0
-
-		lda	bgm0
-		ldx	bgm0+1
-		jsr	_nsd_play_bgm
-
-		lda spr_attr_arr+$0
-		ora #BIT7
-		sta spr_attr_arr+$0
-
-		lda ppu_ctrl1_cpy				; NMI ON
-		ora #%10000000
-		sta ppu_ctrl1_cpy
-		jsr Subfunc::_restorePPUSet
-
-		jsr Subfunc::_sleepOneFrame		; draw disp status
-
-		ldy #2
-		sty map_num
-		jsr DrawMap::_changeStage
-
+@START_GAME:
 		lda #0
 		sta engine
 		sta engine_flag
 
+		ldy #2
+		sty map_num
+		jsr DrawMap::_changeStage
 @EXIT:
 		lda #0
 		sta is_processing_main

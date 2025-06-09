@@ -134,6 +134,28 @@
 
 
 ;*------------------------------------------------------------------------------
+; NMIがONになっている状態でVblank待機
+; @PARAMS		None
+; @CLOBBERS		A
+; @RETURNS		None (A = 1)
+;*------------------------------------------------------------------------------
+
+.proc _waitVblankUsingNmi
+		lda #1
+		sta is_processing_main
+		lda nmi_cnt
+:
+		cmp nmi_cnt
+		beq :-
+		lda #0
+		sta OAM_ADDR
+		lda #>CHR_BUFF
+		sta OAM_DMA
+		rts
+.endproc
+
+
+;*------------------------------------------------------------------------------
 ; 基本パレットデータをRAM上のバッファに転送する
 ; @PARAMS		X: パレット番号
 ; @CLOBBERS		A Y

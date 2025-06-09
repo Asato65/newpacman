@@ -38,13 +38,24 @@ enemy_block_pos_bottom:		.byte 0
 		sta Enemy::arr_addr+HI
 		lda #0
 		sta Enemy::counter
+		sta spr_anime_num+$0
 
 		ldy #0							; マリオの領域もリセットしてしまう
 :
 		lda #$ff						; moveカウンターは初期値ff
 		sta spr_move_counter, y
+		sta spr_posY_tmp_arr, y
+		sta spr_posY_arr, y
+
 		lda #0
 		sta spr_attr_arr, y
+		sta spr_pos_y_decimal_part, y
+		sta spr_fix_val_y, y
+		sta spr_force_fall_y, y
+		sta spr_velocity_y_arr, y
+		sta spr_float_velocity_y_arr, y
+		sta spr_decimal_part_force_y, y
+		sta spr_decimal_part_velocity_x_arr, y
 		iny
 		cpy #6
 		bne :-

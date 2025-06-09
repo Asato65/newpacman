@@ -311,9 +311,27 @@ fill_ground_start		: .byte 0
 ;*------------------------------------------------------------------------------
 
 .proc _changeStage
+		tya
+		pha
+
 		lda #0
 		sta is_updated_map
-		jsr Subfunc::_sleepOneFrame
+
+		jsr _nsd_pause_bgm
+
+		lda #0
+		sta PPU_SCROLL
+		sta PPU_SCROLL
+		sta ppu_ctrl2_cpy
+		sta PPU_CTRL2
+
+		jsr _nsd_stop_se
+		jsr _nsd_stop_bgm
+
+		pla
+		tay
+
+		jsr Subfunc::_waitVblankUsingNmi				; Vblankの開始を待つ
 
 		; Change bg color (black)
 		lda #$3f
@@ -322,6 +340,7 @@ fill_ground_start		: .byte 0
 		sta PPU_ADDR
 		lda #$0f
 		sta PPU_DATA
+		; 画面OFF中は最後に指定したアドレスの色が背景になる（指定なし→3f01の色が使用される）
 		lda #$3f
 		sta PPU_ADDR
 		lda #$00
@@ -339,27 +358,12 @@ fill_ground_start		: .byte 0
 		sta DrawMap::isend_draw_stage
 		sta DrawMap::map_arr_num
 		sta scroll_x
-		sta ppu_ctrl2_cpy
-		sta PPU_CTRL2
 		sta Player::is_fly
 		sta Player::is_jumping
 		sta spr_velocity_x_arr+$0
 		sta scroll_amount
 		sta is_updated_map
 		sta standing_disp
-		lda #1
-		sta spr_velocity_y_arr+$0
-		sta spr_float_velocity_x_arr+$0
-		lda #$28
-		sta spr_posX_arr+$0
-		sta spr_posX_tmp_arr+$0
-		lda #$c0
-		sta spr_posY_arr+$0
-		sta spr_posY_tmp_arr+$0
-		sta spr_pos_y_origin+$0
-		lda #BIT7|BIT0
-		sta spr_attr_arr+$0
-
 
 		lda #'G'
 		sta DrawMap::fill_ground_block
@@ -370,21 +374,67 @@ fill_ground_start		: .byte 0
 		tax
 		lda BG_COLORS, x
 		sta bg_color
-	jsr Enemy::_reset
+
+		jsr Enemy::_reset
+
+		jsr Subfunc::_waitVblankUsingNmi
+
 		jsr Subfunc::_trfPltDataToBuff	; Yレジスタ破壊
 		lda ppu_ctrl1_cpy
 		and #%1111_1011					; ストア時のインクリメントを+1にする
 		sta PPU_CTRL1
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
-		jsr _nsd_pause_bgm
-		jsr _nsd_stop_se
 		pla
 		tay
 
 		jsr DrawMap::_setStageAddr		; Y破壊（ステージ番号）
 		ldy #0
 		jsr DrawMap::_setMapAddr
+
+		jsr Subfunc::_dispStatus
+
+		lda #1
+		sta spr_velocity_y_arr+$0
+		sta spr_float_velocity_x_arr+$0
+
+		lda #$28
+		sta spr_posX_arr+$0
+		sta spr_posX_tmp_arr+$0
+		lda #$c0
+		sta spr_posY_arr+$0
+		sta spr_posY_tmp_arr+$0
+		sta spr_pos_y_origin+$0
+
+		lda #BIT7|BIT0
+		sta spr_attr_arr+$0
+
+		ldx #0
+@CHR_MOVE_LOOP:
+		stx Sprite::spr_buff_id
+		lda spr_attr_arr, x
+		and #BIT7
+		sta Sprite::is_spr_available
+		ldx Sprite::spr_buff_id						; spr id
+		ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
+		jsr Sprite::_tfrToChrBuff
+		ldx Sprite::spr_buff_id
+		inx
+		cpx #6
+		bne @CHR_MOVE_LOOP
+
+		lda #0
+		sta is_processing_main
+		jsr Subfunc::_sleepOneFrame
+
+		lda #$8*3-2-1
+		sta CHR_BUFF+0
+		lda #$ff
+		sta CHR_BUFF+1
+		lda #%0000_0010
+		sta CHR_BUFF+2
+		lda #$0f
+		sta CHR_BUFF+3
 
 		lda #4
 		sta timer_dec_num_arr+$0
@@ -398,10 +448,14 @@ fill_ground_start		: .byte 0
 		lda #1
 		sta is_updated_map
 		jsr DrawMap::_updateOneLine
+		lda #0
+		sta is_processing_main
 		jsr Subfunc::_sleepOneFrame
 		pla
 		sub #1
 		bne @DISP_LOOP
+
+		jsr Subfunc::_waitVblankUsingNmi
 
 		; Restore bg color
 		lda #$3f
@@ -417,15 +471,25 @@ fill_ground_start		: .byte 0
 
 		jsr Subfunc::_setScroll
 
+		lda #0
+		sta is_processing_main
 		jsr Subfunc::_sleepOneFrame
 
 		lda	bgm0
 		ldx	bgm0+1
 		jsr	_nsd_play_bgm
 
+		; jsr Subfunc::_waitVblankUsingNmi
+
+		; lda #%00010100
+		; sta ppu_ctrl2_cpy
+		; jsr Subfunc::_restorePPUSet		; SPRITE ON
+
+		jsr Subfunc::_waitVblankUsingNmi
+
 		lda #%00011110
 		sta ppu_ctrl2_cpy
-		jsr Subfunc::_restorePPUSet		; Display ON
+		jsr Subfunc::_restorePPUSet		; BG ON
 
 		rts
 		; ------------------------------

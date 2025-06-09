@@ -28,9 +28,8 @@
 		jmp Engine::_titleEngine
 	:
 		cmp #4
-		bne :++
-		jsr _nsd_stop_se
-		jsr _nsd_stop_bgm
+		bne :+
+
 		ldy map_num
 		cpy #2
 		bne :+
@@ -41,6 +40,8 @@
 		jsr DrawMap::_changeStage
 		lda #0
 		sta engine
+		sta is_processing_main
+		jmp _main
 	:
 		jmp Engine::_gameEngine
 
