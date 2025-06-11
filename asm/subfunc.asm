@@ -174,4 +174,26 @@
 .endproc
 
 
+.proc _incCoin
+	ldx coin_counter+$0
+	inx
+	cpx #10
+	bcs :+
+	stx coin_counter+$0
+	rts
+:
+	ldx #0
+	stx coin_counter+$0
+	ldx coin_counter+$1
+	inx
+	cpx #10
+	bcc :+
+	ldx #0
+:
+	stx coin_counter+$1
+	rts
+
+.endproc
+
+
 .endscope

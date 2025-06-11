@@ -131,6 +131,9 @@ bgm_dq:
 
 		jsr Time::_manageTime
 
+		jsr Func::_pltAnimation
+		jsr Func::_dispCoin
+
 		; ----- End main -----
 		lda #0
 		sta is_processing_main

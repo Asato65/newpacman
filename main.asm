@@ -28,7 +28,7 @@
 		jmp Engine::_titleEngine
 	:
 		cmp #4
-		bne :+
+		bne :++
 
 		ldy map_num
 		cpy #2

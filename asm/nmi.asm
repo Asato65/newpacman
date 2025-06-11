@@ -192,7 +192,7 @@
 
 @STORE_HIT_BLOCK:
 		lda Player::player_hit_block_is_drawed
-		beq @STORE_CHR
+		beq @DELETE_COIN
 
 		lda ppu_ctrl1_cpy
 		and #%11111011					; Mask direction flag(Horizontal(+1)/Vertical(+32))
@@ -220,6 +220,40 @@
 
 		lda #0
 		sta Player::player_hit_block_is_drawed
+
+@DELETE_COIN:
+		lda Player::coin_animation_counter
+		beq @STORE_CHR
+
+		ldx #0
+	:
+
+		lda del_coin_addr+$0, x
+		sta PPU_ADDR
+		lda del_coin_addr+$1, x
+		sta PPU_ADDR
+
+		lda #0
+		sta PPU_DATA
+		sta PPU_DATA
+
+		lda del_coin_addr+$0, x
+		sta PPU_ADDR
+		lda del_coin_addr+$1, x
+		add #$20
+		sta PPU_ADDR
+
+		lda #0
+		sta PPU_DATA
+		sta PPU_DATA
+
+		inx
+		inx
+		cpx Player::coin_animation_counter
+		bcc :-
+
+		lda #0
+		sta Player::coin_animation_counter
 
 @STORE_CHR:
 		lda #0

@@ -423,9 +423,9 @@ fill_ground_start		: .byte 0
 		cpx #6
 		bne @CHR_MOVE_LOOP
 
-		lda #0
-		sta is_processing_main
-		jsr Subfunc::_sleepOneFrame
+		; lda #0
+		; sta is_processing_main
+		; jsr Subfunc::_sleepOneFrame
 
 		lda #$8*3-2-1
 		sta CHR_BUFF+0
@@ -455,7 +455,7 @@ fill_ground_start		: .byte 0
 		sub #1
 		bne @DISP_LOOP
 
-		jsr Subfunc::_waitVblankUsingNmi
+		; jsr Subfunc::_waitVblankUsingNmi
 
 		; Restore bg color
 		lda #$3f
@@ -479,11 +479,11 @@ fill_ground_start		: .byte 0
 		ldx	bgm0+1
 		jsr	_nsd_play_bgm
 
-		; jsr Subfunc::_waitVblankUsingNmi
+		jsr Subfunc::_waitVblankUsingNmi
 
-		; lda #%00010100
-		; sta ppu_ctrl2_cpy
-		; jsr Subfunc::_restorePPUSet		; SPRITE ON
+		lda #%00010100
+		sta ppu_ctrl2_cpy
+		jsr Subfunc::_restorePPUSet		; SPRITE ON
 
 		jsr Subfunc::_waitVblankUsingNmi
 

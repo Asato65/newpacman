@@ -20,11 +20,6 @@ player_actual_pos_left:			.byte 0		; 画面上の座標ではなく，実際の�
 player_actual_pos_right:		.byte 0
 player_pos_top:					.byte 0
 player_pos_bottom:				.byte 0
-player_offset_flags:			.byte 0		; ずれのフラグ（bit1: X方向，bit0: Y方向）
-player_collision_id_lu:			.byte 0		; Left UpperのブロックID
-player_collision_id_ru:			.byte 0
-player_collision_id_ld:			.byte 0
-player_collision_id_rd:			.byte 0
 player_block_pos_X:				.byte 0		; ブロック単位での座標
 player_block_pos_Y:				.byte 0		; TODO: pos_X->pos_left, pos_Y -> pos_topに変更
 player_block_pos_right:			.byte 0
@@ -37,11 +32,19 @@ player_hit_block_right_hi:		.byte 0
 player_hit_block_right_lo:		.byte 0
 player_hit_block_ppu_hi:		.byte 0
 player_hit_block_ppu_lo:		.byte 0
+func_index:						.res 4			; 4方位のブロック衝突時の処理番号
+
+.segment "USER_MEM"
 player_collision_flags:			.byte 0			; マリオの位置（offset）に応じたフラグ
 player_collision_fix_flags:			.byte 0		; 実際に衝突を修正する向きを保存するフラグ
 player_hit_block_is_drawed:			.byte 0		; is_changedの方が適切かも，hit_blockが変化したら1にしてnmiで処理
 player_animation_block_is_drawed:	.byte 0
-func_index:						.res 4			; 4方位のブロック衝突時の処理番号
+player_offset_flags:			.byte 0		; ずれのフラグ（bit1: X方向，bit0: Y方向）
+player_collision_id_lu:			.byte 0		; Left UpperのブロックID
+player_collision_id_ru:			.byte 0
+player_collision_id_ld:			.byte 0
+player_collision_id_rd:			.byte 0
+coin_animation_counter:			.byte 0			; マリオが最大3枚のコインに触れる状況を想定，カウンター形式に
 
 .code
 
@@ -989,7 +992,8 @@ switch(playerColllisionFixFlags) {
 		sub #1
 		pha
 
-		jmp (addr_tmp1)						; TODO: player_collision_flagsを考慮しておらず，コインの取得でバグがあるかも，修正
+		ldx tmp1						; loop index
+		jmp (addr_tmp1)					; TODO: player_collision_flagsを考慮しておらず，コインの取得でバグがあるかも，修正
 		;* ----------------------------------
 
 
@@ -1384,7 +1388,7 @@ switch(playerColllisionFixFlags) {
 .endproc
 
 
-
+; TODO: 隠しブロックで当たり判定が有効になってしまっているので修正する
 BLOCK_COLLISION_FUNC:
 	.addr _void, _collisionRengaBlock
 	.addr _void
@@ -1569,6 +1573,8 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 
 
 .proc _collisionCoin
+		ldy #1							; ワールドに配置されたコインを触ったときに1にする（？ブロックから取得するときなどは0）
+		jsr _getCoinAnimation
 		rts
 .endproc
 
@@ -1674,6 +1680,149 @@ ANIME_Y_LIST:
 
 		rts
 
+.endproc
+
+
+.proc _getCoinAnimation
+	lda tmp1
+	pha
+	lda tmp2
+	pha
+	lda tmp3
+	pha
+
+	; xにコインをBGから削除するかどうかのフラグが格納されている
+	cpy #0
+	bne :+
+	jmp @NO_UPDATE_BG
+:
+
+	; BG削除
+
+	txa
+	and #BIT1
+	shl #3
+	sta tmp1							; BIT4に移動（$0 or $10）
+	bne @LOWER
+; upper
+	lda player_pos_top
+	and #BYT_GET_LO
+	cmp #$0f
+	bcc @SIDE_CHK
+	jmp @NO_UPDATE_BG
+@LOWER:
+	lda player_pos_bottom
+	and #BYT_GET_LO
+	cmp #3
+	bcs @SIDE_CHK
+	jmp @NO_UPDATE_BG
+
+@SIDE_CHK:
+	; BGのアドレス取得
+	txa									; index，ブロックの位置が入っている
+	and #BIT0
+	bne @RIGHT
+; left
+	lda player_actual_pos_left
+	and #BYT_GET_LO
+	cmp #$0f
+	bcc :+
+	jmp @NO_UPDATE_BG
+:
+	cmp #3
+	bcs :+
+	jmp @NO_UPDATE_BG
+:
+	lda player_hit_block_left_hi
+	sta addr_tmp1+HI				; tmp
+	lda tmp1
+	add player_hit_block_left_lo
+	sta addr_tmp1+LO				; tmp
+
+	jmp @STORE_FLAG
+	; ------------------------------
+@RIGHT:
+	lda player_actual_pos_right
+	and #BYT_GET_LO
+	cmp #2
+	bcs :+
+	jmp @NO_UPDATE_BG
+:
+	cmp #$a
+	bcc :+
+	jmp @NO_UPDATE_BG
+:
+	lda player_hit_block_right_hi
+	sta addr_tmp1+HI
+	lda tmp1
+	add player_hit_block_right_lo
+	sta addr_tmp1+LO
+
+@STORE_FLAG:
+
+	lda #0
+	tay
+	sta (addr_tmp1), y
+
+	jsr Subfunc::_incCoin
+
+		; $2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
+		lda addr_tmp1+HI
+		and #%0000_0001
+		shl #2
+		ora #$20
+		sta player_hit_block_ppu_hi		; $20 or $24
+
+		lda addr_tmp1+LO				; $cb = %11001011なら
+		shl #1
+		and #%0001_1111					; %00010110
+		sta tmp1						; posX
+		lda addr_tmp1+LO
+		add #$20						; $eb（Y座標が実際の高さになる）
+		shr #4							; $0e
+		shl								; %00011100（shr #3だと%00011110になる）
+		sta tmp2
+		sta tmp3						; posY
+
+		; ppuのアドレス上位の計算（インクリメント）
+		ldx #$20-1
+:
+		lda tmp2
+		add tmp3
+		sta tmp2
+		lda player_hit_block_ppu_hi
+		adc #0
+		sta player_hit_block_ppu_hi
+		dex
+		bne :-
+
+		lda tmp2
+		add tmp1
+		sta player_hit_block_ppu_lo		; X + Y
+
+		lda player_hit_block_ppu_hi
+		adc #0
+		sta player_hit_block_ppu_hi		; インクリメント
+
+		ldx coin_animation_counter
+		lda player_hit_block_ppu_hi
+		sta del_coin_addr, x
+		inx
+		lda player_hit_block_ppu_lo
+		sta del_coin_addr, x
+		inx
+		stx coin_animation_counter
+
+@NO_UPDATE_BG:
+
+	pla
+	sta tmp3
+	pla
+	sta tmp2
+	pla
+	sta tmp1
+
+	rts
 .endproc
 
 .endscope

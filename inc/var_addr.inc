@@ -82,6 +82,8 @@ bg_color							: .res 1
 
 timer_dec_num_arr					: .res 3
 
+coin_counter						: .res 2
+
 engine								: .res 1		; 0: game, 1: pause
 engine_flag							: .res 1
 engine_timer						: .res 2		; upper: seconds, lower: frame

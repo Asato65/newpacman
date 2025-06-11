@@ -1,5 +1,10 @@
 .scope Func
 
+.ZeroPage
+		plt_animation_counter:	.byte 0
+
+.code
+
 ;*------------------------------------------------------------------------------
 ; スクロール
 ; @PARAMS		A: amount of scroll
@@ -63,6 +68,69 @@
 		jsr Subfunc::_setScroll
 		rts
 		; ------------------------------
+.endproc
+
+
+.proc _pltAnimation
+	ldx bg_buff_pointer
+
+	lda #PPU_VERTICAL_MODE
+	sta bg_buff+$0, x
+	lda #$3f
+	sta bg_buff+$1, x
+	lda #$05
+	sta bg_buff+$2, x
+
+	ldy plt_animation_counter
+	iny
+	cpy #10
+	bcc @ANIME1
+	cpy #20
+	bcc @ANIME2
+	cpy #48
+	bcc @ANIME3
+	ldy #0
+@ANIME1:
+	lda #$07
+	bne @EXIT
+@ANIME2:
+	lda #$17
+	bne @EXIT
+@ANIME3:
+	lda #$27
+
+@EXIT:
+	sta bg_buff+$3, x
+	txa
+	add #4
+	sta bg_buff_pointer
+
+	sty plt_animation_counter
+	rts
+.endproc
+
+
+.proc _dispCoin
+	ldx bg_buff_pointer
+
+	lda #PPU_VERTICAL_MODE
+	sta bg_buff+$0, x
+	lda #$20
+	sta bg_buff+$1, x
+	lda #$52
+	sta bg_buff+$2, x
+
+	lda coin_counter+$1
+	ora #$30
+	sta bg_buff+$3, x
+	lda coin_counter+$0
+	ora #$30
+	sta bg_buff+$4, x
+
+	txa
+	add #5
+	sta bg_buff_pointer
+	rts
 .endproc
 
 
