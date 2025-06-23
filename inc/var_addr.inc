@@ -36,7 +36,7 @@ nmi_cnt					: .byte 0
 frm_cnt					: .byte 0
 is_processing_main		: .byte 0
 
-plt_addr				: .addr 0
+ppu_attr_addr				: .addr 0
 
 is_updated_map			: .byte 0
 

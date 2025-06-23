@@ -263,7 +263,6 @@
 ;*------------------------------------------------------------------------------
 ; パレット転送
 ; 背景色はbg_color, パレットデータはplt_datasの中身を使用
-; TODO: 属性テーブルをなぜかリセットしているが修正する
 ;*------------------------------------------------------------------------------
 
 .macro tfrPlt
@@ -285,19 +284,4 @@
 		bne :-
 		cpx #$3*8
 		bcc :--
-
-		; 属性テーブル
-		lda #$23
-		sta PPU_ADDR
-		lda #$c0
-		sta PPU_ADDR
-		lda #$ff
-		sta PPU_DATA
-		sta PPU_DATA
-		sta PPU_DATA
-		sta PPU_DATA
-		sta PPU_DATA
-		sta PPU_DATA
-		sta PPU_DATA
-		sta PPU_DATA
 .endmacro

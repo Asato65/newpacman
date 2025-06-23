@@ -143,13 +143,13 @@ fill_ground_start		: .byte 0
 		lda addr_tmp1+LO				; posX
 		shr #1
 		add #$c0
-		sta plt_addr+LO
+		sta ppu_attr_addr+LO
 
 		lda addr_tmp1+HI
 		and #1
 		shl #2
 		add #$23
-		sta plt_addr+HI
+		sta ppu_attr_addr+HI
 
 		ldy #0
 		sty bg_map_buff_index
@@ -208,9 +208,9 @@ fill_ground_start		: .byte 0
 		shl #2
 @BLOCK2:
 @ADD_LEFT_BLOCK_PLT:
-		ora bg_plt_buff, y
+		ora ppu_attr_buff, y
 @STORE_TO_PLT_BUFF:
-		sta bg_plt_buff, y
+		sta ppu_attr_buff, y
 
 		pla								; pull
 		ldy tmp2
@@ -383,7 +383,6 @@ fill_ground_start		: .byte 0
 
 		lda #1
 		sta is_processing_main
-		; jsr Subfunc::_waitVblankUsingNmi
 		; NMIが終了するのを待つが，NMI処理はスキップしたいのでこのような構成に
 		lda nmi_cnt
 :
@@ -510,6 +509,20 @@ fill_ground_start		: .byte 0
 		jsr	_nsd_play_bgm
 
 		jsr Subfunc::_waitVblankUsingNmi
+		; ヘッドアップディスプレイの属性テーブルを変更
+		lda #$23
+		sta PPU_ADDR
+		lda #$c0
+		sta PPU_ADDR
+		lda #$ff
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
+		sta PPU_DATA
 		lda #$3f
 		sta PPU_ADDR
 		lda #$00

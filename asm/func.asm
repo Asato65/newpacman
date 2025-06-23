@@ -72,100 +72,100 @@
 
 
 .proc _pltAnimation
-	ldy plt_animation_counter
-	iny
-	cpy #10
-	bcc @ANIME1
-	cpy #20
-	bcc @ANIME2
-	cpy #48
-	bcc @ANIME3
-	ldy #0
+		ldy plt_animation_counter
+		iny
+		cpy #10
+		bcc @ANIME1
+		cpy #20
+		bcc @ANIME2
+		cpy #48
+		bcc @ANIME3
+		ldy #0
 @ANIME1:
-	lda #$07
-	bne @EXIT
+		lda #$07
+		bne @EXIT
 @ANIME2:
-	lda #$17
-	bne @EXIT
+		lda #$17
+		bne @EXIT
 @ANIME3:
-	lda #$27
+		lda #$27
 @EXIT:
-	sta ppu_plt_animation_data
-	sty plt_animation_counter
-	rts
+		sta ppu_plt_animation_data
+		sty plt_animation_counter
+		rts
 
 
 /*
-	ldx bg_buff_pointer
+		ldx bg_buff_pointer
 
-	lda #PPU_VERTICAL_MODE
-	sta bg_buff+$0, x
-	lda #$3f
-	sta bg_buff+$1, x
-	lda #$05
-	sta bg_buff+$2, x
+		lda #PPU_VERTICAL_MODE
+		sta bg_buff+$0, x
+		lda #$3f
+		sta bg_buff+$1, x
+		lda #$05
+		sta bg_buff+$2, x
 
-	ldy plt_animation_counter
-	iny
-	cpy #10
-	bcc @ANIME1
-	cpy #20
-	bcc @ANIME2
-	cpy #48
-	bcc @ANIME3
-	ldy #0
+		ldy plt_animation_counter
+		iny
+		cpy #10
+		bcc @ANIME1
+		cpy #20
+		bcc @ANIME2
+		cpy #48
+		bcc @ANIME3
+		ldy #0
 @ANIME1:
-	lda #$07
-	bne @EXIT
+		lda #$07
+		bne @EXIT
 @ANIME2:
-	lda #$17
-	bne @EXIT
+		lda #$17
+		bne @EXIT
 @ANIME3:
-	lda #$27
+		lda #$27
 
 @EXIT:
-	sta bg_buff+$3, x
-	txa
-	add #4
-	sta bg_buff_pointer
+		sta bg_buff+$3, x
+		txa
+		add #4
+		sta bg_buff_pointer
 
-	sty plt_animation_counter
-	rts
+		sty plt_animation_counter
+		rts
 */
 .endproc
 
 
 .proc _dispCoin
-	lda coin_counter+$1
-	ora #$30
-	sta ppu_coin_data+$0
-	lda coin_counter+$0
-	ora #$30
-	sta ppu_coin_data+$1
-	rts
+		lda coin_counter+$1
+		ora #$30
+		sta ppu_coin_data+$0
+		lda coin_counter+$0
+		ora #$30
+		sta ppu_coin_data+$1
+		rts
 
 
 /*
-	ldx bg_buff_pointer
+		ldx bg_buff_pointer
 
-	lda #PPU_VERTICAL_MODE
-	sta bg_buff+$0, x
-	lda #$20
-	sta bg_buff+$1, x
-	lda #$52
-	sta bg_buff+$2, x
+		lda #PPU_VERTICAL_MODE
+		sta bg_buff+$0, x
+		lda #$20
+		sta bg_buff+$1, x
+		lda #$52
+		sta bg_buff+$2, x
 
-	lda coin_counter+$1
-	ora #$30
-	sta bg_buff+$3, x
-	lda coin_counter+$0
-	ora #$30
-	sta bg_buff+$4, x
+		lda coin_counter+$1
+		ora #$30
+		sta bg_buff+$3, x
+		lda coin_counter+$0
+		ora #$30
+		sta bg_buff+$4, x
 
-	txa
-	add #5
-	sta bg_buff_pointer
-	rts
+		txa
+		add #5
+		sta bg_buff_pointer
+		rts
 */
 .endproc
 

@@ -1,12 +1,12 @@
 ZP					= $00
 ; Unused $0200
 bg_map_buff			= $0100				; size = $d ($10 - $3) * $4 = $40 - $c = $34
-bg_plt_buff			= $0134				; size = 8
+ppu_attr_buff			= $0134				; size = 8
 fill_block_arr		= $013c				; size = 13 ($d)
 hit_block_arr		= $0149				; size = 2(addr) + 4(data) = 6
 anime_block_arr		= $014f				; size = 2(addr) + 4(data) = 6
 del_coin_addr		= $0155				; size = 2*3 = 6（マリオが最大3枚のコインに同時に触れることを想定して）
-bg_buff			 	= $015b
+bg_buff			 	= $015d
 CHR_BUFF			= $0700
 MAP1				= $0400
 MAP2				= $0500

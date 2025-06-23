@@ -30,9 +30,6 @@
 .code									; ----- code -----
 
 .proc _setScroll
-		; lda is_scroll_locked
-		; bne @EXIT
-
 		lda scroll_x
 		sta scroll_x_old
 		add scroll_amount
@@ -162,36 +159,36 @@
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _trfPltDataToBuff
-	ldy #0
+		ldy #0
 :
-	ldarr PALETTES
-	sta plt_datas, y
-	iny
-	cpy #$3*8
-	bne :-
-	rts
-	; ------------------------------
+		ldarr PALETTES
+		sta plt_datas, y
+		iny
+		cpy #$3*8
+		bne :-
+		rts
+		; ------------------------------
 .endproc
 
 
 .proc _incCoin
-	ldx coin_counter+$0
-	inx
-	cpx #10
-	bcs :+
-	stx coin_counter+$0
-	rts
+		ldx coin_counter+$0
+		inx
+		cpx #10
+		bcs :+
+		stx coin_counter+$0
+		rts
 :
-	ldx #0
-	stx coin_counter+$0
-	ldx coin_counter+$1
-	inx
-	cpx #10
-	bcc :+
-	ldx #0
+		ldx #0
+		stx coin_counter+$0
+		ldx coin_counter+$1
+		inx
+		cpx #10
+		bcc :+
+		ldx #0
 :
-	stx coin_counter+$1
-	rts
+		stx coin_counter+$1
+		rts
 
 .endproc
 

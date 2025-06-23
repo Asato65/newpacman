@@ -22,8 +22,8 @@ player_actual_pos_left:			.byte 0		; 画面上の座標ではなく，実際の�
 player_actual_pos_right:		.byte 0
 player_pos_top:					.byte 0
 player_pos_bottom:				.byte 0
-player_block_pos_X:				.byte 0		; ブロック単位での座標
-player_block_pos_Y:				.byte 0		; TODO: pos_X->pos_left, pos_Y -> pos_topに変更
+player_block_pos_left:				.byte 0		; ブロック単位での座標
+player_block_pos_top:				.byte 0
 player_block_pos_right:			.byte 0
 player_block_pos_bottom:		.byte 0
 player_hit_block_lo:			.byte 0
@@ -46,7 +46,7 @@ player_collision_id_lu:			.byte 0		; Left UpperのブロックID
 player_collision_id_ru:			.byte 0
 player_collision_id_ld:			.byte 0
 player_collision_id_rd:			.byte 0
-coin_counter:					.byte 0			; マリオが最大3枚のコインに触れる状況を想定，カウンター形式に
+collision_coin_counter:					.byte 0			; マリオが最大3枚（何等かのバグを想定し，4枚まで対応）のコインに触れる状況を想定，カウンター形式に
 
 .code
 
@@ -600,14 +600,14 @@ EXIT:
 :
 		sta player_actual_pos_left		; 敵のスポーンにも使用
 		rts
-		; TODO: ここでrtsということは，左端を超えているときに正しく当たり判定チェックされない？？チェックする
+		; -TODO: ここでrtsということは，左端を超えているときに正しく当たり判定チェックされない？？チェックする
 		; ------------------------------
 @NO_UPDATE_POS_LEFT:
 		lda spr_posX_tmp_arr+$0
 		cmp #$f0+PLAYER_PADDING
-		bcc @SKIP1						; jmp: $0e + posX < $100
+		bcc @SKIP1						; jmp: posX < $f2
 		cmp #$f8
-		bcc @RIGHT						; jmp: $08 + posX < $100
+		bcc @RIGHT						; jmp: posX < $f8
 		; 左端衝突（$f8 <= posX < 0）
 		lda #0
 		sta spr_posX_tmp_arr+$0
@@ -615,7 +615,8 @@ EXIT:
 		sta spr_velocity_x_arr+$0
 		beq @SKIP1	; ------------------
 @RIGHT:
-		; TODO: この処理がよくわからない．調査必要
+		; $f2 <= posX < $f8
+		; scroll_lock = 1で，画面右端を超えたとき
 		lda #($100-PLAYER_WIDTH-PLAYER_PADDING)
 		sta spr_posX_tmp_arr+$0
 		lda #0
@@ -634,7 +635,7 @@ EXIT:
 		add #2							; マリオの上部分のあたり判定を緩くする（2ピクセル分下げる）
 		shr #4
 		sub #2							; 上2列分は使わないので、2列目を0列目としてカウントする
-		sta player_block_pos_Y
+		sta player_block_pos_top
 
 		lda spr_posY_tmp_arr+$0
 		add #2
@@ -685,7 +686,7 @@ EXIT:
 
 		lda player_actual_pos_left
 		shr #4
-		sta player_block_pos_X
+		sta player_block_pos_left
 		lda player_actual_pos_left
 		add #PLAYER_WIDTH
 		sta player_actual_pos_right		; マリオの右端+1pxの座標
@@ -694,7 +695,7 @@ EXIT:
 		sta player_block_pos_right
 
 		; 下方向のあたり判定
-		lda player_block_pos_Y
+		lda player_block_pos_top
 		cmp player_block_pos_bottom
 		beq :+
 		lda player_offset_flags
@@ -703,7 +704,7 @@ EXIT:
 :
 		; 右方向のあたり判定
 		lda player_block_pos_right
-		cmp player_block_pos_X
+		cmp player_block_pos_left
 		beq :+
 		lda player_offset_flags
 		ora #%0000_0010
@@ -716,9 +717,9 @@ EXIT:
 		lda #0
 		sta addr_tmp1+LO
 		; ----- 左上 -----
-		lda player_block_pos_Y
+		lda player_block_pos_top
 		shl #4
-		ora player_block_pos_X
+		ora player_block_pos_left
 		tay
 
 		lda #4
@@ -727,7 +728,7 @@ EXIT:
 		sta addr_tmp1+HI
 		sty tmp2						; このあとhit_block_left_loに保存する
 
-		ldx player_block_pos_Y
+		ldx player_block_pos_top
 		cpx #$0d
 		bcc :+
 		lda #0
@@ -746,7 +747,7 @@ EXIT:
 		lda #4
 		add player_current_screen
 		sta tmp1					; 一時的
-		lda player_block_pos_X
+		lda player_block_pos_left
 		cmp #$0f
 		bne :+
 		lda player_block_pos_right
@@ -771,7 +772,7 @@ EXIT:
 		sta tmp4					; 右下の処理に使用
 		tay
 
-		ldx player_block_pos_Y
+		ldx player_block_pos_top
 		cpx #$0d
 		bcc :+
 		lda #0
@@ -789,7 +790,7 @@ EXIT:
 		; ----- 左下 -----
 		lda player_block_pos_bottom
 		shl #4
-		ora player_block_pos_X
+		ora player_block_pos_left
 		tay
 
 		lda #4
@@ -921,8 +922,6 @@ switch(playerColllisionFixFlags) {
 		tax
 		lda BLOCK_COLLISION_SETTING, x
 		sta tmp2						; attr
-
-		lda tmp2
 		beq @LOOP1
 		and #BIT6
 		beq @LOOP1
@@ -962,62 +961,64 @@ switch(playerColllisionFixFlags) {
 		bne :+
 		jmp @END_SET_FIX_FLAGS
 @SET_FIX_FLAGS:
-	ldx tmp1
-	lda player_collision_id_lu, x
-	cmp #'_'
-	bne @NO_HIDE_BLOCK
-	txa
-	and #BIT1
-	bne @CHK_LOWER
+		ldx tmp1
+		lda player_collision_id_lu, x
+		cmp #'_'
+		bne @NO_HIDE_BLOCK
 
-	lda player_pos_top
-	and #BYT_GET_LO
-	cmp #$0c
-	bcs :+
-	jmp @CONTINUE_LOOP_CHK
+		; 以下隠しブロックに衝突したときの処理
+		txa
+		and #BIT1
+		bne @CHK_LOWER
+
+		lda player_pos_top
+		and #BYT_GET_LO
+		cmp #$0c
+		bcs :+
+		jmp @CONTINUE_LOOP_CHK
 :
-	lda player_actual_pos_left
-	add #PLAYER_WIDTH/2
-	shr #4
-	cmp player_block_pos_X
-	bne @HIT_UR2
-	; 左上のブロックに衝突
-	; 下位がd-fのときにはブロックを叩かない
-	lda #0
-	cpx #1
-	beq @LOOP2_END
-	lda player_actual_pos_left
-	and #BYT_GET_LO
-	tax
-	lda #%0000_1000
-	cpx #$0c
-	bcc @STORE_ANIME_BLOCK_FLAGS2
-	lda #0
-	beq @STORE_ANIME_BLOCK_FLAGS2
-	; ------------------------------
+		lda player_actual_pos_left
+		add #PLAYER_WIDTH/2
+		shr #4
+		cmp player_block_pos_left
+		bne @HIT_UR2
+		; 左上のブロックに衝突
+		; 下位がd-fのときにはブロックを叩かない
+		lda #0
+		cpx #1
+		beq @LOOP2_END
+		lda player_actual_pos_left
+		and #BYT_GET_LO
+		tax
+		lda #%0000_1000
+		cpx #$0c
+		bcc @STORE_ANIME_BLOCK_FLAGS2
+		lda #0
+		beq @STORE_ANIME_BLOCK_FLAGS2
+		; ------------------------------
 @HIT_UR2:
-	; 右上のブロックに衝突
-	; 下位が1-3のときにはブロックを叩かない
-	lda #0
-	cpx #0
-	beq @LOOP2_END
-	lda player_actual_pos_right
-	and #BYT_GET_LO
-	tax
-	lda #%0000_0100
-	cpx #4
-	bcs @STORE_ANIME_BLOCK_FLAGS2
-	lda #0
+		; 右上のブロックに衝突
+		; 下位が1-3のときにはブロックを叩かない
+		lda #0
+		cpx #0
+		beq @LOOP2_END
+		lda player_actual_pos_right
+		and #BYT_GET_LO
+		tax
+		lda #%0000_0100
+		cpx #4
+		bcs @STORE_ANIME_BLOCK_FLAGS2
+		lda #0
 @STORE_ANIME_BLOCK_FLAGS2:
-	; and player_collision_fix_flags
-	ora player_collision_fix_flags
-	sta player_collision_fix_flags
-	jmp @CONTINUE_LOOP_CHK
-	; ----------------------------------
+		; and player_collision_fix_flags
+		ora player_collision_fix_flags
+		sta player_collision_fix_flags
+		jmp @CONTINUE_LOOP_CHK
+		; ----------------------------------
 @CHK_LOWER:
-	; 現在下側のブロックを参照しているならば
-	lda #0
-	beq @LOOP2_END
+		; 現在下側のブロックを参照しているならば
+		lda #0
+		beq @LOOP2_END
 @NO_HIDE_BLOCK:
 		lda tmp1
 		cnn
@@ -1067,7 +1068,7 @@ switch(playerColllisionFixFlags) {
 		lda player_actual_pos_left
 		add #PLAYER_WIDTH/2
 		shr #4
-		cmp player_block_pos_X
+		cmp player_block_pos_left
 		bne @HIT_UR
 		; 左上のブロックに衝突
 		; 下位がd-fのときにはブロックを叩かない
@@ -1449,7 +1450,6 @@ switch(playerColllisionFixFlags) {
 .endproc
 
 
-; TODO: 隠しブロックで当たり判定が有効になってしまっているので修正する
 BLOCK_COLLISION_FUNC:
 	.addr _void, _collisionRengaBlock
 	.addr _void
@@ -1479,7 +1479,7 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 
 
 .proc _void
-	rts
+		rts
 .endproc
 
 
@@ -1638,7 +1638,6 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		ldx #1
 		jsr _startBlockAnimation
 		jsr _startCoinAnimation
-		jsr Subfunc::_incCoin
 		rts
 .endproc
 
@@ -1687,31 +1686,31 @@ ANIME_Y_LIST:
 ; ブロックを叩いたときのアニメーション（Y座標の変更）を実行する
 ; 毎フレーム実行される
 .proc _animeBlock
-	ldx block_anime_timer
-	cpx #$ff
-	beq @EXIT
-	lda ANIME_Y_LIST, x
-	inx
-	cmp #$f0
-	bne :+
-	jsr _endAnimeBlock
-	rts
+		ldx block_anime_timer
+		cpx #$ff
+		beq @EXIT
+		lda ANIME_Y_LIST, x
+		inx
+		cmp #$f0
+		bne :+
+		jsr _endAnimeBlock
+		rts
 :
-	sta tmp1
-	stx block_anime_timer
-	ldx #0
+		sta tmp1
+		stx block_anime_timer
+		ldx #0
 :
-	lda SPR_BLOCK_ANIMATION, x
-	add tmp1
-	sta SPR_BLOCK_ANIMATION, x
+		lda SPR_BLOCK_ANIMATION, x
+		add tmp1
+		sta SPR_BLOCK_ANIMATION, x
 
-	add x, #4
+		add x, #4
 
-	cpx #$10
-	bne :-
+		cpx #$10
+		bne :-
 
 @EXIT:
-	rts
+		rts
 
 .endproc
 
@@ -1765,87 +1764,96 @@ ANIME_Y_LIST:
 
 
 .proc _getObjCoin
-	lda tmp1
-	pha
-	lda tmp2
-	pha
-	lda tmp3
-	pha
+		lda tmp1
+		pha
+		lda tmp2
+		pha
+		lda tmp3
+		pha
 
-	; xにコインをBGから削除するかどうかのフラグが格納されている
-	cpy #0
-	bne :+
-	jmp @NO_UPDATE_BG
+		; yにコインをBGから削除するかどうかのフラグが格納されている
+		cpy #0
+		bne :+
+		jmp @NO_UPDATE_BG
 :
 
-	; BG削除
+		; BG削除
 
-	txa
-	and #BIT1
-	shl #3
-	sta tmp1							; BIT4に移動（$0 or $10）
-	bne @LOWER
+		txa
+		and #BIT1
+		shl #3
+		sta tmp1							; BIT4に移動（$0 or $10）
+		bne @LOWER
 ; upper
-	lda player_pos_top
-	and #BYT_GET_LO
-	cmp #$0f
-	bcc @SIDE_CHK
-	jmp @NO_UPDATE_BG
+		lda player_pos_top
+		and #BYT_GET_LO
+		cmp #$0f
+		bcc @SIDE_CHK
+		jmp @NO_UPDATE_BG
 @LOWER:
-	lda player_pos_bottom
-	and #BYT_GET_LO
-	cmp #3
-	bcs @SIDE_CHK
-	jmp @NO_UPDATE_BG
+		lda player_pos_bottom
+		and #BYT_GET_LO
+		cmp #3
+		bcs @SIDE_CHK
+		jmp @NO_UPDATE_BG
 
 @SIDE_CHK:
-	; BGのアドレス取得
-	txa									; index，ブロックの位置が入っている
-	and #BIT0
-	bne @RIGHT
+		; BGのアドレス取得
+		txa									; index，ブロックの位置が入っている
+		and #BIT0
+		bne @RIGHT
 ; left
-	lda player_actual_pos_left
-	and #BYT_GET_LO
-	cmp #$0f
-	bcc :+
-	jmp @NO_UPDATE_BG
+		lda player_actual_pos_left
+		and #BYT_GET_LO
+		cmp #$0f
+		bcc :+
+		jmp @NO_UPDATE_BG
 :
-	cmp #3
-	bcs :+
-	jmp @NO_UPDATE_BG
-:
-	lda player_hit_block_left_hi
-	sta addr_tmp1+HI				; tmp
-	lda tmp1
-	add player_hit_block_left_lo
-	sta addr_tmp1+LO				; tmp
+; 	lda player_actual_pos_right			; コインが取れないバグを修正した際にleft->rightの値を使うように変更（ただし，cmp #3が適切なのかどうかのチェックはしていない）
+; 	and #BYT_GET_LO
+; 	cmp #3
+; 	bcs :+
+; 	jmp @NO_UPDATE_BG
+; :
+		lda player_hit_block_left_hi
+		sta addr_tmp1+HI				; tmp
+		lda tmp1
+		add player_hit_block_left_lo
+		sta addr_tmp1+LO				; tmp
 
-	jmp @STORE_FLAG
-	; ------------------------------
+		jmp @STORE_FLAG
+		; ------------------------------
 @RIGHT:
-	lda player_actual_pos_right
-	and #BYT_GET_LO
-	cmp #2
-	bcs :+
-	jmp @NO_UPDATE_BG
+		lda player_block_pos_right
+		cmp player_block_pos_left
+		bne :+
+		jmp @NO_UPDATE_BG
 :
-	cmp #$a
-	bcc :+
-	jmp @NO_UPDATE_BG
+		lda player_actual_pos_right
+		and #BYT_GET_LO
+		cmp #2
+		bcs :+
+		jmp @NO_UPDATE_BG
+; :
+; 	lda player_actual_pos_left
+; 	and #BYT_GET_LO
+; 	cmp #$0f
+; 	bcc :+
+; 	jmp @NO_UPDATE_BG
 :
-	lda player_hit_block_right_hi
-	sta addr_tmp1+HI
-	lda tmp1
-	add player_hit_block_right_lo
-	sta addr_tmp1+LO
+		lda player_hit_block_right_hi
+		sta addr_tmp1+HI
+		lda tmp1
+		add player_hit_block_right_lo
+		sta addr_tmp1+LO
 
 @STORE_FLAG:
 
-	lda #0
-	tay
-	sta (addr_tmp1), y
+		lda #0
+		tay
+		sta (addr_tmp1), y
 
-	jsr Subfunc::_incCoin
+		jsr Subfunc::_incCoin
 
 		; $2000 + (ptx) + ((pty) * $20) + ((scn) * $400)
 		lda addr_tmp1+HI
@@ -1885,102 +1893,107 @@ ANIME_Y_LIST:
 		adc #0
 		sta player_hit_block_ppu_hi		; インクリメント
 
-		ldx coin_counter
+		ldx collision_coin_counter
 		lda player_hit_block_ppu_hi
 		sta del_coin_addr, x
 		inx
 		lda player_hit_block_ppu_lo
 		sta del_coin_addr, x
 		inx
-		stx coin_counter
+		stx collision_coin_counter
 
 @NO_UPDATE_BG:
 
-	pla
-	sta tmp3
-	pla
-	sta tmp2
-	pla
-	sta tmp1
+		pla
+		sta tmp3
+		pla
+		sta tmp2
+		pla
+		sta tmp1
 
-	rts
+		rts
 .endproc
 
 
 .proc _startCoinAnimation
-	lda Player::player_hit_block_lo
-	and #BYT_GET_HI				; ブロックに重ならないように，2ブロック上から表示
-	sta coin_pos_y
+		lda spr_velocity_y_arr+$0
+		bmi :+
+		jmp @EXIT
+:
+		jsr Subfunc::_incCoin
+		lda Player::player_hit_block_lo
+		and #BYT_GET_HI				; ブロックに重ならないように，2ブロック上から表示
+		sta coin_pos_y
 
-	lda Player::player_hit_block_lo
-	shl #4
-	sub scroll_x
-	add #4
-	sta coin_pos_x
+		lda Player::player_hit_block_lo
+		shl #4
+		sub scroll_x
+		add #4
+		sta coin_pos_x
 
-	lda #0
-	sta coin_animation_counter
+		lda #0
+		sta coin_animation_counter
 
-	lda #%0000_0010
-	sta SPR_COIN_ANIMATION+0+2
-	ora #%1000_0000
-	sta SPR_COIN_ANIMATION+4+2
-
-	rts
+		lda #%0000_0010
+		sta SPR_COIN_ANIMATION+0+2
+		ora #%1000_0000
+		sta SPR_COIN_ANIMATION+4+2
+@EXIT:
+		rts
 .endproc
 
 
 COIN_VELOCITY_ARR:
-	.byte $fd, $fd, $fd, $fe, $fe, $fe, $fe, $ff, $ff, $ff, $ff
-	.byte $01, $01, $01, $01, $02, $02, $02, $02, $03, $03, $03
-	.byte $03, $03, $03, $03, $03
-	.byte $80							; end code
+		.byte $fd, $fd, $fd, $fe, $fe, $fe, $fe, $ff, $ff, $ff, $ff
+		.byte $01, $01, $01, $01, $02, $02, $02, $02, $03, $03, $03
+		.byte $03, $03, $03, $03, $03
+		.byte $80							; end code
 
 .proc _coinAnimation
-	lda coin_animation_counter
-	cmp #$ff
-	bne :+
-	rts
+		lda coin_animation_counter
+		cmp #$ff
+		bne :+
+		rts
 :
-	ldx coin_animation_sprid
-	lda frm_cnt
-	and #%0000_0001
-	bne :+
-	inx
-	cpx #4
-	bcc :+
-	ldx #0
+		ldx coin_animation_sprid
+		lda frm_cnt
+		and #%0000_0001
+		bne :+
+		inx
+		cpx #4
+		bcc :+
+		ldx #0
 :
-	stx coin_animation_sprid
-	lda COIN_ANIMATION_TILEID, x
-	sta SPR_COIN_ANIMATION+0+1
-	sta SPR_COIN_ANIMATION+4+1
+		stx coin_animation_sprid
+		lda COIN_ANIMATION_TILEID, x
+		sta SPR_COIN_ANIMATION+0+1
+		sta SPR_COIN_ANIMATION+4+1
 
-	ldx coin_animation_counter
-	lda COIN_VELOCITY_ARR, x
-	inx
-	cmp #$80
-	bne :+
-	lda #$f8						; hide
-	sta coin_pos_y					; $f8 + $f8 = $f0となり，コイン全体を隠すことができる
-	ldx #$ff						; init
+		ldx coin_animation_counter
+		lda COIN_VELOCITY_ARR, x
+		inx
+		cmp #$80
+		bne :+
+		lda #$f8						; hide
+		sta coin_pos_y					; $f8 + $f8 = $f0となり，コイン全体を隠すことができる
+		ldx #$ff						; init
 :
-	add coin_pos_y
-	sta coin_pos_y
-	stx coin_animation_counter
+		add coin_pos_y
+		sta coin_pos_y
+		stx coin_animation_counter
 
-	lda coin_pos_y
-	sta SPR_COIN_ANIMATION+0+0
-	add #8
-	sta SPR_COIN_ANIMATION+4+0
+		lda coin_pos_y
+		sta SPR_COIN_ANIMATION+0+0
+		add #8
+		sta SPR_COIN_ANIMATION+4+0
 
-	lda coin_pos_x
-	sub scroll_amount
-	sta coin_pos_x
-	sta SPR_COIN_ANIMATION+0+3
-	sta SPR_COIN_ANIMATION+4+3
+		lda coin_pos_x
+		sub scroll_amount
+		sta coin_pos_x
+		sta SPR_COIN_ANIMATION+0+3
+		sta SPR_COIN_ANIMATION+4+3
 
-	rts
+		rts
 .endproc
 
 .endscope

@@ -12,8 +12,8 @@ enemy_pos_top:				.byte 0
 enemy_pos_bottom:			.byte 0
 enemy_offset_flags:			.byte 0		; ずれのフラグ（bit1: X方向，bit0: Y方向）
 enemy_collision_flags:		.byte 0		; マリオ周辺のブロックフラグ（ブロックがあれば1, bit3-0は左上，右上，左下，右下の順）
-enemy_block_pos_X:			.byte 0		; ブロック単位での座標
-enemy_block_pos_Y:			.byte 0
+enemy_block_pos_left:			.byte 0		; ブロック単位での座標
+enemy_block_pos_top:			.byte 0
 enemy_block_pos_right:		.byte 0
 enemy_block_pos_bottom:		.byte 0
 
@@ -287,7 +287,7 @@ enemy_block_pos_bottom:		.byte 0
 		; ------------------------------
 :
 		sub #2							; 上2列分は使わないので、3列目を1列目としてカウントする
-		sta enemy_block_pos_Y
+		sta enemy_block_pos_top
 
 		lda spr_posY_tmp_arr, x
 		sta enemy_pos_top
@@ -330,7 +330,7 @@ enemy_block_pos_bottom:		.byte 0
 
 		lda enemy_actual_pos_left
 		shr #4
-		sta enemy_block_pos_X
+		sta enemy_block_pos_left
 		lda enemy_actual_pos_left
 		add #$10
 		sta enemy_actual_pos_right		; マリオの右端+1pxの座標
@@ -340,7 +340,7 @@ enemy_block_pos_bottom:		.byte 0
 
 
 		; 下方向のあたり判定
-		lda enemy_block_pos_Y
+		lda enemy_block_pos_top
 		cmp enemy_block_pos_bottom
 		beq :+
 		lda enemy_offset_flags
@@ -349,7 +349,7 @@ enemy_block_pos_bottom:		.byte 0
 :
 		; 右方向のあたり判定
 		lda enemy_block_pos_right
-		cmp enemy_block_pos_X
+		cmp enemy_block_pos_left
 		beq :+
 		lda enemy_offset_flags
 		ora #%0000_0010
@@ -359,9 +359,9 @@ enemy_block_pos_bottom:		.byte 0
 
 		; 敵の周辺のブロックフラグをセット
 		; ----- 左上 -----
-		lda enemy_block_pos_Y
+		lda enemy_block_pos_top
 		shl #4
-		ora enemy_block_pos_X
+		ora enemy_block_pos_left
 		tay
 		clc								; 後で使うためにキャリークリア
 		lda enemy_current_screen
@@ -377,11 +377,11 @@ enemy_block_pos_bottom:		.byte 0
 		rol enemy_collision_flags		; キャリーを入れていく（あと三回ローテートするのでbit3に格納される）
 
 		; ----- 右上 -----
-		lda enemy_block_pos_X
+		lda enemy_block_pos_left
 		cmp #$0f
 		bne @NORMAL1
 		; マリオのいる位置とその右側の位置で画面が違うとき
-		lda enemy_block_pos_Y
+		lda enemy_block_pos_top
 		shl #4							; 下位（X座標）は0
 		tay
 		clc
@@ -393,9 +393,9 @@ enemy_block_pos_bottom:		.byte 0
 		lda $0400, y
 		bcc @CHECK1	; ------------------
 @NORMAL1:
-		lda enemy_block_pos_Y
+		lda enemy_block_pos_top
 		shl #4
-		ora enemy_block_pos_X
+		ora enemy_block_pos_left
 		add #1							; X座標を右に一つずらす
 		tay
 		clc
@@ -414,7 +414,7 @@ enemy_block_pos_bottom:		.byte 0
 		; ----- 左下 -----
 		lda enemy_block_pos_bottom
 		shl #4
-		ora enemy_block_pos_X
+		ora enemy_block_pos_left
 		tay
 		clc
 		lda enemy_current_screen
@@ -430,7 +430,7 @@ enemy_block_pos_bottom:		.byte 0
 		rol enemy_collision_flags
 
 		; ----- 右下 -----
-		lda enemy_block_pos_X
+		lda enemy_block_pos_left
 		cmp #$0f
 		bne @NORMAL2
 		lda enemy_block_pos_bottom
@@ -447,7 +447,7 @@ enemy_block_pos_bottom:		.byte 0
 @NORMAL2:
 		lda enemy_block_pos_bottom
 		shl #4
-		ora enemy_block_pos_X
+		ora enemy_block_pos_left
 		add #1
 		tay
 		clc
@@ -657,9 +657,9 @@ enemy_block_pos_bottom:		.byte 0
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _fixCollisionUp
-	lda spr_velocity_y_arr, x
-	bmi :+
-	rts
+		lda spr_velocity_y_arr, x
+		bmi :+
+		rts
 :
 		; 上で衝突→下にずらす
 		lda enemy_pos_top

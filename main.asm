@@ -14,19 +14,19 @@
 		lda engine
 		bne :+
 		jmp Engine::_gameEngine
-	:
+:
 		cmp #1
 		bne :+
 		jmp Engine::_pauseEngine
-	:
+:
 		cmp #2
 		bne :+
 		jmp Engine::_deathEngine
-	:
+:
 		cmp #3
 		bne :+
 		jmp Engine::_titleEngine
-	:
+:
 		cmp #4
 		bne :++
 
@@ -34,7 +34,7 @@
 		cpy #2
 		bne :+
 		ldy #$ff
-	:
+:
 		iny
 		sty map_num
 		jsr DrawMap::_changeStage
@@ -42,7 +42,7 @@
 		sta engine
 		sta is_processing_main
 		jmp _main
-	:
+:
 		jmp Engine::_gameEngine
 
 .endproc
