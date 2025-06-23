@@ -45,6 +45,11 @@
 		beq @NMI_MAIN
 		pla
 		jsr Subfunc::_setScroll
+		; ゼロスプライトの描画
+		lda #0
+		sta OAM_ADDR
+		lda #>CHR_BUFF
+		sta OAM_DMA
 		rti	; --------------------------
 
 @NMI_MAIN:
@@ -109,7 +114,7 @@
 @PRINT:
 		lda #0
 		cmp bg_buff_pointer
-		beq @STORE_HIT_BLOCK
+		beq @MODE_HORIZONTAL
 		tax
 		lda bg_buff, x
 @SET_MODE:
@@ -158,6 +163,12 @@
 		; 	2: 99 cycle,	7 bytes
 		; 	3: 123 cycle,	8 bytes
 		; 	4~: 128 cycle,	8 bytes (str2)
+
+@MODE_HORIZONTAL:
+		lda ppu_ctrl1_cpy
+		and #%11111011					; Mask direction flag(Horizontal(+1)/Vertical(+32))
+		sta ppu_ctrl1_cpy
+		sta PPU_CTRL1
 
 @STORE_ANIMATION_BLOCK:
 		lda Player::player_animation_block_is_drawed
@@ -222,8 +233,8 @@
 		sta Player::player_hit_block_is_drawed
 
 @DELETE_COIN:
-		lda Player::coin_animation_counter
-		beq @STORE_CHR
+		lda Player::coin_counter
+		beq @DISP_TIMER
 
 		ldx #0
 	:
@@ -249,11 +260,41 @@
 
 		inx
 		inx
-		cpx Player::coin_animation_counter
+		cpx Player::coin_counter
 		bcc :-
 
 		lda #0
-		sta Player::coin_animation_counter
+		sta Player::coin_counter
+
+@DISP_TIMER:
+	lda #$20
+	sta PPU_ADDR
+	lda #$5B
+	sta PPU_ADDR
+	lda ppu_timer_data+$0
+	sta PPU_DATA
+	lda ppu_timer_data+$1
+	sta PPU_DATA
+	lda ppu_timer_data+$2
+	sta PPU_DATA
+
+@DISP_AMOUNT_COIN:
+	lda #$20
+	sta PPU_ADDR
+	lda #$52
+	sta PPU_ADDR
+	lda ppu_coin_data+$0
+	sta PPU_DATA
+	lda ppu_coin_data+$1
+	sta PPU_DATA
+
+@PLT_ANIMATION:
+	lda #$3f
+	sta PPU_ADDR
+	lda #$05
+	sta PPU_ADDR
+	lda ppu_plt_animation_data
+	sta PPU_DATA
 
 @STORE_CHR:
 		lda #0

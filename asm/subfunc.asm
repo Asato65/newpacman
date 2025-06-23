@@ -137,7 +137,7 @@
 ; NMIがONになっている状態でVblank待機
 ; @PARAMS		None
 ; @CLOBBERS		A
-; @RETURNS		None (A = 1)
+; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .proc _waitVblankUsingNmi

@@ -10,6 +10,8 @@ INITIAL_VER_SPEED_DATA:					; 初速度(v0)
 INITIAL_VER_FORCE_DATA:					; 初期加速度(a)
 		.byte $00, $00, $00, $00, $00
 
+COIN_ANIMATION_TILEID: .byte $f4, $f5, $f6, $f5
+
 .ZeroPage
 is_fly: 						.byte 0		; 空中にいるか
 is_jumping:						.byte 0		; ジャンプ中か（ジャンプ後の下降中もフラグオン）
@@ -44,7 +46,7 @@ player_collision_id_lu:			.byte 0		; Left UpperのブロックID
 player_collision_id_ru:			.byte 0
 player_collision_id_ld:			.byte 0
 player_collision_id_rd:			.byte 0
-coin_animation_counter:			.byte 0			; マリオが最大3枚のコインに触れる状況を想定，カウンター形式に
+coin_counter:					.byte 0			; マリオが最大3枚のコインに触れる状況を想定，カウンター形式に
 
 .code
 
@@ -937,7 +939,7 @@ switch(playerColllisionFixFlags) {
 		lda tmp4
 		tax
 		lda #0
-		cpx #'h'
+		cpx #'_'
 		bne :+
 		lda #1
 :
@@ -957,8 +959,66 @@ switch(playerColllisionFixFlags) {
 		and #BIT5
 		bne @SET_FIX_FLAGS
 		lda tmp3
-		beq @END_SET_FIX_FLAGS
+		bne :+
+		jmp @END_SET_FIX_FLAGS
 @SET_FIX_FLAGS:
+	ldx tmp1
+	lda player_collision_id_lu, x
+	cmp #'_'
+	bne @NO_HIDE_BLOCK
+	txa
+	and #BIT1
+	bne @CHK_LOWER
+
+	lda player_pos_top
+	and #BYT_GET_LO
+	cmp #$0c
+	bcs :+
+	jmp @CONTINUE_LOOP_CHK
+:
+	lda player_actual_pos_left
+	add #PLAYER_WIDTH/2
+	shr #4
+	cmp player_block_pos_X
+	bne @HIT_UR2
+	; 左上のブロックに衝突
+	; 下位がd-fのときにはブロックを叩かない
+	lda #0
+	cpx #1
+	beq @LOOP2_END
+	lda player_actual_pos_left
+	and #BYT_GET_LO
+	tax
+	lda #%0000_1000
+	cpx #$0c
+	bcc @STORE_ANIME_BLOCK_FLAGS2
+	lda #0
+	beq @STORE_ANIME_BLOCK_FLAGS2
+	; ------------------------------
+@HIT_UR2:
+	; 右上のブロックに衝突
+	; 下位が1-3のときにはブロックを叩かない
+	lda #0
+	cpx #0
+	beq @LOOP2_END
+	lda player_actual_pos_right
+	and #BYT_GET_LO
+	tax
+	lda #%0000_0100
+	cpx #4
+	bcs @STORE_ANIME_BLOCK_FLAGS2
+	lda #0
+@STORE_ANIME_BLOCK_FLAGS2:
+	; and player_collision_fix_flags
+	ora player_collision_fix_flags
+	sta player_collision_fix_flags
+	jmp @CONTINUE_LOOP_CHK
+	; ----------------------------------
+@CHK_LOWER:
+	; 現在下側のブロックを参照しているならば
+	lda #0
+	beq @LOOP2_END
+@NO_HIDE_BLOCK:
 		lda tmp1
 		cnn
 		add #3
@@ -973,6 +1033,7 @@ switch(playerColllisionFixFlags) {
 @LOOP2_END:
 		ora player_collision_fix_flags
 		sta player_collision_fix_flags
+@CONTINUE_LOOP_CHK:
 		lda tmp4						; funcIndex
 		ldx tmp1
 		sta func_index, x
@@ -993,7 +1054,7 @@ switch(playerColllisionFixFlags) {
 		pha
 
 		ldx tmp1						; loop index
-		jmp (addr_tmp1)					; TODO: player_collision_flagsを考慮しておらず，コインの取得でバグがあるかも，修正
+		jmp (addr_tmp1)					; player_collision_flagsは考慮していないので，まだ接触していなくても実行される（個々の当たり判定処理で確認する）
 		;* ----------------------------------
 
 
@@ -1413,8 +1474,8 @@ BLOCK_ANIMATION_TILESET:
 
 BLOCK_ANIMATION_TILE_ATTRSET:
 	.byte $03, $03, $03, $03
-	.byte %00000011, %01000011, %10000011, %11000011
-	.byte %00000011, %01000011, %10000011, %11000011
+	.byte %00100011, %01100011, %10100011, %11100011
+	.byte %00100011, %01100011, %10100011, %11100011
 
 
 .proc _void
@@ -1430,8 +1491,16 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		pha
 		lda tmp3
 		pha
+
+		lda spr_velocity_y_arr+$0
+		bmi :+
+		jmp @EXIT
+:
+
 		txa						; 処理を分岐するためのID
 		pha
+
+
 
 		lda block_anime_timer
 		cmp #$ff					; ffが初期値となっている
@@ -1568,38 +1637,50 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 .proc _collisionCoinBlock
 		ldx #1
 		jsr _startBlockAnimation
+		jsr _startCoinAnimation
+		jsr Subfunc::_incCoin
 		rts
 .endproc
 
 
 .proc _collisionCoin
 		ldy #1							; ワールドに配置されたコインを触ったときに1にする（？ブロックから取得するときなどは0）
-		jsr _getCoinAnimation
+		jsr _getObjCoin
 		rts
 .endproc
 
 
 .proc _collisionFlowerBlock
-		ldx #2							; 現在はCoinBlockとIDを分けているが，一緒でもいい
-		; もしIDを分けるなら，_startBlockAnimation()内でフラワーを出すアニメーションも開始させる必要がある
+		ldx #2							; アイテムを出すときには2
 		jsr _startBlockAnimation
+		ldx #FIREFLOWER_ID
+		jsr Item::_spawn
 		rts
 .endproc
 
 
 
 .proc _collisionGoal
+		lda player_hit_block_right_lo
+		and #BYT_GET_LO
+		cmp player_block_pos_right
+		bne :+
+		lda player_actual_pos_right
+		and #BYT_GET_LO
+		cmp #$08
+		bcc :+
 		lda #4
 		sta engine
+:
 		rts
 .endproc
 
 
 ; ブロックを叩いたときY座標の変化量（1fで1byteずつ）
 ANIME_Y_LIST:
-	.byte $fe, $fe, $fe, $ff, $ff
+	.byte $fe, $fe, $ff, $ff, $ff, $ff
 	.byte $00
-	.byte $01, $01, $02, $02, $02
+	.byte $01, $01, $01, $01, $02, $02
 	.byte $f0
 
 
@@ -1683,7 +1764,7 @@ ANIME_Y_LIST:
 .endproc
 
 
-.proc _getCoinAnimation
+.proc _getObjCoin
 	lda tmp1
 	pha
 	lda tmp2
@@ -1804,14 +1885,14 @@ ANIME_Y_LIST:
 		adc #0
 		sta player_hit_block_ppu_hi		; インクリメント
 
-		ldx coin_animation_counter
+		ldx coin_counter
 		lda player_hit_block_ppu_hi
 		sta del_coin_addr, x
 		inx
 		lda player_hit_block_ppu_lo
 		sta del_coin_addr, x
 		inx
-		stx coin_animation_counter
+		stx coin_counter
 
 @NO_UPDATE_BG:
 
@@ -1821,6 +1902,83 @@ ANIME_Y_LIST:
 	sta tmp2
 	pla
 	sta tmp1
+
+	rts
+.endproc
+
+
+.proc _startCoinAnimation
+	lda Player::player_hit_block_lo
+	and #BYT_GET_HI				; ブロックに重ならないように，2ブロック上から表示
+	sta coin_pos_y
+
+	lda Player::player_hit_block_lo
+	shl #4
+	sub scroll_x
+	add #4
+	sta coin_pos_x
+
+	lda #0
+	sta coin_animation_counter
+
+	lda #%0000_0010
+	sta SPR_COIN_ANIMATION+0+2
+	ora #%1000_0000
+	sta SPR_COIN_ANIMATION+4+2
+
+	rts
+.endproc
+
+
+COIN_VELOCITY_ARR:
+	.byte $fd, $fd, $fd, $fe, $fe, $fe, $fe, $ff, $ff, $ff, $ff
+	.byte $01, $01, $01, $01, $02, $02, $02, $02, $03, $03, $03
+	.byte $03, $03, $03, $03, $03
+	.byte $80							; end code
+
+.proc _coinAnimation
+	lda coin_animation_counter
+	cmp #$ff
+	bne :+
+	rts
+:
+	ldx coin_animation_sprid
+	lda frm_cnt
+	and #%0000_0001
+	bne :+
+	inx
+	cpx #4
+	bcc :+
+	ldx #0
+:
+	stx coin_animation_sprid
+	lda COIN_ANIMATION_TILEID, x
+	sta SPR_COIN_ANIMATION+0+1
+	sta SPR_COIN_ANIMATION+4+1
+
+	ldx coin_animation_counter
+	lda COIN_VELOCITY_ARR, x
+	inx
+	cmp #$80
+	bne :+
+	lda #$f8						; hide
+	sta coin_pos_y					; $f8 + $f8 = $f0となり，コイン全体を隠すことができる
+	ldx #$ff						; init
+:
+	add coin_pos_y
+	sta coin_pos_y
+	stx coin_animation_counter
+
+	lda coin_pos_y
+	sta SPR_COIN_ANIMATION+0+0
+	add #8
+	sta SPR_COIN_ANIMATION+4+0
+
+	lda coin_pos_x
+	sub scroll_amount
+	sta coin_pos_x
+	sta SPR_COIN_ANIMATION+0+3
+	sta SPR_COIN_ANIMATION+4+3
 
 	rts
 .endproc

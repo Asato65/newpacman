@@ -13,8 +13,8 @@ GROUND_PLT:
 		.byte $29, $1a, $0f
 		.byte $30, $21, $0f
 		; SPR
-		.byte $20, $0f, $1a
-		.byte $27, $17, $0f
+		.byte $1a, $30, $0f
+		.byte $1a, $30, $27
 		.byte $16, $30, $27
 		.byte $0f, $36, $17
 
@@ -26,8 +26,8 @@ UNDER_GROUND_PLT:
 		.byte $29, $1a, $09
 		.byte $30, $21, $1c
 		; SPR
-		.byte $20, $0f, $1a
-		.byte $27, $17, $1c
+		.byte $1a, $30, $0f
+		.byte $1a, $30, $27
 		.byte $16, $30, $27
 		.byte $0c, $3c, $1c
 

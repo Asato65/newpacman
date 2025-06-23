@@ -117,7 +117,9 @@ bgm_dq:
 		ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
 		jsr Sprite::_tfrToChrBuff
 		ldx Sprite::spr_buff_id
+		beq :+
 		jsr Sprite::_loadMoveArr
+:
 		ldx Sprite::spr_buff_id
 		inx
 		cpx #6
@@ -128,6 +130,10 @@ bgm_dq:
 
 		jsr Sprite::_checkEnemyCollision
 		jsr Sprite::_shuffle
+
+		jsr Item::_moveItem
+
+		jsr Player::_coinAnimation
 
 		jsr Time::_manageTime
 
@@ -369,17 +375,6 @@ TITLE_DATA3:
 		lda #$17
 		sta PPU_DATA
 
-		lda #$23
-		sta PPU_ADDR
-		lda #$c0
-		sta PPU_ADDR
-		lda #%01010101
-		ldy #$20
-:
-		sta PPU_DATA
-		dey
-		bne :-
-
 		lda #6
 		sta tmp3
 		ldx #0
@@ -454,6 +449,10 @@ TITLE_DATA3:
 		jsr Subfunc::_setScroll
 
 		jsr Subfunc::_sleepOneFrame
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
 		lda #1
 		sta engine_flag
@@ -468,6 +467,7 @@ TITLE_DATA3:
 		sta ppu_ctrl2_cpy
 		jsr Subfunc::_restorePPUSet		; Display ON
 @SKIP1:
+		jsr Subfunc::_setScroll
 		jsr _nsd_main_bgm
 		jsr Joypad::_getJoyData
 		lda Joypad::joy1_pushstart

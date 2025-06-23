@@ -39,6 +39,18 @@
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _dispTimer
+	lda timer_dec_num_arr+$0
+	ora #$30
+	sta ppu_timer_data+$0
+	lda timer_dec_num_arr+$1
+	ora #$30
+	sta ppu_timer_data+$1
+	lda timer_dec_num_arr+$2
+	ora #$30
+	sta ppu_timer_data+$2
+	rts
+
+/*
 	ldx bg_buff_pointer
 	lda #PPU_VERTICAL_MODE
 	sta bg_buff+$0, x
@@ -63,6 +75,8 @@
 
 @ADDR:
 	.addr ADDR_BG 27, 2, 0
+
+*/
 
 .endproc
 

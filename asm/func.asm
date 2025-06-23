@@ -72,6 +72,30 @@
 
 
 .proc _pltAnimation
+	ldy plt_animation_counter
+	iny
+	cpy #10
+	bcc @ANIME1
+	cpy #20
+	bcc @ANIME2
+	cpy #48
+	bcc @ANIME3
+	ldy #0
+@ANIME1:
+	lda #$07
+	bne @EXIT
+@ANIME2:
+	lda #$17
+	bne @EXIT
+@ANIME3:
+	lda #$27
+@EXIT:
+	sta ppu_plt_animation_data
+	sty plt_animation_counter
+	rts
+
+
+/*
 	ldx bg_buff_pointer
 
 	lda #PPU_VERTICAL_MODE
@@ -107,10 +131,21 @@
 
 	sty plt_animation_counter
 	rts
+*/
 .endproc
 
 
 .proc _dispCoin
+	lda coin_counter+$1
+	ora #$30
+	sta ppu_coin_data+$0
+	lda coin_counter+$0
+	ora #$30
+	sta ppu_coin_data+$1
+	rts
+
+
+/*
 	ldx bg_buff_pointer
 
 	lda #PPU_VERTICAL_MODE
@@ -131,6 +166,7 @@
 	add #5
 	sta bg_buff_pointer
 	rts
+*/
 .endproc
 
 

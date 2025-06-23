@@ -26,8 +26,14 @@
 .include "struct.inc"
 .include "map_data.inc"
 .include "enemy_data.inc"
+.include "item_data.inc"
 
 .code									; ----- code -----
+
+
+.define Item
+.import _spawn
+.import _moveItem
 
 .include "macro.asm"
 .include "joypad.asm"
@@ -37,6 +43,7 @@
 .include "sprite.asm"
 .include "enemy.asm"
 .include "draw_map.asm"
+.include "item.asm"
 .include "nes.inc"
 .include "nsd.inc"
 .include "nmi.asm"

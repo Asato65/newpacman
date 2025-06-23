@@ -331,6 +331,11 @@ fill_ground_start		: .byte 0
 		pla
 		tay
 
+		lda STAGE_PALETTE_ARR, y
+		tax
+		lda BG_COLORS, x
+		sta bg_color
+
 		jsr Subfunc::_waitVblankUsingNmi				; Vblankの開始を待つ
 
 		; Change bg color (black)
@@ -338,7 +343,7 @@ fill_ground_start		: .byte 0
 		sta PPU_ADDR
 		lda #$00
 		sta PPU_ADDR
-		lda #$0f
+		lda bg_color
 		sta PPU_DATA
 		; 画面OFF中は最後に指定したアドレスの色が背景になる（指定なし→3f01の色が使用される）
 		lda #$3f
@@ -348,6 +353,7 @@ fill_ground_start		: .byte 0
 
 		lda #$ff
 		sta DrawMap::row_counter
+		sta coin_animation_counter
 
 		lda #0
 		sta DrawMap::index
@@ -371,20 +377,34 @@ fill_ground_start		: .byte 0
 		tya
 		pha
 		lda STAGE_PALETTE_ARR, y
-		tax
-		lda BG_COLORS, x
-		sta bg_color
+		tax							; _trfPltDataToBuffで転送するパレット番号に使う
 
 		jsr Enemy::_reset
 
-		jsr Subfunc::_waitVblankUsingNmi
+		lda #1
+		sta is_processing_main
+		; jsr Subfunc::_waitVblankUsingNmi
+		; NMIが終了するのを待つが，NMI処理はスキップしたいのでこのような構成に
+		lda nmi_cnt
+:
+		cmp nmi_cnt
+		beq :-
 
 		jsr Subfunc::_trfPltDataToBuff	; Yレジスタ破壊
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
+
 		lda ppu_ctrl1_cpy
 		and #%1111_1011					; ストア時のインクリメントを+1にする
 		sta PPU_CTRL1
 		tfrPlt
 		jsr Subfunc::_restorePPUSet
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 		pla
 		tay
 
@@ -393,10 +413,15 @@ fill_ground_start		: .byte 0
 		jsr DrawMap::_setMapAddr
 
 		jsr Subfunc::_dispStatus
+		jsr Subfunc::_sleepOneFrame
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
 		lda #1
 		sta spr_velocity_y_arr+$0
-		sta spr_float_velocity_x_arr+$0
+		sta spr_float_velocity_y_arr+$0
 
 		lda #$28
 		sta spr_posX_arr+$0
@@ -423,9 +448,11 @@ fill_ground_start		: .byte 0
 		cpx #6
 		bne @CHR_MOVE_LOOP
 
-		; lda #0
-		; sta is_processing_main
-		; jsr Subfunc::_sleepOneFrame
+		jsr Subfunc::_sleepOneFrame
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
 		lda #$8*3-2-1
 		sta CHR_BUFF+0
@@ -448,14 +475,16 @@ fill_ground_start		: .byte 0
 		lda #1
 		sta is_updated_map
 		jsr DrawMap::_updateOneLine
-		lda #0
-		sta is_processing_main
 		jsr Subfunc::_sleepOneFrame
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 		pla
 		sub #1
 		bne @DISP_LOOP
 
-		; jsr Subfunc::_waitVblankUsingNmi
+		jsr Subfunc::_waitVblankUsingNmi
 
 		; Restore bg color
 		lda #$3f
@@ -469,23 +498,29 @@ fill_ground_start		: .byte 0
 		lda #$00
 		sta PPU_ADDR
 
-		jsr Subfunc::_setScroll
 
-		lda #0
-		sta is_processing_main
-		jsr Subfunc::_sleepOneFrame
+		jsr Subfunc::_waitVblankUsingNmi
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
 		lda	bgm0
 		ldx	bgm0+1
 		jsr	_nsd_play_bgm
 
 		jsr Subfunc::_waitVblankUsingNmi
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
 		lda #%00010100
 		sta ppu_ctrl2_cpy
 		jsr Subfunc::_restorePPUSet		; SPRITE ON
 
 		jsr Subfunc::_waitVblankUsingNmi
+		jsr Subfunc::_setScroll
 
 		lda #%00011110
 		sta ppu_ctrl2_cpy

@@ -36,7 +36,7 @@ SPRITE_ARR:
 		.addr PLAYER_MARIO
 		.addr ENEMY_KURIBO				; 1
 		.addr ENEMY_FLOWER				; 2
-		.addr $0000
+		.addr FIREFLOWER_ARR			; 3
 		.addr $0000
 		.addr $0000
 		.addr $0000
@@ -895,6 +895,16 @@ AMOUNT_INC_SPD_R:
 :
 	cmp #PLAYER_WIDTH
 	bcs @NEXT_ENEMY						; 水平方向の衝突がない場合はスキップ
+
+	lda spr_posX_arr, x
+	bpl :+
+	lda spr_posX_arr+$0
+	bmi :+
+	; 敵が右端にまたがる ＆ マリオが左端 || 敵が左端にまたがる & マリオが左端
+	lda spr_attr_arr, x
+	and #BIT1
+	beq @NEXT_ENEMY					; 敵が左端のときには，当たり判定チェックを通常通り行うが，敵が右端のときは当たり判定スキップ
+:
 
 	; プレイヤーが敵の上にいて、かつ下降中かを確認
 	lda spr_posY_arr, x

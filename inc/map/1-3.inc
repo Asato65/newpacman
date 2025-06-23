@@ -8,8 +8,9 @@ MAP_ARR_13:
 
 MAP_13_1:
 	.byte $bd
-	.byte 'B'
-	.byte %00000000, %00000000
+	; .byte 'B'
+	; .byte %00000000, %00000000
+	.byte '^', %00011111, %11111100
 	.byte (GET_OBJ_POS $3, $8), 'H'
 	.byte (GET_OBJ_POS $3, $b), 'H'
 	.byte (GET_OBJ_POS $4, $8), 'H'
@@ -35,7 +36,7 @@ MAP_13_1:
 	.byte OBJMAP_NEXT
 	.byte (GET_OBJ_POS $0, $5), 'Q'
 	.byte (GET_OBJ_POS $4, $3), 'B'
-	.byte (GET_OBJ_POS $5, $3), 'Q'
+	.byte (GET_OBJ_POS $5, $3), '['
 	.byte (GET_OBJ_POS $6, $3), 'B'
 	.byte (GET_OBJ_POS $6, $9), 'Q'
 	.byte (GET_OBJ_POS $7, $3), 'Q'
@@ -60,15 +61,6 @@ MAP_13_1:
 	.byte (GET_OBJ_POS $f, $4), 'b'
 	.byte (GET_OBJ_POS $f, $5), 'c'
 	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $5), 'B'
-	.byte (GET_OBJ_POS $1, $5), 'B'
-	.byte (GET_OBJ_POS $2, $5), 'B'
-	.byte (GET_OBJ_POS $3, $5), 'B'
-	.byte (GET_OBJ_POS $4, $5), 'B'
-	.byte (GET_OBJ_POS $5, $5), 'B'
-	.byte (GET_OBJ_POS $6, $5), 'B'
-	.byte (GET_OBJ_POS $7, $5), 'B'
-	.byte (GET_OBJ_POS $8, $5), 'B'
 	.byte (GET_OBJ_POS $9, $2), '`'		; 土管4
 	.byte (GET_OBJ_POS $9, $3), '`'
 	.byte (GET_OBJ_POS $9, $4), '`'

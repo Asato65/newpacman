@@ -71,6 +71,10 @@ spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
 spr_id_arr							: .res 6		; キャラに固有のID（マリオは最初から0でセット済み）
 spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か、bit5: 右端を超えたとき（敵のみ使用）、bit4: 当たり判定なし，bit3: 倒された，bit2: マリオ…上端を超えたとき／敵：下端を超えた時、敵…非表示、 bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
+; 左端を超えているがまだ表示されている→BIT1=1
+; 左端を超えて表示もされない→BIT7=0
+; 右端を超えているがまだ表示されている→BIT1=0
+; 右端を超えて表示もされない→BIT5=1（現在はパックンフラワーのスポーン時のみ使用，クリボーが右に進んだときは使っていない）
 spr_move_timer_arr					: .res 6		; マリオの領域は未使用
 spr_move_counter					: .res 6		; $ffで初期化する
 spr_move_timer_max_arr				: .res 6
@@ -88,18 +92,18 @@ engine								: .res 1		; 0: game, 1: pause
 engine_flag							: .res 1
 engine_timer						: .res 2		; upper: seconds, lower: frame
 
-item_id								: .res 1
-item_timer							: .res 1
-item_standing_disp					: .res 1
-item_posX_arr						: .res 1
-item_posY_arr						: .res 1
-item_velocity_X_arr					: .res 1
-item_velocity_y_arr					: .res 1
-
-
 block_anime_spr_id					: .res 1
 block_anime_timer					: .res 1
 block_anime_tmp1					: .res 1   ; 今は叩いたあとの背景データのIDに使う
 ; block_anime_addr					: .res 2
+
+coin_pos_x							: .res 1
+coin_pos_y							: .res 1
+coin_animation_sprid				: .res 1
+coin_animation_counter				: .res 1
+
+ppu_timer_data						: .res 3
+ppu_coin_data						: .res 2
+ppu_plt_animation_data				: .res 1
 
 .code
