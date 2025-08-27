@@ -149,62 +149,82 @@ AMOUNT_INC_SPD_R:
 		cmp #$f0
 		bcs :+
 		lda spr_attr_arr, x
-		ora #BIT2
+		ora #BIT2						; Y座標の画面外フラグ
 		sta spr_attr_arr, x
 :
 		lda spr_posY_tmp_arr, x
 		sta spr_posY_arr, x
 
+@DISP_OVER_CHK:
 		lda spr_posX_tmp_arr, x
 		sub scroll_amount
 		sta spr_posX_tmp_arr, x
-		cmp #$ef
-		bcc @RIGHT_OVER_CHK
-		; $f0 <= newX < 0のとき以下の処理
+
+		bpl @RIGHT_OVER_CHK
+; (left over | right over end) flag change
+; if (newX < 0 && 0 <= oldX): left over on | right over off
+; -> if (0 <= newX || oldX < 0): skip
 		lda spr_posX_arr, x
-		cmp #$11
-		bcs @RIGHT_OVER_CHK
-		; 0 <= oldX <= $10のとき以下の処理
-		; 前のX座標が正で現在のX座標が負のとき
+		bmi @DESTROY_ENEMY_CHK
+		cmp #$10
+		bcs @STORE_POS_X
 		lda spr_attr_arr, x
-		and #BIT5						; 右端を超えたフラグ
+		and #BIT5
 		bne @RIGHT_OVER_FLAG_OFF
-		; 左端超えたフラグをON
+		; left over on
 		lda spr_attr_arr, x
-		ora #BIT1						; 左端を越えたフラグ
+		ora #BIT1
 		sta spr_attr_arr, x
-		jmp @STORE_POS_X
+		bne @DESTROY_ENEMY_CHK
+		; ------------------------------
 @RIGHT_OVER_FLAG_OFF:
-		eor spr_attr_arr, x				; AレジスタはBIT5だけ立っているので、XORでBIT5を0に
+		eor spr_attr_arr, x
 		sta spr_attr_arr, x
-		jmp @STORE_POS_X
+		jmp @DESTROY_ENEMY_CHK
 		; ------------------------------
 @RIGHT_OVER_CHK:
-		; 敵が右移動していて、右端を超えた場合
+; (left over end | right over) flag change
+; if (oldX < 0 && 0 <= newX): left over off | right over on
+; -> if (0 <= oldX || newX < 0): skip
 		lda spr_posX_arr, x
+		bpl @DESTROY_ENEMY_CHK
 		cmp #$f0
-		bcc @ERASE_ENEMY_CHK
-		lda spr_posX_tmp_arr, x
-		cmp #$11
-		bcs @ERASE_ENEMY_CHK
-		lda spr_attr_arr, x
-		and #%0111_1111
-		sta spr_attr_arr, x
-		jmp @STORE_POS_X
-		; ------------------------------
-@ERASE_ENEMY_CHK:
-		lda spr_posX_tmp_arr, x
-		cmp #$e1
-		bcc @STORE_POS_X				; newX < $e1 ならばジャンプ
-		cmp #$f1
-		bcs @STORE_POS_X				; $f1 <= newX ならばジャンプ
-		; $e1 <= X <= $f0 のとき
+		bcc @STORE_POS_X
 		lda spr_attr_arr, x
 		and #BIT1
-		beq @STORE_POS_X
-		; 画面左端にいる
+		bne @LEFT_OVER_FLAG_OFF
+		; right over on
 		lda spr_attr_arr, x
-		and #%0111_1111					; bit7（スプライト使用フラグ）を0に（敵を消去）
+		ora #BIT5
+		sta spr_attr_arr, x
+		bne @DESTROY_ENEMY_CHK
+		; ------------------------------
+@LEFT_OVER_FLAG_OFF:
+		eor spr_attr_arr, x
+		sta spr_attr_arr, x
+
+@DESTROY_ENEMY_CHK:
+; left over -> posX < $90（<=）で消去
+; right over -> $70 < posX（<=）で消去
+		; chk is left over
+		lda spr_attr_arr, x
+		and #BIT1
+		beq @CHK_IS_RIGHT_OVER
+		lda spr_posX_tmp_arr, x
+		cmp #$90
+		bcc @DESTROY
+		bcs @STORE_POS_X
+		; ------------------------------
+@CHK_IS_RIGHT_OVER:
+		lda spr_attr_arr, x
+		and #BIT5
+		beq @STORE_POS_X
+		lda spr_posX_tmp_arr, x
+		cmp #$70
+		bcc @STORE_POS_X
+@DESTROY:
+		lda spr_attr_arr, x
+		and #%0111_1111
 		sta spr_attr_arr, x
 @STORE_POS_X:
 		lda spr_posX_tmp_arr, x
@@ -792,7 +812,7 @@ AMOUNT_INC_SPD_R:
 		iny
 		lda (addr_tmp1), y
 		bne @NO_MOVE_NUM_RESET
-		ldy #0
+		ldy #0							; MOVE_ARRのENDCODEを読み取ったら
 @NO_MOVE_NUM_RESET:
 		tya
 		sta spr_move_num, x
@@ -886,7 +906,7 @@ AMOUNT_INC_SPD_R:
 		lda spr_attr_arr, x
 		bpl @NEXT_ENEMY						; 敵がアクティブでない場合はスキップ
 
-		and #BIT4							; 当たり判定無効フラグ
+		and #BIT6							; 当たり判定無効フラグ
 		bne @NEXT_ENEMY
 
 		; 水平方向の衝突を確認
@@ -923,12 +943,17 @@ AMOUNT_INC_SPD_R:
 		bmi @NEXT_ENEMY						; プレイヤーが下降中でない場合はスキップ
 		beq @NEXT_ENEMY
 
-@STOMP:
-		; プレイヤーが下降中に敵と衝突している
+@STOMP:			; 未使用のラベル
+		lda spr_attr2_arr, x			; bit0: 踏めるかどうか
+		and #BIT0
+		beq @COLLISION
+		; プレイヤーが下降中に敵と衝突している && 踏める敵である
 		jsr _handleEnemyStomp
 		jmp @NEXT_ENEMY
 
 @COLLISION:
+		lda #0
+		sta engine_flag
 		lda #2
 		sta engine
 		bne @EXIT
@@ -946,20 +971,23 @@ AMOUNT_INC_SPD_R:
 
 ;*------------------------------------------------------------------------------
 ; 敵がプレイヤーに踏まれたときの処理
-; なぜかXレジスタは保存され最後にもとに戻る
-; @PARAMS		None
+; @PARAMS		X: spr buff id
 ; @CLOBBERS		A
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _handleEnemyStomp
 		stx tmp_rgstX
 		; 敵のキャラクタ番号を変更して踏まれたことを示す
-		lda #$02						; TODO: これは[name]_ANIMATION_ARRの情報から取ってくるようにする（この定数はクリボー専用）
+		lda spr_id_arr, x
+		tax
+		ldy #1
+		ldarr SPRITE_ARR				; TODO: これは[name]_ANIMATION_ARRの情報から取ってくるようにする（この定数はクリボー専用）
+		ldx tmp_rgstX
 		sta spr_anime_num, x
 
-		; 敵の当たり判定無効フラグ，倒されたフラグを立てる
+		; 敵の当たり判定無効(BG, SPR)フラグ，倒されたフラグを立てる
 		lda spr_attr_arr, x
-		ora #%0001_1000
+		ora #%0101_1000
 		sta spr_attr_arr, x
 
 		lda #0

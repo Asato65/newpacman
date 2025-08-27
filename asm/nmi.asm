@@ -43,14 +43,22 @@
 		inc nmi_cnt
 		lda is_processing_main
 		beq @NMI_MAIN
-		pla
-		jsr Subfunc::_setScroll
 		; ゼロスプライトの描画
 		lda #0
 		sta OAM_ADDR
 		lda #>CHR_BUFF
 		sta OAM_DMA
-		rti	; --------------------------
+		lda engine
+		cmp #$03
+		beq :+
+		cmp #$01
+		beq :+
+		lda engine_flag
+		beq :+
+		jsr Func::_waitDispStatus	; これを実行しないと0衝突が発生しなくなる
+:
+		pla
+		rti
 
 @NMI_MAIN:
 		lda is_updated_map

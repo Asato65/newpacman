@@ -46,6 +46,19 @@ is_jumping				: .byte 0
 
 map_num					: .byte 0
 
+item_velocity_x:		.byte 0
+item_velocity_y:		.byte 0
+item_counter:			.byte 0
+is_animation:			.byte 0
+item_id:				.byte 0
+item_attr:				.byte 0		; BIT7 -> 利用中, BIT1 -> 左端フラグ
+item_pos_x:				.byte 0
+item_pos_y:				.byte 0
+item_float_velocity_x:	.byte 0
+item_float_velocity_y:	.byte 0
+item_decimal_part_velocity_x:	.byte 0
+item_decimal_part_velocity_y:	.byte 0
+
 
 .segment "USER_MEM"
 
@@ -70,11 +83,13 @@ spr_float_velocity_y_arr			: .res 6
 spr_anime_timer						: .res 6
 spr_anime_num						: .res 6
 spr_id_arr							: .res 6		; キャラに固有のID（マリオは最初から0でセット済み）
-spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か、bit5: 右端を超えたとき（敵のみ使用）、bit4: 当たり判定なし，bit3: 倒された，bit2: マリオ…上端を超えたとき／敵：下端を超えた時、敵…非表示、 bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
+spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か、bit6: spr当たり判定なし，bit5: 右端を超えたとき（敵のみ使用）、bit4: BG当たり判定なし，bit3: 倒された，bit2: マリオ…上端を超えたとき／敵：下端を超えた時（非表示？）、 bit1: 左端を超えたとき, bit0: 向き（1のとき右向き）
 ; 左端を超えているがまだ表示されている→BIT1=1
 ; 左端を超えて表示もされない→BIT7=0
 ; 右端を超えているがまだ表示されている→BIT1=0
 ; 右端を超えて表示もされない→BIT5=1（現在はパックンフラワーのスポーン時のみ使用，クリボーが右に進んだときは使っていない）
+; → 左端を少しでも超えたらBIT1=1，右端を完全に超えたらBIT5=1
+spr_attr2_arr						: .res 6		; bit1: 地形チェックをするか， bit0: 踏めるかどうか（0で踏めない）
 spr_move_timer_arr					: .res 6		; マリオの領域は未使用
 spr_move_counter					: .res 6		; $ffで初期化する
 spr_move_timer_max_arr				: .res 6
@@ -84,7 +99,7 @@ spr_standing_disp					: .res 6
 plt_datas							: .res 24
 bg_color							: .res 1
 
-timer_dec_num_arr					: .res 3
+timer_dec_num_arr					: .res 3		; arr[0] = 百の位
 
 coin_counter						: .res 2
 

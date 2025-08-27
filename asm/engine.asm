@@ -25,6 +25,9 @@ bgm_dq:
 		jsr _nsd_main
 		jsr Func::_scroll
 
+		lda #1
+		sta engine_flag
+
 		; inc timer
 		ldx #0
 :
@@ -85,6 +88,8 @@ bgm_dq:
 
 		lda #1
 		sta engine
+		shr #1
+		sta engine_flag
 		lda	se_pause
 		ldx	se_pause+1
 		jsr	_nsd_play_se
@@ -108,11 +113,11 @@ bgm_dq:
 		lda spr_attr_arr, x
 		and #BIT7
 		sta Sprite::is_spr_available
-		jsr Sprite::_moveSprite
 		ldx Sprite::spr_buff_id
 		beq :+
 		jsr Enemy::_checkCollision
 :
+		jsr Sprite::_moveSprite
 		ldx Sprite::spr_buff_id						; spr id
 		ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
 		jsr Sprite::_tfrToChrBuff
@@ -134,7 +139,6 @@ bgm_dq:
 		jsr Item::_moveItem
 
 		jsr Player::_coinAnimation
-
 		jsr Time::_manageTime
 
 		jsr Func::_pltAnimation
@@ -174,7 +178,6 @@ bgm_dq:
 
 		lda #0
 		sta engine
-		sta engine_flag
 		lda	se_pause
 		ldx	se_pause+1
 		jsr	_nsd_play_se
@@ -277,7 +280,6 @@ bgm_dq:
 		; 終了処理
 		lda #0
 		sta engine
-		sta engine_flag
 		ldy map_num
 		jsr DrawMap::_changeStage
 :
@@ -479,7 +481,6 @@ TITLE_DATA3:
 @START_GAME:
 		lda #0
 		sta engine
-		sta engine_flag
 
 		ldy #2
 		sty map_num

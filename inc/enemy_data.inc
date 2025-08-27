@@ -15,16 +15,18 @@ FLOWER_ID = $02
 
 
 ENEMY_KURIBO:
-	.byte $1				; 踏めるかどうか
-	.byte $2				; 死んだとき（踏まれたとき）のアニメーション(anime2)
-	.byte $02, $0a			; アニメーションの範囲（anime0-1(2は入らない)），アニメーション速度
-	.addr KURIBO_ANIMATION_ARR
-	.byte $1				; move_arrで設定している動きの数
-	.addr KURIBO_MOVE_ARR
-	.byte $0				; attr
+	.byte %00000011			; 0: attr2 (bit1: 地形チェック，bit0: 踏めるか))
+	.byte $2				; 1: 死んだとき（踏まれたとき）のアニメーション(anime2)
+	.byte $02, $0a			; 2-3: アニメーションの範囲（anime0-1(2は入らない)），アニメーション速度
+	.addr KURIBO_ANIMATION_ARR	; 4-5
+	.byte $1				; 6: move_arrで設定している動きの数（未使用？？）
+	.addr KURIBO_MOVE_ARR	; 7-8
+	.byte $0				; 9: attr
+
+; TODO: 読み込んでいる敵（最大5種類？？）のENEMY_nameのアドレスを保存しておく（5 * 2 = 10bytes）
 
 ENEMY_FLOWER:
-	.byte $0
+	.byte %00000001
 	.byte $0
 	.byte $02, $0a
 	.addr FLOWER_ANIMATION_ARR
@@ -54,11 +56,11 @@ FLOWER_ANIMATION_ARR:
 
 
 KURIBO_MOVE_ARR:
-	.byte $0, NEGATIVE $08, $0, $0, $70, $ff		; タイマー, X速度, Y速度（タイマーが0のとき、速度を後から更新しない）, X加速度, Y加速度、エンドコード（ff以外ならアニメーション番号を設定する）
+	.byte $0, $f8, $0, $0, $70, $ff		; タイマー, X速度, Y速度（タイマーが0のとき、速度を後から更新しない）, X加速度, Y加速度、エンドコード（ff以外ならアニメーション番号を設定する）
 
 FLOWER_MOVE_ARR:
-	.byte 32, $0, NEGATIVE $08, $0, $0, $ff		; 約0.5秒上昇、アニメーション
-	.byte 120, $0, 0,           $0, $0, $ff		; 2秒停止、アニメーションする
-	.byte 32, $0, $08         , $0, $0, $ff		; 約0.5秒下降、アニメーション
-	.byte 120, $0, 0,           $0, $0, $ff		; 2秒停止、アニメーション停止
+	.byte 32,  $0, $f8, $0, $0, $ff		; 約0.5秒上昇、アニメーション
+	.byte 120, $0, $0,  $0, $0, $ff		; 2秒停止、アニメーションする
+	.byte 32,  $0, $08, $0, $0, $ff		; 約0.5秒下降、アニメーション
+	.byte 120, $0, $0,  $0, $0, $ff		; 2秒停止、アニメーション停止
 	.byte 0										; endcode

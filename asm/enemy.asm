@@ -125,15 +125,18 @@ enemy_block_pos_bottom:		.byte 0
 		sta spr_posX_tmp_arr, x				; 右端から
 		sta spr_posX_arr, x
 
+		sub spr_posX_tmp_arr+$0
+		add Player::player_actual_pos_left
+		lda #0
+		adc standing_disp
+		sta spr_standing_disp, x
+
 		lda tmp1
 		and #BYT_GET_LO
 		shl #4							; ピクセル単位の座標に変換
 		add #NEGATIVE $e0
 		cnn
 		sta spr_posY_tmp_arr, x
-
-		lda #BIT7
-		sta spr_attr_arr, x
 
 		; 敵IDを取得
 		iny
@@ -172,8 +175,14 @@ enemy_block_pos_bottom:		.byte 0
 		ldy #9
 		ldarr SPRITE_ARR
 		ldx tmp1
-		ora spr_attr_arr, x
+		ora #BIT7
 		sta spr_attr_arr, x
+
+		ldx tmp2
+		ldy #0
+		ldarr SPRITE_ARR
+		ldx tmp1
+		sta spr_attr2_arr, x
 
 
 		lda #$ff
@@ -252,7 +261,7 @@ enemy_block_pos_bottom:		.byte 0
 
 
 ;*------------------------------------------------------------------------------
-; 敵キャラのオブジェクト衝突判定
+; 敵キャラのオブジェクト(BG)衝突判定
 ; @PARAMS		X: sprite buff id
 ; @CLOBBERS		A Y
 ; @RETURNS		None
@@ -265,9 +274,9 @@ enemy_block_pos_bottom:		.byte 0
 		; ------------------------------
 :
 		; 当たり判定なしならスキップ
-		lda spr_attr_arr, x
-		and #BIT4
-		beq :+
+		lda spr_attr2_arr, x
+		and #BIT1
+		bne :+
 		rts
 		; ------------------------------
 :
@@ -299,19 +308,14 @@ enemy_block_pos_bottom:		.byte 0
 		sta enemy_block_pos_bottom
 
 
-		; スクロール量と画面を考慮してマリオのX座標を取得
-		ldy #0
-		sty tmp1
+		; スクロール量と画面を考慮してX座標を取得
+		lda spr_posX_arr, x
+		add scroll_x
+		tay
+
 		lda spr_posX_tmp_arr, x
 		add scroll_x
-		sta tmp2
-		lda main_disp
-		adc #0
-		and #%0000_0001
-		sta enemy_current_screen
-
-		lda tmp2
-		ldy enemy_actual_pos_left
+		sta tmp2						; この関数の終了時，再度standing_dispを計算するのに使う
 		cmp #$f0
 		bcc :+
 		cpy #$10
@@ -338,6 +342,9 @@ enemy_block_pos_bottom:		.byte 0
 		shr #4
 		sta enemy_block_pos_right
 
+		lda spr_standing_disp, x
+		and #1
+		sta enemy_current_screen
 
 		; 下方向のあたり判定
 		lda enemy_block_pos_top
@@ -486,6 +493,27 @@ enemy_block_pos_bottom:		.byte 0
 		sta enemy_collision_flags
 		jsr _fixCollision
 @EXIT:
+		; 座標を修正したあと，画面番号が変化している可能性があるので，再度計算
+		; 左に移動中，画面1, x=feで，blockX=fにオブジェクト
+		; 衝突したので画面2，x=0に移動
+		ldy tmp2
+
+		lda spr_posX_tmp_arr, x
+		add scroll_x
+		cmp #$f0
+		bcc :+
+		cpy #$10
+		bcs :+
+		; f0 <= newpos < 0 && 0 <= pos < 10
+		dec spr_standing_disp, x
+:
+		cpy #$f0
+		bcc :+
+		cmp #$10
+		bcs :+
+		; f0 <= pos < 0 && 0 <= newpos < 10
+		inc spr_standing_disp, x
+:
 		rts
 		; ------------------------------
 .endproc

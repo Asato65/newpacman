@@ -32,8 +32,13 @@
 
 
 .define Item
+.define Func
 .import _spawn
 .import _moveItem
+.import _waitDispStatus
+.import _dispCoin
+.import _pltAnimation
+.import _scroll
 
 .include "macro.asm"
 .include "joypad.asm"

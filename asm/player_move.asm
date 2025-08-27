@@ -536,6 +536,11 @@ EXIT:
 		cmp #$f0
 		bcc :+
 		; 落下死
+		lda engine
+		cmp #2
+		beq @EXIT
+		lda #0
+		sta engine_flag
 		lda #2
 		sta engine
 		bne @EXIT
@@ -551,6 +556,7 @@ EXIT:
 		; posYが正（画面上部）に戻ってきたとき
 		lda spr_attr_arr+$0
 		and #%1111_1011
+		ora #BIT7
 		sta spr_attr_arr+$0
 @EXIT:
 		rts
@@ -1151,81 +1157,92 @@ switch(playerColllisionFixFlags) {
 		bne @LOOP2
 
 
-		ldx #0
-		lda player_collision_fix_flags
+		ldx #0							; ブロックを叩いて左右にずれるときに1（マリオが滑らかに動く）
 
-		cmp #%0000_1100
-		beq @UPPER
-		cmp #%0000_0011
-		beq @LOWER
-		cmp #%0000_0101					; 隠しブロックを含めると1101の可能性
-		beq @RIGHT
-		cmp #%0000_1010					; 隠しブロックで1110の可能性
-		beq @LEFT
+		ldy player_collision_fix_flags
+		bne :+
+		rts		; ----------------------
+:
+		cpy #6
+		bne :+
+		ldy #1							; lower right
+		lda spr_float_velocity_x_arr+$0
+		bpl CHK_BITS
+		ldy #8							; upper left
+		bne CHK_BITS	; --------------
+:
+		cpy #9
+		bne :+
+		ldy #2							; lower left
+		lda spr_float_velocity_x_arr+$0
+		bmi CHK_BITS
+		ldy #4							; upper right
+		bne CHK_BITS	; --------------
+:
+		cpy #1
+		bne :+
+		jmp CHK_LOWER_RIGHT	; ----------
+:
+		cpy #2
+		bne :+
+		jmp CHK_LOWER_LEFT	; ----------
+:
+		cpy #4
+		bne :+
+		jmp CHK_UPPER_RIGHT	; ----------
+:
+		cpy #8
+		bne :+
+		jmp CHK_UPPER_LEFT	; ----------
+:
 
-		cmp #%0000_0111
-		beq @LOWER_RIGHT				; 右下→着地する方向に動かし，左にずらす
-		cmp #%0000_1011
-		beq @LOWER_LEFT
-		cmp #%0000_1101
-		beq @UPPER_RIGHT
-		cmp #%0000_1110
-		beq @UPPER_LEFT
-		bne @OTHER_CHECK				; マリオ周辺のブロックが一つだけのとき
-
-@LOWER:
-		jsr _fixCollisionDown
-		rts
-@UPPER:
+CHK_BITS:
+		dey
+		lda COLLISION_FIX_FLAGS_ARR, y
+		sta tmp1
+		and #BIT3
+		beq :+
 		jsr _fixCollisionUp
-		rts
-@RIGHT:
-		jsr _fixCollisionRight
-		rts
-@LEFT:
-		jsr _fixCollisionLeft
-		rts
-@LOWER_RIGHT:
-		jsr _fixCollisionRight
+:
+		lda tmp1
+		and #BIT2
+		beq :+
 		jsr _fixCollisionDown
-		rts
-@LOWER_LEFT:
+:
+		lda tmp1
+		and #BIT1
+		beq :+
 		jsr _fixCollisionLeft
-		jsr _fixCollisionDown
-		rts
-@UPPER_RIGHT:
+:
+		lda tmp1
+		and #BIT0
+		beq :+
 		jsr _fixCollisionRight
-		jsr _fixCollisionUp
-		rts
-@UPPER_LEFT:
-		jsr _fixCollisionLeft
-		jsr _fixCollisionUp
+:
 		rts
 		; ------------------------------
 
-@OTHER_CHECK:
-		cmp #%0000_0001					; 右下→着地する方向に動かし，左にずらす
-		bne @CHECK_LOWER_LEFT
 
+CHK_LOWER_RIGHT:
+		; y = 1
 		lda player_offset_flags
 		cmp #%0000_0001					; Y座標のずれの確認
-		beq @LOWER
+		beq LOWER
 		lda player_actual_pos_right
 		and #BYT_GET_LO
 		sta tmp3
 		lda player_pos_bottom
 		and #BYT_GET_LO
 		cmp tmp3
-		bcc @LOWER						; right-bottom<0 → right<bottom（左右<上下）
-		beq @LOWER_RIGHT
-		bcs @RIGHT						; 上下のずれ < 左右のずれ
-@CHECK_LOWER_LEFT:
-		cmp #%0000_0010					; 左下
-		bne @CHECK_UPPER_RIGHT
-
+		beq EXIT
+		bcc LOWER
+		ldy #5							; right
+		bne EXIT	; ------------------
+CHK_LOWER_LEFT:
+		; y = 2
 		lda player_offset_flags
 		cmp #%0000_0001					; Y座標のずれの確認
-		beq @LOWER
+		beq LOWER
 		lda player_actual_pos_left
 		cnn
 		and #BYT_GET_LO
@@ -1233,86 +1250,99 @@ switch(playerColllisionFixFlags) {
 		lda player_pos_bottom
 		and #BYT_GET_LO
 		cmp tmp3
-		bcc @LOWER2
-		beq @LOWER_LEFT2
-		bcs @LEFT2						; 上下のずれ < 左右のずれ
-@CHECK_UPPER_RIGHT:
-		cmp #%0000_0100					; 右上
-		bne @CHECK_UPPER_LEFT
+		beq EXIT
+		bcc LOWER
+		ldy #10							; left
+		bne EXIT
+LOWER:
+		ldy #3							; lower
+		bne EXIT	; ------------------
 
+CHK_UPPER_RIGHT:
 		lda player_offset_flags
 		cmp #%0000_0010					; X座標のずれの確認
-		beq @RIGHT2
+		beq RIGHT
 		lda player_actual_pos_right
 		and #BYT_GET_LO
 		cmp #6
 		bcs :+
 		ldx #1
-		bne @RIGHT2
+		bne RIGHT
 :
 		sta tmp3
 		lda player_pos_top
 		cnn
 		and #BYT_GET_LO
 		cmp tmp3
-		bcc @UPPER2						; 上下のずれ <= 左右のずれ
-		beq @UPPER_RIGHT2
-		bcs @RIGHT2
-@CHECK_UPPER_LEFT:
-		cmp #%0000_1000					; 左上
-		beq :+
-		rts
-:
+		beq EXIT
+		bcc UPPER
+RIGHT:
+		ldy #5
+		bne EXIT	; ------------------
+
+CHK_UPPER_LEFT:
 		lda player_offset_flags
 		cmp #%0000_0010					; X座標のずれの確認
-		beq @LEFT2
+		beq LEFT
 		lda player_actual_pos_left
 		and #BYT_GET_LO
 		cmp #$a
 		bcc :+
 		ldx #1							; ブロックを叩いたときの滑らかな移動
-		bne @LEFT2
+		bne LEFT
 :
 		sta tmp3
 		lda player_pos_top
 		and #BYT_GET_LO
 		cmp tmp3
-		bcc @LEFT2
-		beq @UPPER_LEFT2
-		bcs @UPPER2						; 上下のずれ <= 左右のずれ
-		rts
-		; ------------------------------
-
-@LOWER2:
-		jsr _fixCollisionDown
-		rts
-@UPPER2:
-		jsr _fixCollisionUp
-		rts
-@RIGHT2:
-		jsr _fixCollisionRight
-		rts
-@LEFT2:
-		jsr _fixCollisionLeft
-		rts
-@LOWER_RIGHT2:
-		jsr _fixCollisionDown
-		jsr _fixCollisionRight
-		rts
-@LOWER_LEFT2:
-		jsr _fixCollisionDown
-		jsr _fixCollisionLeft
-		rts
-@UPPER_RIGHT2:
-		jsr _fixCollisionUp
-		jsr _fixCollisionRight
-		rts
-@UPPER_LEFT2:
-		jsr _fixCollisionUp
-		jsr _fixCollisionLeft
-		rts
-		; ------------------------------
+		beq EXIT
+		bcs UPPER						; 上下のずれ <= 左右のずれ
+LEFT:
+		ldy #10
+		bne EXIT	; ------------------
+UPPER:
+		ldy #12							; upper
+EXIT:
+		jmp CHK_BITS
 .endproc
+
+
+
+; index = player_collision_fix_flags
+/*
+player_collision_fix_flags:
+1:  (lowerright)
+2:  (lowerleft)
+3:  lower
+4:  (upperright)
+5:  right
+6:  (ex1)
+7:  lowerright
+8:  (upperleft)
+9:  (ex2)
+10: left
+11: lowerleft
+12: upper
+13: upperright
+14: upperleft
+*/
+COLLISION_FIX_FLAGS_ARR:
+	; |upper|lower|left|right|
+	.byte %0101		; 1
+	.byte %0110		; 2
+	.byte %0100		; 3
+	.byte %1001		; 4
+	.byte %0001		; 5
+	.byte %0000		; 6
+	.byte %0101		; 7
+	.byte %1010		; 8
+	.byte %0000		; 9
+	.byte %0010		; 10
+	.byte %0110		; 11
+	.byte %1000		; 12
+	.byte %1001		; 13
+	.byte %1010		; 14
+
 
 
 ;*------------------------------------------------------------------------------

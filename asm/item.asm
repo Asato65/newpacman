@@ -3,20 +3,6 @@
 .export _spawn
 .export _moveItem
 
-.ZeroPage
-		item_velocity_x:		.byte 0
-		item_velocity_y:		.byte 0
-		item_counter:			.byte 0
-		is_animation:			.byte 0
-		item_id:				.byte 0
-		item_attr:				.byte 0		; BIT7 -> 利用中, BIT1 -> 左端フラグ
-		item_pos_x:				.byte 0
-		item_pos_y:				.byte 0
-		item_float_velocity_x:	.byte 0
-		item_float_velocity_y:	.byte 0
-		item_decimal_part_velocity_x:	.byte 0
-		item_decimal_part_velocity_y:	.byte 0
-
 .code
 
 .proc _spawn

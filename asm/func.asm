@@ -1,5 +1,10 @@
 .scope Func
 
+.export _waitDispStatus
+.export _dispCoin
+.export _pltAnimation
+.export _scroll
+
 .ZeroPage
 		plt_animation_counter:	.byte 0
 
@@ -38,6 +43,7 @@
 ; @CLOBBERS		A Y
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
+
 .proc _waitDispStatus
 		; ----------- 0爆弾前 -----------
 		lda ppu_ctrl1_cpy				; ステータス表示の為$2000の画面を表示
@@ -64,8 +70,22 @@
 		bne :-
 
 		; ----------- 0爆弾後 -----------
-
+		lda engine
+		cmp #1
+		beq :+
 		jsr Subfunc::_setScroll
+		rts
+:
+		; ポーズ中はsetScrollを使わず，同じscroll_xの値を使うことでスクロールもストップ
+		lda scroll_x
+		sta PPU_SCROLL
+		lda #0
+		sta PPU_SCROLL
+		lda ppu_ctrl1_cpy
+		and #%1111_1110
+		ora main_disp
+		sta ppu_ctrl1_cpy
+		sta PPU_CTRL1
 		rts
 		; ------------------------------
 .endproc

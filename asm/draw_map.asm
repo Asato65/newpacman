@@ -316,6 +316,7 @@ fill_ground_start		: .byte 0
 
 		lda #0
 		sta is_updated_map
+		sta engine_flag
 
 		jsr _nsd_pause_bgm
 
@@ -366,7 +367,6 @@ fill_ground_start		: .byte 0
 		sta scroll_x
 		sta Player::is_fly
 		sta Player::is_jumping
-		sta spr_velocity_x_arr+$0
 		sta scroll_amount
 		sta is_updated_map
 		sta standing_disp
@@ -418,9 +418,34 @@ fill_ground_start		: .byte 0
 		lda #$00
 		sta PPU_ADDR
 
-		lda #1
-		sta spr_velocity_y_arr+$0
+		lda #0
+		sta spr_anime_num+$0
+		sta spr_anime_timer+$0
+		sta spr_attr_arr+$0
+		sta spr_attr_arr+$1
+		sta spr_attr_arr+$2
+		sta spr_attr_arr+$3
+		sta spr_attr_arr+$4
+		sta spr_attr_arr+$5
+		sta spr_decimal_part_force_y+$0
+		sta spr_decimal_part_velocity_x_arr+$0
+		sta spr_decimal_part_velocity_y_arr+$0
+		sta spr_fix_val_y+$0
+		sta spr_float_velocity_x_arr+$0
 		sta spr_float_velocity_y_arr+$0
+		sta spr_force_fall_y+$0
+		sta spr_move_counter+$0
+		sta spr_move_num+$0
+		sta spr_pos_y_decimal_part+$0
+		sta spr_pos_y_origin+$0
+		sta spr_standing_disp+$0
+		sta spr_velocity_x_arr+$0
+		sta spr_velocity_y_arr+$0
+		sta Item::item_attr
+
+		lda #$ff
+		sta coin_animation_counter
+		sta block_anime_timer
 
 		lda #$28
 		sta spr_posX_arr+$0
@@ -430,22 +455,31 @@ fill_ground_start		: .byte 0
 		sta spr_posY_tmp_arr+$0
 		sta spr_pos_y_origin+$0
 
+		lda #1
+		sta spr_velocity_y_arr+$0
+		sta spr_float_velocity_y_arr+$0
+
 		lda #BIT7|BIT0
 		sta spr_attr_arr+$0
 
+		lda #$ff
+		ldx #$04*5					; 0スプライトとマリオの領域を除外
+@VRAM_INIT:
+		sta $0700, x
+		inx
+		bne @VRAM_INIT
+
 		ldx #0
-@CHR_MOVE_LOOP:
+@LOOP:
 		stx Sprite::spr_buff_id
-		lda spr_attr_arr, x
-		and #BIT7
-		sta Sprite::is_spr_available
 		ldx Sprite::spr_buff_id						; spr id
 		ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
 		jsr Sprite::_tfrToChrBuff
 		ldx Sprite::spr_buff_id
 		inx
 		cpx #6
-		bne @CHR_MOVE_LOOP
+		bne @LOOP
+
 
 		jsr Subfunc::_sleepOneFrame
 		lda #$3f
@@ -528,11 +562,13 @@ fill_ground_start		: .byte 0
 		lda #$00
 		sta PPU_ADDR
 
+		jsr Subfunc::_sleepOneFrame
+
 		lda #%00010100
 		sta ppu_ctrl2_cpy
 		jsr Subfunc::_restorePPUSet		; SPRITE ON
 
-		jsr Subfunc::_waitVblankUsingNmi
+		jsr Subfunc::_sleepOneFrame
 		jsr Subfunc::_setScroll
 
 		lda #%00011110

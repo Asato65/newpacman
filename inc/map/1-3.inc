@@ -8,9 +8,8 @@ MAP_ARR_13:
 
 MAP_13_1:
 	.byte $bd
-	; .byte 'B'
-	; .byte %00000000, %00000000
-	.byte '^', %00011111, %11111100
+	.byte 'B', %00000000, %00000000
+	; .byte '^', %00011111, %11111100
 	.byte (GET_OBJ_POS $3, $8), 'H'
 	.byte (GET_OBJ_POS $3, $b), 'H'
 	.byte (GET_OBJ_POS $4, $8), 'H'
@@ -41,11 +40,17 @@ MAP_13_1:
 	.byte (GET_OBJ_POS $6, $9), 'Q'
 	.byte (GET_OBJ_POS $7, $3), 'Q'
 	.byte (GET_OBJ_POS $8, $3), 'B'
+	.byte (GET_OBJ_POS $9, $4), 'H'
+	.byte (GET_OBJ_POS $a, $5), 'H'
+	.byte (GET_OBJ_POS $b, $6), 'H'
 	.byte (GET_OBJ_POS $c, $2), '`'		; 土管1
 	.byte (GET_OBJ_POS $c, $3), 'a'
 	.byte (GET_OBJ_POS $d, $2), 'b'
 	.byte (GET_OBJ_POS $d, $3), 'c'
 	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $0, $5), 'H'
+	.byte (GET_OBJ_POS $1, $4), 'H'
+	.byte (GET_OBJ_POS $2, $3), 'H'
 	.byte (GET_OBJ_POS $6, $2), '`'		; 土管2
 	.byte (GET_OBJ_POS $6, $3), '`'
 	.byte (GET_OBJ_POS $6, $4), 'a'
