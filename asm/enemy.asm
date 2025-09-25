@@ -49,6 +49,7 @@ enemy_block_pos_bottom:		.byte 0
 
 		lda #0
 		sta spr_attr_arr, y
+		sta spr_attr2_arr, y
 		sta spr_pos_y_decimal_part, y
 		sta spr_fix_val_y, y
 		sta spr_force_fall_y, y
@@ -63,6 +64,8 @@ enemy_block_pos_bottom:		.byte 0
 		; マリオ右向き，表示
 		lda #BIT7|BIT0
 		sta spr_attr_arr+$0
+		lda #%000_010_00
+		sta spr_attr2_arr+$0
 
 		pla
 		tay
@@ -120,6 +123,23 @@ enemy_block_pos_bottom:		.byte 0
 		; MEMO: 敵の出すX座標はマップ上（画面上ではない！）の座標でもいいかも？scroll_xを使えば実装できそう
 		; MEMO: 右端を超えたフラグも用意できるかも
 
+		cpx #0
+		bne :+
+		lda #0
+		sta spr_buff_start_addr, x
+		beq :++
+:
+		dex
+		lda spr_attr2_arr, x
+		shl #1
+		and #%0011_1000
+		clc
+		adc spr_buff_start_addr, x
+
+		inx
+		sta spr_buff_start_addr, x
+:
+
 		; 敵の座標をストア
 		lda #$ff
 		sta spr_posX_tmp_arr, x				; 右端から
@@ -151,7 +171,7 @@ enemy_block_pos_bottom:		.byte 0
 		lda spr_id_arr, x
 		cmp #FLOWER_ID
 		bne :+
-		; ファイヤーフラワーの設定
+		; ファイヤーフラワーの設定（ブロック間に配置する必要があるので）
 		pha
 		lda scroll_x
 		add scroll_amount				; scroll_xは前のフレームの値のままなので、scroll_amount（更新済み）を足す
@@ -183,6 +203,31 @@ enemy_block_pos_bottom:		.byte 0
 		ldarr SPRITE_ARR
 		ldx tmp1
 		sta spr_attr2_arr, x
+
+
+		ldx tmp2
+		ldy #$0c
+		ldarr SPRITE_ARR
+		ldx tmp1
+		sta spr_collision_box_x1, x
+
+		ldx tmp2
+		ldy #$0d
+		ldarr SPRITE_ARR
+		ldx tmp1
+		sta spr_collision_box_y1, x
+
+		ldx tmp2
+		ldy #$0e
+		ldarr SPRITE_ARR
+		ldx tmp1
+		sta spr_collision_box_x2, x
+
+		ldx tmp2
+		ldy #$0f
+		ldarr SPRITE_ARR
+		ldx tmp1
+		sta spr_collision_box_y2, x
 
 
 		lda #$ff

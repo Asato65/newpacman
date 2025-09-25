@@ -89,12 +89,18 @@ spr_attr_arr						: .res 6		; bit7: ほかのスプライトが利用中か、bi
 ; 右端を超えているがまだ表示されている→BIT1=0
 ; 右端を超えて表示もされない→BIT5=1（現在はパックンフラワーのスポーン時のみ使用，クリボーが右に進んだときは使っていない）
 ; → 左端を少しでも超えたらBIT1=1，右端を完全に超えたらBIT5=1
-spr_attr2_arr						: .res 6		; bit1: 地形チェックをするか， bit0: 踏めるかどうか（0で踏めない）
+spr_attr2_arr						: .res 6		; bit4-2: 高さ（8*8ブロック単位），bit1: 地形チェックをするか， bit0: 踏めるかどうか（0で踏めない）
 spr_move_timer_arr					: .res 6		; マリオの領域は未使用
 spr_move_counter					: .res 6		; $ffで初期化する
 spr_move_timer_max_arr				: .res 6
 spr_move_num						: .res 6		; 移動リストのインデックス
 spr_standing_disp					: .res 6
+spr_collision_box_x1				: .res 6
+spr_collision_box_y1				: .res 6
+spr_collision_box_x2				: .res 6
+spr_collision_box_y2				: .res 6
+spr_buff_start_addr					: .res 6		; 各スプライトのバッファの開始アドレスを保存しておく（クリボーは4*4byte，フラワーは4*6byte）
+
 
 plt_datas							: .res 24
 bg_color							: .res 1

@@ -296,45 +296,53 @@ AMOUNT_INC_SPD_R:
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _tfrSprToBuffNormal
+		lda tmp1
+		sta tmp3						; 右側8pxのY座標
+
+		lda spr_attr_arr, x
+		and #BIT1
+		bne @OVER_LEFT
+		lda tmp2
+		cmp #$f8
+		bcc @SKIP
+		; 右端を超えたとき
+		lda #$ff
+		sta tmp3
+		jmp @END
+@OVER_LEFT:
+		lda tmp2
+		cmp #$f8
+		bcc @HIDE
+		lda #$ff
+		sta tmp1
+@SKIP:
+		; hide
 		lda spr_attr_arr, x
 		and #BIT7
 		beq @HIDE
 		lda spr_attr_arr, x
 		and #BIT5|BIT2
-		beq :+
+		beq @END
 		lda spr_posY_tmp_arr, x
 		cmp #$f8
-		bcs :+
+		bcs @END
 @HIDE:
-		; 非表示
 		lda #$ff
-		sta CHR_BUFF+$0, y
-		sta CHR_BUFF+$4, y
-		sta CHR_BUFF+$8, y
-		sta CHR_BUFF+$c, y
+		sta tmp1
+		sta tmp3
+@END:
+
+		lda spr_attr2_arr, x
+		shr #2
+		and #%0000_0111
+		bne :+
 		rts
-		; ------------------------------
 :
+		sta tmp4						; size_y
 
-		; Y座標
-		lda tmp1
-		sta CHR_BUFF+$0, y
-		sta CHR_BUFF+$4, y
-		add #8
-		sta CHR_BUFF+$8, y
-		sta CHR_BUFF+$c, y
+		sty tmp5						; buffIndex
+		stx tmp6						; sprBuffId
 
-		; X座標
-		lda tmp2
-		sta CHR_BUFF+$3, y
-		sta CHR_BUFF+$b, y
-		add #8
-		sta CHR_BUFF+$7, y
-		sta CHR_BUFF+$f, y
-
-
-		sty tmp1
-		stx tmp2
 		lda spr_id_arr, x			; キャラ固有のIDを取得
 		tax
 		ldy #4						; 配列ENEMY_enemyname[4]を取得
@@ -343,37 +351,87 @@ AMOUNT_INC_SPD_R:
 		iny
 		ldarr SPRITE_ARR
 		sta addr_tmp2+HI
-		ldx tmp2
+		ldx tmp6
+		lda tmp4
+		shl #2
+		sta tmp6						; クリボーなら8（chr4,attr4），フラワーは12ずつの値
 		lda spr_anime_num, x
-		shl #3
-		tay
+		tax
+		beq @INDEX_CALC_LOOP_EXIT
+		lda #0
+@INDEX_CALC_LOOP:
+		add tmp6
+		dex
+		bne @INDEX_CALC_LOOP
+@INDEX_CALC_LOOP_EXIT:
+		tay								; enemyname_ANIMATION_ARRのいずれかのchr配列の先頭アドレス
+
+		ldx tmp5						; buffIndex（yレジスタに入っていた引数の値）
+		lda tmp4
+@COLUMN:
+		pha
 
 		; tile id
-		ldx tmp1
 		lda (addr_tmp2), y
 		sta CHR_BUFF+$1, x
 		iny
 		lda (addr_tmp2), y
 		sta CHR_BUFF+$5, x
-		iny
-		lda (addr_tmp2), y
-		sta CHR_BUFF+$9, x
-		iny
-		lda (addr_tmp2), y
-		sta CHR_BUFF+$d, x
+		; attr
+		tya
 
-		iny
+		add tmp4
+		add tmp4
+		sub #1
+		tay
 		lda (addr_tmp2), y
 		sta CHR_BUFF+$2, x
 		iny
 		lda (addr_tmp2), y
 		sta CHR_BUFF+$6, x
-		iny
-		lda (addr_tmp2), y
-		sta CHR_BUFF+$a, x
-		iny
-		lda (addr_tmp2), y
-		sta CHR_BUFF+$e, x
+
+		; posY
+		lda tmp1
+		sta CHR_BUFF+$0, x
+		cmp #$ff
+		beq :+
+		add #8
+		sta tmp1
+:
+		lda tmp3
+		sta CHR_BUFF+$4, x
+		cmp #$ff
+		beq :+
+		add #8
+		sta tmp3
+:
+
+		; posX
+		lda tmp2
+		sta CHR_BUFF+$3, x
+		add #8
+		sta CHR_BUFF+$7, x
+
+		; buff indexを増やす（4byte * 2列）
+		; add x, tmp6
+		lda tmp5
+		add #8
+		sta tmp5
+		tax
+
+		lda tmp4
+		shl #1
+		sub #1
+		sta tmp6
+		tya
+		sub tmp6
+		tay
+		; sub y, #3  = (2 * 2 - 1)
+		; sub y, #5  = (2 * 3 - 1)
+		pla
+		sub #1
+		bne @COLUMN
+
 
 		rts
 		; ------------------------------
@@ -390,6 +448,150 @@ AMOUNT_INC_SPD_R:
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _tfrSprToBuffFlipX
+		lda tmp1
+		sta tmp3
+
+		lda spr_attr_arr, x
+		and #BIT1
+		bne @OVER_LEFT
+		lda tmp2
+		cmp #$f8
+		bcc @SKIP
+		; 右端を超えたとき
+		lda #$ff
+		sta tmp3
+		jmp @END
+@OVER_LEFT:
+		lda tmp2
+		cmp #$f8
+		bcc @HIDE
+		lda #$ff
+		sta tmp1
+@SKIP:
+		; hide
+		lda spr_attr_arr, x
+		and #BIT7
+		beq @HIDE
+		lda spr_attr_arr, x
+		and #BIT5|BIT2
+		beq @END
+		lda spr_posY_tmp_arr, x
+		cmp #$f8
+		bcs @END
+@HIDE:
+		lda #$ff
+		sta tmp1
+		sta tmp3
+@END:
+
+		lda spr_attr2_arr, x
+		shr #2
+		and #%0000_0111
+		bne :+
+		rts
+:
+		sta tmp4						; size_y
+
+		sty tmp5						; buffIndex
+		stx tmp6						; sprBuffId
+
+		lda spr_id_arr, x			; キャラ固有のIDを取得
+		tax
+		ldy #4						; 配列ENEMY_enemyname[4]を取得
+		ldarr SPRITE_ARR
+		sta addr_tmp2+LO
+		iny
+		ldarr SPRITE_ARR
+		sta addr_tmp2+HI
+		ldx tmp6
+		lda tmp4
+		shl #2
+		sta tmp6						; クリボーなら8（chr4,attr4），フラワーは12ずつの値
+		lda spr_anime_num, x
+		tax
+		beq @INDEX_CALC_LOOP_EXIT
+		lda #0
+@INDEX_CALC_LOOP:
+		add tmp6
+		dex
+		bne @INDEX_CALC_LOOP
+@INDEX_CALC_LOOP_EXIT:
+		tay								; enemyname_ANIMATION_ARRのいずれかのchr配列の先頭アドレス
+
+		ldx tmp5						; buffIndex（yレジスタに入っていた引数の値）
+		lda tmp4
+@COLUMN:
+		pha
+
+		; tile id
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$5, x
+		iny
+		lda (addr_tmp2), y
+		sta CHR_BUFF+$1, x
+		; attr
+		tya
+		add tmp4
+		add tmp4
+		sub #1
+		tay
+		lda (addr_tmp2), y
+		eor #%0100_0000
+		sta CHR_BUFF+$6, x
+		iny
+		lda (addr_tmp2), y
+		eor #%0100_0000
+		sta CHR_BUFF+$2, x
+
+		; posY
+		lda tmp1
+		sta CHR_BUFF+$0, x
+		cmp #$ff
+		beq :+
+		add #8
+		sta tmp1
+:
+		lda tmp3
+		sta CHR_BUFF+$4, x
+		cmp #$ff
+		beq :+
+		add #8
+		sta tmp3
+:
+
+		; posX
+		lda tmp2
+		sta CHR_BUFF+$3, x
+		add #8
+		sta CHR_BUFF+$7, x
+
+		; buff indexを増やす（4byte * 2列）
+		; add x, tmp6
+		lda tmp5
+		add #8
+		sta tmp5
+		tax
+
+		lda tmp4
+		shl #1
+		sub #1
+		sta tmp6
+		tya
+		sub tmp6
+		tay
+		; sub y, #3  = (2 * 2 - 1)
+		; sub y, #5  = (2 * 3 - 1)
+		pla
+		sub #1
+		bne @COLUMN
+
+
+		rts
+		; ------------------------------
+
+
+
+/*
 		lda spr_attr_arr, x
 		and #BIT7
 		beq @HIDE
@@ -507,6 +709,8 @@ AMOUNT_INC_SPD_R:
 
 		rts
 		; ------------------------------
+
+*/
 .endproc
 
 
@@ -644,10 +848,13 @@ AMOUNT_INC_SPD_R:
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _tfrToChrBuff
-		tya
-		shl #4
+		lda spr_buff_start_addr, x
+		add #4
 		tay
-		add y, #4									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
+		; tya
+		; shl #4
+		; tay
+		; add y, #4									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
 
 		lda spr_posY_arr, x
 		sta tmp1							; posY
@@ -836,7 +1043,6 @@ AMOUNT_INC_SPD_R:
 .endproc
 
 
-
 ;*------------------------------------------------------------------------------
 ; スプライトのアニメーション
 ; アニメーションカウンターをインクリメント，一定期間ごとにアニメーション変更
@@ -904,10 +1110,31 @@ AMOUNT_INC_SPD_R:
 		ldx #1
 @CHECK_LOOP:
 		lda spr_attr_arr, x
-		bpl @NEXT_ENEMY						; 敵がアクティブでない場合はスキップ
+		bpl @JMP_NEXT_ENEMY				; 敵がアクティブでない場合はスキップ
+		and #BIT6|BIT5				; 当たり判定無効フラグ，右端を超えたフラグが立っているか
+		beq :+
+@JMP_NEXT_ENEMY:
+		jmp @NEXT_ENEMY
+:
 
-		and #BIT6							; 当たり判定無効フラグ
-		bne @NEXT_ENEMY
+
+		; 左端フラグが立っていて，かつ完全に画面外にいるか判定
+		lda spr_attr_arr, x
+		and #BIT1
+		beq :+
+		stx tmp1
+		lda spr_id_arr, x
+		tax
+		ldy #$0a
+		ldarr SPRITE_ARR
+		sta tmp2						; width
+		ldx tmp1						; restore
+		lda spr_posX_tmp_arr, x
+		add tmp2
+		sub #8							; 敵のX座標が8未満→描画されなくなるので，存在しない判定にする
+		cmp #$20
+		bcs @NEXT_ENEMY					; 敵の右端が0x20～0xffなら画面外と判断する
+:
 
 		; 水平方向の衝突を確認
 		lda spr_posX_arr, x
@@ -919,6 +1146,7 @@ AMOUNT_INC_SPD_R:
 		cmp #PLAYER_WIDTH
 		bcs @NEXT_ENEMY						; 水平方向の衝突がない場合はスキップ
 
+		; 上の左端／右端フラグの処理だけでは，［マリオが左端，敵が右端を超えたとき］踏みつけられてしまう
 		lda spr_posX_arr, x
 		bpl :+
 		lda spr_posX_arr+$0
@@ -961,7 +1189,8 @@ AMOUNT_INC_SPD_R:
 @NEXT_ENEMY:
 		inx
 		cpx #6
-		bne @CHECK_LOOP
+		beq @EXIT
+		jmp @CHECK_LOOP
 
 @EXIT:
 		rts
