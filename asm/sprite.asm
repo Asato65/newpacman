@@ -78,6 +78,10 @@ PLAYER_ANIMATION_ARR:
 		.byte %0000_0000, %0000_0000, %0000_0000, %0000_0000
 
 
+PLAYER_COLLISION_BOX:
+		.byte $02, $02, $0f-2, $0f
+
+
 PLAYER_MOVE_ARR:
 		.byte $0, $0, $0, $0, $0, $ff		; タイマー(0なので速度を更新しない), X速度, Y速度, X加速度, Y加速度、エンドコード
 
@@ -590,127 +594,6 @@ AMOUNT_INC_SPD_R:
 		; ------------------------------
 
 
-
-/*
-		lda spr_attr_arr, x
-		and #BIT7
-		beq @HIDE
-		lda spr_attr_arr, x
-		and #BIT5|BIT2
-		beq :+
-		lda spr_posY_tmp_arr, x
-		cmp #$f8
-		bcs :+
-@HIDE:
-		; 非表示
-		lda #$ff
-		sta CHR_BUFF+$0, y
-		sta CHR_BUFF+$4, y
-		sta CHR_BUFF+$8, y
-		sta CHR_BUFF+$c, y
-		rts
-		; --------------------------
-:
-
-		lda spr_attr_arr, x
-		and #BIT1					; 左端を超えたか
-		bne @OVER_LEFT
-		lda tmp2
-		cmp #$f8
-		bcc :+
-		; 右端を超えたとき
-		lda #$ff
-		sta CHR_BUFF+$0, y
-		sta CHR_BUFF+$8, y
-		lda tmp1
-		sta CHR_BUFF+$4, y
-		add #8
-		sta CHR_BUFF+$c, y
-		jmp @STORE_POS_Y
-:
-		lda tmp1
-		sta CHR_BUFF+$0, y
-		sta CHR_BUFF+$4, y
-		add #8
-		sta CHR_BUFF+$8, y
-		sta CHR_BUFF+$c, y
-		jmp @STORE_POS_Y
-@OVER_LEFT:
-		lda tmp2
-		cmp #$f8
-		bcc :+
-		lda #$ff
-		sta CHR_BUFF+$4, y
-		sta CHR_BUFF+$c, y
-		lda tmp1
-		sta CHR_BUFF+$0, y
-		add #8
-		sta CHR_BUFF+$8, y
-		jmp @STORE_POS_Y
-:
-		lda #$ff
-		sta CHR_BUFF+$0, y
-		sta CHR_BUFF+$4, y
-		sta CHR_BUFF+$8, y
-		sta CHR_BUFF+$c, y
-
-@STORE_POS_Y:
-		lda tmp2
-		sta CHR_BUFF+$7, y
-		sta CHR_BUFF+$f, y
-		add #8
-		sta CHR_BUFF+$3, y
-		sta CHR_BUFF+$b, y
-
-		sty tmp1
-		stx tmp2
-		lda spr_id_arr, x			; キャラ固有のIDを取得
-		tax
-		ldy #4
-		ldarr SPRITE_ARR
-		sta addr_tmp2+LO
-		iny
-		ldarr SPRITE_ARR
-		sta addr_tmp2+HI
-		ldx tmp2
-		lda spr_anime_num, x
-		shl #3
-		tay
-
-		ldx tmp1
-		lda (addr_tmp2), y
-		sta CHR_BUFF+$1, x
-		iny
-		lda (addr_tmp2), y
-		sta CHR_BUFF+$5, x
-		iny
-		lda (addr_tmp2), y
-		sta CHR_BUFF+$9, x
-		iny
-		lda (addr_tmp2), y
-		sta CHR_BUFF+$d, x
-
-		iny
-		lda (addr_tmp2), y
-		eor #%0100_0000					; 左右反転
-		sta CHR_BUFF+$2, x
-		iny
-		lda (addr_tmp2), y
-		eor #%0100_0000
-		sta CHR_BUFF+$6, x
-		iny
-		lda (addr_tmp2), y
-		eor #%0100_0000
-		sta CHR_BUFF+$a, x
-		iny
-		lda (addr_tmp2), y
-		eor #%0100_0000
-		sta CHR_BUFF+$e, x
-
-		rts
-		; ------------------------------
-
-*/
 .endproc
 
 
@@ -1133,7 +1016,8 @@ AMOUNT_INC_SPD_R:
 		add tmp2
 		sub #8							; 敵のX座標が8未満→描画されなくなるので，存在しない判定にする
 		cmp #$20
-		bcs @NEXT_ENEMY					; 敵の右端が0x20～0xffなら画面外と判断する
+		bcc :+
+		jmp @NEXT_ENEMY					; 敵の右端が0x20～0xffなら画面外と判断する
 :
 
 		; 水平方向の衝突を確認
@@ -1157,6 +1041,59 @@ AMOUNT_INC_SPD_R:
 		beq @NEXT_ENEMY					; 敵が左端のときには，当たり判定チェックを通常通り行うが，敵が右端のときは当たり判定スキップ
 :
 
+	lda spr_posX_arr+$0
+	add spr_collision_box_x1+$0
+	sta tmp1						; プレイヤー左
+	lda spr_posX_arr, x
+	clc
+	adc spr_collision_box_x2, x		; 敵右
+	cmp tmp1
+	bcc @NEXT_ENEMY
+	lda spr_posX_arr+$0
+	add spr_collision_box_x2+$0
+	sta tmp1						; プレイヤー右
+	lda spr_posX_arr, x
+	clc
+	adc spr_collision_box_x1, x		; 敵左
+	cmp tmp1
+	bcs @NEXT_ENEMY
+
+	lda spr_posY_arr+$0
+	add spr_collision_box_y1+$0
+	sta tmp1						; プレイヤー上
+	lda spr_posY_arr, x
+	clc
+	adc spr_collision_box_y2, x		; 敵下
+	cmp tmp1
+	bcc @NEXT_ENEMY
+	lda spr_posY_arr+$0
+	add spr_collision_box_y2+$0
+	sta tmp1						; プレイヤー下
+	lda spr_posY_arr, x
+	clc
+	adc spr_collision_box_y1, x		; 敵上
+	cmp tmp1
+	bcs @NEXT_ENEMY
+
+	lda spr_posY_arr, x
+	clc
+	adc spr_collision_box_y2, x		; 敵下
+	cmp tmp1
+	bcc @COLLISION
+
+	lda spr_velocity_y_arr+$0
+	bmi @COLLISION
+
+	; stomp
+	lda spr_attr2_arr, x			; bit0: 踏めるかどうか
+	and #BIT0
+	beq @COLLISION
+	; プレイヤーが下降中に敵と衝突している && 踏める敵である
+	jsr _handleEnemyStomp
+
+
+
+		/*
 		; プレイヤーが敵の上にいて、かつ下降中かを確認
 		lda spr_posY_arr, x
 		sec
@@ -1179,18 +1116,23 @@ AMOUNT_INC_SPD_R:
 		jsr _handleEnemyStomp
 		jmp @NEXT_ENEMY
 
-@COLLISION:
-		lda #0
-		sta engine_flag
-		lda #2
-		sta engine
-		bne @EXIT
+		*/
+
+
 
 @NEXT_ENEMY:
 		inx
 		cpx #6
 		beq @EXIT
 		jmp @CHECK_LOOP
+
+@COLLISION:
+		lda #0
+		sta engine_flag
+		lda #2
+		sta engine
+		bne @EXIT
+		;----------------
 
 @EXIT:
 		rts

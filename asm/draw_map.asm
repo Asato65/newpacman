@@ -455,6 +455,15 @@ fill_ground_start		: .byte 0
 		sta spr_posY_tmp_arr+$0
 		sta spr_pos_y_origin+$0
 
+		lda PLAYER_COLLISION_BOX+$0
+		sta spr_collision_box_x1+$0
+		lda PLAYER_COLLISION_BOX+$1
+		sta spr_collision_box_y1+$0
+		lda PLAYER_COLLISION_BOX+$2
+		sta spr_collision_box_x2+$0
+		lda PLAYER_COLLISION_BOX+$3
+		sta spr_collision_box_y2+$0
+
 		lda #1
 		sta spr_velocity_y_arr+$0
 		sta spr_float_velocity_y_arr+$0

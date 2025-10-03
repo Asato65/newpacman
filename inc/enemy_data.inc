@@ -37,7 +37,7 @@ ENEMY_FLOWER:
 	.addr FLOWER_MOVE_ARR
 	.byte %0011_0001		; BIT5→右端超えてスポーン、BIT4→当たり判定無効
 	.byte $0f, $17
-	.byte $02, $04
+	.byte $02, $08
 	.byte $0f-$02, $17
 
 KURIBO_ANIMATION_ARR:
