@@ -100,6 +100,8 @@ spr_collision_box_y1				: .res 6
 spr_collision_box_x2				: .res 6
 spr_collision_box_y2				: .res 6
 spr_buff_start_addr					: .res 6		; 各スプライトのバッファの開始アドレスを保存しておく（クリボーは4*4byte，フラワーは4*6byte）
+spr_acceleration_x					: .res 5		; プレイヤーのデータはいらないので一つ減らす
+spr_acceleration_y					: .res 5		; インデックスはi-1
 
 
 plt_datas							: .res 24
@@ -126,5 +128,7 @@ coin_animation_counter				: .res 1
 ppu_timer_data						: .res 3
 ppu_coin_data						: .res 2
 ppu_plt_animation_data				: .res 1
+
+is_stomp_jumping					: .res 1
 
 .code

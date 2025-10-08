@@ -19,7 +19,7 @@ ENEMY_KURIBO:
 	.byte $2				; 1: 死んだとき（踏まれたとき）のアニメーション(anime2)
 	.byte $02, $0a			; 2-3: アニメーションの範囲（anime0-1(2は入らない)），アニメーション速度
 	.addr KURIBO_ANIMATION_ARR	; 4-5
-	.byte $1				; 6: move_arrで設定している動きの数（未使用？？）
+	.byte $2				; 6: move_arrで設定している動きの数（未使用？？）
 	.addr KURIBO_MOVE_ARR	; 7-8
 	.byte $0				; 9: attr
 	.byte $0f, $0f			; a: width, b: height (見た目の大きさ，ブロックとの当たり判定に使用)
@@ -37,7 +37,7 @@ ENEMY_FLOWER:
 	.addr FLOWER_MOVE_ARR
 	.byte %0011_0001		; BIT5→右端超えてスポーン、BIT4→当たり判定無効
 	.byte $0f, $17
-	.byte $02, $08
+	.byte $02, $09
 	.byte $0f-$02, $17
 
 KURIBO_ANIMATION_ARR:
@@ -62,11 +62,16 @@ FLOWER_ANIMATION_ARR:
 
 
 KURIBO_MOVE_ARR:
-	.byte $0, $f8, $0, $0, $70, $ff		; タイマー, X速度, Y速度（タイマーが0のとき、速度を後から更新しない）, X加速度, Y加速度、エンドコード（ff以外ならアニメーション番号を設定する）
+	; タイマー, X速度, Y速度（タイマーが0のとき、速度を後から更新しない）,
+	; X加速度, マスク&Y加速度、エンドコード（ff以外ならアニメーション番号を設定する）
+	; マスク&Y加速度: 上位4bitがマスク，Y加速度は下位
+	; frm_cnt & マスク = 0 のとき Y加速度 = 0
+	; マスクが%0001ならば，1FごとにY加速度が0に = Y加速度は1/2になる
+	.byte 0, $f8, $0, $0, $03, $ff		; Y加速度は$03 = $16（6/2）= $3C(12/4)
 
 FLOWER_MOVE_ARR:
 	.byte 48,  $0, $f8, $0, $0, $ff		; 約0.5秒上昇、アニメーション
 	.byte 120, $0, $0,  $0, $0, $ff		; 2秒停止、アニメーションする
 	.byte 48,  $0, $08, $0, $0, $ff		; 約0.5秒下降、アニメーション
 	.byte 120, $0, $0,  $0, $0, $ff		; 2秒停止、アニメーション停止
-	.byte 0										; endcode
+	.byte 0								; endcode

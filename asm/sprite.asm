@@ -737,10 +737,10 @@ AMOUNT_INC_SPD_R:
 		; tya
 		; shl #4
 		; tay
-		; add y, #4									; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
+		; add y, #4						; 0スプライトの分空けるため(buff indexを0に設定しても0スプライトを上書きしない)
 
 		lda spr_posY_arr, x
-		sta tmp1							; posY
+		sta tmp1						; posY
 		; 死亡時（落下死・敵に接触した後のアニメーションで画面下に落ちたとき）に実行
 		cmp #$f0
 		bcc :+
@@ -749,7 +749,7 @@ AMOUNT_INC_SPD_R:
 		sta spr_attr_arr, x
 :
 		lda spr_posX_arr, x
-		sta tmp2							; posX
+		sta tmp2						; posX
 
 		lda spr_attr_arr, x
 		and #BIT0						; 向きフラグ
@@ -822,8 +822,12 @@ AMOUNT_INC_SPD_R:
 		iny
 		lda (addr_tmp1), y
 		sta spr_float_velocity_y_arr, x
-		iny								; 加速度は一旦実装を飛ばす
 		iny
+		lda (addr_tmp1), y				; 加速度
+		sta spr_acceleration_x-1, x		; アドレス領域が異なることに注意
+		iny
+		lda (addr_tmp1), y
+		sta spr_acceleration_y-1, x
 		iny
 		lda (addr_tmp1), y
 		cmp #$ff
@@ -889,8 +893,12 @@ AMOUNT_INC_SPD_R:
 		iny
 		lda (addr_tmp1), y
 		sta spr_float_velocity_y_arr, x
-		iny								; 加速度は一旦実装を飛ばす
 		iny
+		lda (addr_tmp1), y				; 加速度
+		sta spr_acceleration_x-1, x		; アドレス領域が異なることに注意
+		iny
+		lda (addr_tmp1), y
+		sta spr_acceleration_y-1, x
 		iny
 		lda (addr_tmp1), y
 		cmp #$ff
@@ -1028,7 +1036,9 @@ AMOUNT_INC_SPD_R:
 		cnn
 :
 		cmp #PLAYER_WIDTH
-		bcs @NEXT_ENEMY						; 水平方向の衝突がない場合はスキップ
+		bcc :+
+		jmp @NEXT_ENEMY						; 水平方向の衝突がない場合はスキップ
+:
 
 		; 上の左端／右端フラグの処理だけでは，［マリオが左端，敵が右端を超えたとき］踏みつけられてしまう
 		lda spr_posX_arr, x
@@ -1061,6 +1071,7 @@ AMOUNT_INC_SPD_R:
 	lda spr_posY_arr+$0
 	add spr_collision_box_y1+$0
 	sta tmp1						; プレイヤー上
+	sta tmp2
 	lda spr_posY_arr, x
 	clc
 	adc spr_collision_box_y2, x		; 敵下
@@ -1072,17 +1083,20 @@ AMOUNT_INC_SPD_R:
 	lda spr_posY_arr, x
 	clc
 	adc spr_collision_box_y1, x		; 敵上
+	sta tmp3
 	cmp tmp1
 	bcs @NEXT_ENEMY
 
-	lda spr_posY_arr, x
-	clc
-	adc spr_collision_box_y2, x		; 敵下
-	cmp tmp1
+	lda tmp3
+	cmp tmp2
 	bcc @COLLISION
 
+	lda is_stomp_jumping
+	bne :+
 	lda spr_velocity_y_arr+$0
-	bmi @COLLISION
+	cmp #2
+	bcc @COLLISION
+:
 
 	; stomp
 	lda spr_attr2_arr, x			; bit0: 踏めるかどうか
@@ -1090,35 +1104,6 @@ AMOUNT_INC_SPD_R:
 	beq @COLLISION
 	; プレイヤーが下降中に敵と衝突している && 踏める敵である
 	jsr _handleEnemyStomp
-
-
-
-		/*
-		; プレイヤーが敵の上にいて、かつ下降中かを確認
-		lda spr_posY_arr, x
-		sec
-		sbc spr_posY_arr+$0
-		beq @COLLISION
-		cmp #$f1
-		bcs @COLLISION
-		cmp #$10
-		bcs @NEXT_ENEMY						; プレイヤーが敵の上にいない場合はスキップ
-
-		lda spr_velocity_y_arr+$0
-		bmi @NEXT_ENEMY						; プレイヤーが下降中でない場合はスキップ
-		beq @NEXT_ENEMY
-
-@STOMP:			; 未使用のラベル
-		lda spr_attr2_arr, x			; bit0: 踏めるかどうか
-		and #BIT0
-		beq @COLLISION
-		; プレイヤーが下降中に敵と衝突している && 踏める敵である
-		jsr _handleEnemyStomp
-		jmp @NEXT_ENEMY
-
-		*/
-
-
 
 @NEXT_ENEMY:
 		inx
@@ -1185,6 +1170,9 @@ AMOUNT_INC_SPD_R:
 		stx spr_velocity_y_arr+$0
 		lda #0
 		sta spr_decimal_part_velocity_y_arr+$0
+
+	lda #1
+	sta is_stomp_jumping
 
 		lda	se_stepped_on
 		ldx	se_stepped_on+1

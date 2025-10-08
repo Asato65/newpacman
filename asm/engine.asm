@@ -103,6 +103,7 @@ bgm_dq:
 
 		jsr Enemy::_spawn
 		jsr Enemy::_physicsXAllEnemy
+		jsr Enemy::_physicsYAllEnemy
 
 		jsr Player::_animeBlock
 

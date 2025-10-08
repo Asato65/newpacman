@@ -20,6 +20,7 @@ ENEMY_ARR_13:
 	.byte $07, $92, KURIBO_ID
 	.byte $0a, $02, KURIBO_ID
 	.byte $0a, $12, KURIBO_ID
+	.byte $0b, $ca, KURIBO_ID
 	.byte $ff							; マップff、Y=f、敵ffはありえないのでffはエンドコードに使える
 
 

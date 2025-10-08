@@ -271,12 +271,46 @@ enemy_block_pos_bottom:		.byte 0
 		and #BYT_GET_LO
 		sta spr_decimal_part_velocity_x_arr, x
 
+@SKIP1:
+		inx
+		cpx #6
+		bne @LOOP
+
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 敵のY移動
+; @PARAMS		None
+; @CLOBBERS		A X Y
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+.proc _physicsYAllEnemy
+		ldx #1							; init buff id
+@LOOP:
+		lda spr_attr_arr, x
+		bpl @CONTINUE
+
+		lda spr_acceleration_y-1, x
+		shr #4
+		beq :+
+		and frm_cnt
+		beq :++
+:
+		lda spr_acceleration_y-1, x
+		and #BYT_GET_LO
+		clc
+		adc spr_float_velocity_y_arr, x
+		sta spr_float_velocity_y_arr, x
+:
+
 		; Y軸方向の移動
 		lda spr_float_velocity_y_arr, x
 		tay
 		bpl :+
-		; 絶対値をとる
-		cnn
+		cnn								; A = |A|
 :
 		clc
 		adc spr_decimal_part_velocity_y_arr, x
@@ -284,7 +318,6 @@ enemy_block_pos_bottom:		.byte 0
 		shr #4
 		cpy #0
 		bpl :+
-		; 速度が負のとき、負の値に戻す
 		cnn
 :
 		sta spr_velocity_y_arr, x
@@ -295,7 +328,7 @@ enemy_block_pos_bottom:		.byte 0
 		and #BYT_GET_LO
 		sta spr_decimal_part_velocity_y_arr, x
 
-@SKIP1:
+@CONTINUE:
 		inx
 		cpx #6
 		bne @LOOP
@@ -764,17 +797,12 @@ enemy_block_pos_bottom:		.byte 0
 		clc
 		adc spr_posY_tmp_arr, x
 		sta spr_posY_tmp_arr, x
-		; lda #1
-		; sta is_collision_down
-		lda spr_velocity_y_arr, x
-		bmi :+
-		; ldx #0
-		; stx is_fly
-		; stx is_jumping
-		lda #1							; Y方向の加速度が正（下向き）の場合
+
+		lda #1
 		sta spr_velocity_y_arr, x
+		sta spr_float_velocity_y_arr, x
 		sta spr_decimal_part_velocity_y_arr, x
-:
+
 		rts
 		; ------------------------------
 .endproc
@@ -787,22 +815,27 @@ enemy_block_pos_bottom:		.byte 0
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _fixCollisionRight
+		lda spr_posX_tmp_arr, x
+		sta tmp1						; 現在のX座標
+		lda spr_float_velocity_x_arr, x
+		bmi @CHANGE_VELOCITY			; 左に進んでいて段を降りるときなどには，あえて座標を直さない
 		; 右で衝突→左にずらす
 		lda enemy_actual_pos_right
 		and #BYT_GET_HI
-		sub enemy_actual_pos_right
+		sub enemy_actual_pos_right		; A <= 0のはず
 		clc
 		adc spr_posX_tmp_arr, x
-		sub #1
-		sta tmp1
+		sub #1							; 右側はこの補正が必要
+		sta tmp1						; 修正後のX座標
+
 		lda spr_posX_tmp_arr, x
 		bmi @CHANGE_VELOCITY
-		; 元のX座標が正で
 		lda tmp1
 		bpl @CHANGE_VELOCITY
-		; 変更後のX座標が負のとき->左端を超えたとき
-		lda #0
-		sta tmp1
+		; もとの位置が画面左，修正後のX座標が画面右 -> 画面左端を超えたとき
+		; 敵が画面左外から戻ってきて，すぐに障害物にぶつかって跳ね返るときの動作（あまり起こらない，バグ修正？）
+		; lda #0						; 不要かなと思ったので削除
+		; sta tmp1
 		lda enemy_collision_flags
 		and #%0000_0101					; 右側のブロック情報だけ取り出す
 		cmp #%0000_0100
@@ -820,7 +853,12 @@ enemy_block_pos_bottom:		.byte 0
 		sta spr_posX_tmp_arr, x
 
 		lda spr_float_velocity_x_arr, x
+		bmi :+
+		; 段差を降りるときなどに，敵キャラは左に動いているのに
+		; fixCollisionRightが実行されることがあるので
+		; 右向きの速度があるときだけ跳ね返る
 		cnn
+:
 		sta spr_float_velocity_x_arr, x
 
 		rts
@@ -835,6 +873,52 @@ enemy_block_pos_bottom:		.byte 0
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 .proc _fixCollisionLeft
+		lda spr_posX_tmp_arr, x
+		sta tmp1						; 現在のX座標
+		lda spr_float_velocity_x_arr, x
+		bpl @CHANGE_VELOCITY			; 右に進んでいて段を降りるときなどには，あえて座標を直さない
+		; 右にずらす
+		lda enemy_actual_pos_left
+		and #BYT_GET_HI
+		add #$10
+		sub enemy_actual_pos_left
+		clc
+		adc spr_posX_tmp_arr, x
+		sta tmp1
+
+		lda spr_posX_tmp_arr, x
+		bpl @CHANGE_VELOCITY
+		lda tmp1
+		bmi @CHANGE_VELOCITY
+		; もとの位置が画面右，修正後のX座標が画面左 -> 画面右端を超えたとき
+		lda enemy_collision_flags
+		and #%0000_1010					; 左側のブロック情報だけ取り出す
+		cmp #%0000_1000
+		beq @COLLISION_UPPER_RIGHT
+		lda #0
+		sta spr_velocity_y_arr, x
+		jsr _fixCollisionDown
+		jmp @CHANGE_VELOCITY
+@COLLISION_UPPER_RIGHT:
+		; 右上にブロックがあるとき->下降
+		jsr _fixCollisionUp
+@CHANGE_VELOCITY:
+		lda tmp1
+		sta spr_posX_tmp_arr, x
+
+		lda spr_float_velocity_x_arr, x
+		bpl :+
+		; 段差を降りるときなどに，敵キャラは左に動いているのに
+		; fixCollisionRightが実行されることがあるので
+		; 右向きの速度があるときだけ跳ね返る
+		cnn
+:
+		sta spr_float_velocity_x_arr, x
+
+		rts
+		; ------------------------------
+
+/*
 		lda enemy_actual_pos_left
 		and #BYT_GET_HI
 		add #$10
@@ -844,11 +928,14 @@ enemy_block_pos_bottom:		.byte 0
 		sta spr_posX_tmp_arr, x
 
 		lda spr_float_velocity_x_arr, x
+		bpl :+
 		cnn
+:
 		sta spr_float_velocity_x_arr, x
 
 		rts
 		; ------------------------------
+*/
 .endproc
 
 
