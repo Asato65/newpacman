@@ -49,6 +49,8 @@
 		lda #>CHR_BUFF
 		sta OAM_DMA
 		lda engine
+		cmp #$06
+		beq :+
 		cmp #$03
 		beq :+
 		cmp #$01
@@ -232,6 +234,12 @@
 		sta PPU_ADDR
 		lda ppu_plt_animation_data
 		sta PPU_DATA
+
+		; BG色を修正（画面非表示のとき，BG色は現在のPPUアドレス先の色を使用する）
+		lda #$3f
+		sta PPU_ADDR
+		lda #$00
+		sta PPU_ADDR
 
 @PRINT:
 		lda #0

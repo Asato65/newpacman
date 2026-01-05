@@ -12,6 +12,15 @@ bgm_dq:
 		.addr	MARIOBGM2
 
 
+ENGINE_ADDR:
+	.addr _gameEngine
+	.addr _pauseEngine
+	.addr _deathEngine
+	.addr _titleEngine
+	.addr _stageChangeEngine		; 即座にステージ変更，テスト用
+	.addr _goalEngine
+	.addr _blackBg
+
 ;*------------------------------------------------------------------------------
 ; メインのゲームエンジン
 ; engine_id = 0
@@ -63,14 +72,10 @@ bgm_dq:
 		and #Joypad::BTN_U
 		beq @NO_PUSHED_BTN_U
 
-		ldy map_num
-		cpy #2
-		bne :+
-		ldy #$ff
-:
-		iny
-		sty map_num
-		jsr DrawMap::_changeStage
+		lda #5
+		sta engine
+		lda #0
+		sta engine_flag
 @NO_PUSHED_BTN_U:
 		; ↓ボタン
 		lda Joypad::joy1_pushstart
@@ -132,7 +137,7 @@ bgm_dq:
 		bne @CHR_MOVE_LOOP
 
 		ldx #$ff
-		jsr Sprite::_moveSprite
+		jsr Sprite::_moveSprite			; block animation
 
 		jsr Sprite::_checkEnemyCollision
 		jsr Sprite::_shuffle
@@ -193,8 +198,8 @@ bgm_dq:
 		lda spr_attr_arr, x
 		and #BIT7
 		sta Sprite::is_spr_available
-		ldx Sprite::spr_buff_id						; spr id
-		ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
+		ldx Sprite::spr_buff_id				; spr id
+		ldy Sprite::spr_buff_id				; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
 		jsr Sprite::_tfrToChrBuff
 		ldx Sprite::spr_buff_id
 		inx
@@ -299,8 +304,8 @@ bgm_dq:
 		lda spr_attr_arr, x
 		and #BIT7
 		sta Sprite::is_spr_available
-		ldx Sprite::spr_buff_id						; spr id
-		ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
+		ldx Sprite::spr_buff_id				; spr id
+		ldy Sprite::spr_buff_id				; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
 		jsr Sprite::_tfrToChrBuff
 		ldx Sprite::spr_buff_id
 		inx
@@ -490,6 +495,302 @@ TITLE_DATA3:
 		lda #0
 		sta is_processing_main
 		jmp _main
+.endproc
+
+
+; id = 4
+.proc _stageChangeEngine
+		ldy map_num
+		cpy #2
+		bne :+
+		ldy #$ff
+:
+		iny
+		sty map_num
+		jsr DrawMap::_changeStage
+		lda #0
+		sta engine
+		sta is_processing_main
+		jmp _main
+.endproc
+
+
+; id = 5
+.proc _goalEngine
+	; 1. 自動で歩き出し，タイマーをセット，数秒後にステージ移動するようにする
+	; 2. マリオがゴールポールを下がるようにする
+	; 3. ステージ移動のエンジン（ステージ番号と残機を表示する）を作成
+
+	jsr Func::_waitDispStatus
+
+	lda engine_flag
+	bne @CONTINUE
+
+	; init
+	lda #1
+	sta engine_flag
+
+	lda #5
+	sta engine_timer+0					; seconds
+	lda #1
+	sta engine_timer+1					; frame
+
+@CONTINUE:
+	ldx engine_timer+1
+	dex
+	bne :+
+	ldx engine_timer+0
+	dex
+	cpx #$ff
+	beq @EXIT_AUTO_MOVE
+	stx engine_timer+0
+	ldx #60
+:
+	stx engine_timer+1
+
+
+	inc spr_anime_timer+$0
+	inc spr_move_timer_arr+$0
+
+	; 自動歩行
+	lda #Joypad::BTN_R
+	sta Joypad::joy1_manual
+	sta Joypad::joy1
+
+
+	; lda #0
+	; sta scroll_amount
+
+	jsr Player::_physicsX
+	jsr Player::_jumpCheck
+	jsr Player::_moveYProcess
+	jsr Player::_checkCollision
+	jsr Player::_animate
+
+	; FIXME: タイマーは動作，自動歩行の仕組みもできたが，画面がガタガタする
+	ldx #0
+	jsr Sprite::_moveSprite
+	ldx #0
+	ldy #0
+	jsr Sprite::_tfrToChrBuff
+
+	jsr Sprite::_shuffle
+
+	; その他必要な処理
+	jsr _nsd_main_se
+
+	; STARTボタン
+	lda Joypad::joy1_pushstart
+	and #Joypad::BTN_T
+	beq @NO_PUSHED_BTN_T
+
+	lda #0
+	sta engine
+	lda	se_pause
+	ldx	se_pause+1
+	jsr	_nsd_play_se
+	jsr _nsd_resume_bgm
+@NO_PUSHED_BTN_T:
+
+	jmp @EXIT
+	; ------------------------------
+@EXIT_AUTO_MOVE:
+	lda #6
+	sta engine
+	lda #0
+	sta engine_flag
+
+@EXIT:
+	lda #0
+	sta is_processing_main
+
+	jmp _main
+	; ------------------------------
+
+.endproc
+
+
+
+; id=6
+.proc _blackBg
+	lda engine_flag
+	beq @INIT
+	jmp @CONTINUE
+
+@INIT:
+	jsr _nsd_pause_bgm
+
+	lda #0
+	sta PPU_SCROLL
+	sta PPU_SCROLL
+	lda ppu_ctrl1_cpy
+	and #%11111100					; disp = 1
+	sta ppu_ctrl1_cpy
+	and #%01111111					; NMI OFF
+	sta PPU_CTRL1
+	lda #0
+	sta PPU_CTRL2
+
+	jsr _nsd_stop_se
+	jsr _nsd_stop_bgm
+
+	jsr Enemy::_reset
+	lda #$ff
+	ldx #$04*5					; 0スプライトとマリオの領域を除外してリセット
+@CHRRAM_INIT:
+	sta $0700, x
+	inx
+	bne @CHRRAM_INIT
+
+	lda #0
+	sta spr_anime_num+$0
+	lda spr_attr_arr+$0
+	ora #%0000_0001				; 右向き
+	sta spr_attr_arr+$0
+	lda #$60
+	sta spr_posX_arr+$0
+	lda #$68
+	sta spr_posY_arr+$0
+
+	ldx #0
+@LOOP:
+	stx Sprite::spr_buff_id
+	ldx Sprite::spr_buff_id						; spr id
+	ldy Sprite::spr_buff_id						; buff index (0は0爆弾用のスプライト）→_tfrToChrBuff側を変えて引数一つにまとめてもよい
+	jsr Sprite::_tfrToChrBuff
+	ldx Sprite::spr_buff_id
+	inx
+	cpx #6
+	bne @LOOP
+
+	lda #4
+	sta timer_dec_num_arr+$0
+	lda #0
+	sta timer_dec_num_arr+$1
+	sta timer_dec_num_arr+$2
+
+	sta coin_counter+$0
+	sta coin_counter+$1
+
+	lda #1
+	sta engine_flag
+
+	jsr Subfunc::_waitVblank
+	jsr Subfunc::_waitVblank
+
+	; 画面を暗転させるところは関数化してもいいかもしれない
+	; Clear VRAM
+	lda #$20
+	sta PPU_ADDR
+	lda #$00
+	sta PPU_ADDR
+
+	ldy #4
+	tax
+@CLR_VRAM:
+	sta PPU_DATA
+	inx
+	bne @CLR_VRAM
+	dey
+	bne @CLR_VRAM
+
+	ldx #0
+@SET_ADDR:
+	lda @DATA, x
+	inx
+	sta PPU_ADDR
+	lda @DATA, x
+	inx
+	sta PPU_ADDR
+@SET_DATA_LOOP:
+	lda @DATA, x
+	inx
+	cmp #$ff
+	beq @EXIT_PRINT
+	cmp #$fe
+	beq @SET_ADDR
+	sta PPU_DATA
+	bne @SET_DATA_LOOP
+
+.rodata
+@DATA:
+		ADDR_BG_BE 11, 10, 0
+		.byte "WORLD  0", $3a, "0", $fe
+		ADDR_BG_BE 15, 14, 0
+		.byte $3b, " 000", $ff
+
+.code
+@EXIT_PRINT:
+	lda #$3f
+	sta PPU_ADDR
+	lda #$00
+	sta PPU_ADDR
+	lda #$0f			; bg color (black)
+	sta PPU_DATA
+	lda #$30
+	sta PPU_DATA		; font color (white)
+
+	; write bg
+	jsr Subfunc::_dispStatus			; x = bg_buff_pointer
+
+	jsr Time::_dispTimer
+	jsr Func::_pltAnimation
+	jsr Func::_dispCoin
+
+	lda ppu_ctrl1_cpy				; NMI ON
+	sta PPU_CTRL1
+	lda ppu_ctrl2_cpy
+	sta PPU_CTRL2
+
+	lda #0
+	sta scroll_x
+
+	; set timer
+	lda #2
+	sta engine_timer+0
+	lda #1
+	sta engine_timer+1
+
+	inc engine_flag
+
+	jmp @EXIT
+	; ------------------------------
+
+@CONTINUE:
+	ldx engine_timer+1
+	dex
+	bne :+
+	ldx engine_timer+0
+	dex
+	cpx #$ff
+	beq @EXIT_ENGINE
+	stx engine_timer+0
+	ldx #60
+:
+	stx engine_timer+1
+
+	jmp @EXIT
+	; ------------------------------
+
+@EXIT_ENGINE:
+	lda #4
+	sta engine
+	lda #0
+	sta Joypad::joy1_manual
+	sta engine_flag
+
+@EXIT:
+	lda #0
+	sta PPU_SCROLL
+	sta PPU_SCROLL
+	sta is_processing_main
+
+	lda ppu_ctrl1_cpy
+	sta PPU_CTRL1
+
+	jmp _main
+	; ------------------------------
+
 .endproc
 
 .endscope

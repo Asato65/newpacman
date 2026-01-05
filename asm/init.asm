@@ -79,7 +79,7 @@ bgm0:
 		jsr Subfunc::_waitVblank
 
 		ldx #1							; このあと背景色を変えるので今は背景色のセットはしない
-		jsr Subfunc::_trfPltDataToBuff
+		jsr Subfunc::_tfrPltDataToBuff
 
 		tfrPlt
 

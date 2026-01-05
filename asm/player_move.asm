@@ -36,7 +36,7 @@ player_hit_block_ppu_hi:		.byte 0
 player_hit_block_ppu_lo:		.byte 0
 func_index:						.res 4			; 4方位のブロック衝突時の処理番号
 
-.segment "USER_MEM"
+.segment "USER_MEM_MAP1"
 player_collision_flags:			.byte 0			; マリオの位置（offset）に応じたフラグ
 player_collision_fix_flags:			.byte 0		; 実際に衝突を修正する向きを保存するフラグ
 player_hit_block_is_drawed:			.byte 0		; is_changedの方が適切かも，hit_blockが変化したら1にしてnmiで処理
@@ -1698,8 +1698,10 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		and #BYT_GET_LO
 		cmp #$08
 		bcc :+
-		lda #4
+		lda #5
 		sta engine
+		lda #0
+		sta engine_flag
 :
 		rts
 .endproc
@@ -1715,6 +1717,7 @@ ANIME_Y_LIST:
 
 ; ブロックを叩いたときのアニメーション（Y座標の変更）を実行する
 ; 毎フレーム実行される
+; FIXME: なぜプレイヤーのプログラム中にアニメーションのプログラムが存在？
 .proc _animeBlock
 		ldx block_anime_timer
 		cpx #$ff

@@ -17,6 +17,8 @@ joy2_prev				: .byte 0
 joy1_pushstart			: .byte 0
 joy2_pushstart			: .byte 0
 joy1_pushstart_btn_a	: .byte 0		; pushstartのaボタンの情報が入っていく（左シフトで格納されていく）
+joy1_manual				: .byte 0		; プログラム上から自動操作するときに使用
+joy2_manual				: .byte 0
 
 
 ;*------------------------------------------------------------------------------
@@ -36,6 +38,21 @@ joy1_pushstart_btn_a	: .byte 0		; pushstartのaボタンの情報が入ってい
 		sta Joypad::joy2_prev
 
 		jsr Joypad::_readJoy
+
+		; 自動操作
+		lda joy1_manual
+		beq :+
+		and #%11001111					; ingore start/select flag
+		sta joy1_pushstart				; tmp
+		lda joy1
+		and #%00110000
+		ora joy1_pushstart
+		sta joy1
+:
+		lda joy2_manual
+		beq :+
+		sta joy2
+:
 
 		lda Joypad::joy1
 		and #Joypad::BTN_U|Joypad::BTN_L				; Compare Up and Left...

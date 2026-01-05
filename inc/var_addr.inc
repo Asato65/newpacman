@@ -1,67 +1,53 @@
 ; ZeroPage
 .segment "ZEROPAGE"
-tmp1					: .byte 0
-tmp2					: .byte 0
-tmp3					: .byte 0
-tmp4					: .byte 0
-tmp5					: .byte 0
-tmp6					: .byte 0
+tmp1						: .byte 0
+tmp2						: .byte 0
+tmp3						: .byte 0
+tmp4						: .byte 0
+tmp5						: .byte 0
+tmp6						: .byte 0
 
-bg_buff_pointer			: .byte 0
-addr_tmp1				: .addr 0
-addr_tmp2				: .addr 0
-ldarr_addr_tmp			: .addr 0
+bg_buff_pointer				: .byte 0
+addr_tmp1					: .addr 0
+addr_tmp2					: .addr 0
+ldarr_addr_tmp				: .addr 0
 
-bg_map_buff_index		: .byte 0		; BG（マップ）専用バッファ
+bg_map_buff_index			: .byte 0		; BG（マップ）専用バッファ
 
-ppu_bg_addr				: .addr 0
+ppu_bg_addr					: .addr 0
 
-tmp_rgstA				: .byte 0
-tmp_rgstX				: .byte 0
-tmp_rgstY				: .byte 0
+tmp_rgstA					: .byte 0
+tmp_rgstX					: .byte 0
+tmp_rgstY					: .byte 0
 
 ; These are not used often, but are used in NMI
-ppu_ctrl1_cpy			: .byte 0		; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000(2)|
-ppu_ctrl2_cpy			: .byte 0		; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
+ppu_ctrl1_cpy				: .byte 0		; |NMI-ON|PPU=MASTER|SPR8*8|BG$1000|SPR$0000|VRAM+1|SCREEN$2000(2)|
+ppu_ctrl2_cpy				: .byte 0		; |R|G|B|DISP-SPR|DISP-BG|SHOW-L8-SPR|SHOW-L8-BG|MODE=COLOR|
 
-scroll_x				: .byte 0
-scroll_x_old			: .byte 0
-scroll_amount			: .byte 0
+scroll_x					: .byte 0
+scroll_x_old				: .byte 0
+scroll_amount				: .byte 0
 
-main_disp				: .byte 0
-disp_cnt				: .byte 0		; 画面が切り替わった回数
-standing_disp			: .byte 0		; マリオが立っている位置の画面番号
+main_disp					: .byte 0
+disp_cnt					: .byte 0		; 画面が切り替わった回数
+standing_disp				: .byte 0		; マリオが立っている位置の画面番号
 
-nmi_cnt					: .byte 0
-frm_cnt					: .byte 0
-is_processing_main		: .byte 0
+nmi_cnt						: .byte 0
+frm_cnt						: .byte 0
+is_processing_main			: .byte 0
 
 ppu_attr_addr				: .addr 0
 
-is_updated_map			: .byte 0
+is_updated_map				: .byte 0
 
-is_scroll_locked		: .byte 0
+is_scroll_locked			: .byte 0
 
-is_jumping				: .byte 0
+is_jumping					: .byte 0
 
-map_num					: .byte 0
-
-item_velocity_x:		.byte 0
-item_velocity_y:		.byte 0
-item_counter:			.byte 0
-is_animation:			.byte 0
-item_id:				.byte 0
-item_attr:				.byte 0		; BIT7 -> 利用中, BIT1 -> 左端フラグ
-item_pos_x:				.byte 0
-item_pos_y:				.byte 0
-item_float_velocity_x:	.byte 0
-item_float_velocity_y:	.byte 0
-item_decimal_part_velocity_x:	.byte 0
-item_decimal_part_velocity_y:	.byte 0
+map_num						: .byte 0
 
 
-.segment "USER_MEM"
-
+.segment "USER_MEM_600"
 
 spr_posX_arr						: .res 6
 spr_posX_tmp_arr					: .res 6
@@ -104,6 +90,9 @@ spr_acceleration_x					: .res 5		; プレイヤーのデータはいらないの
 spr_acceleration_y					: .res 5		; インデックスはi-1
 
 
+
+.segment "USER_MEM_SND"
+
 plt_datas							: .res 24
 bg_color							: .res 1
 
@@ -130,5 +119,19 @@ ppu_coin_data						: .res 2
 ppu_plt_animation_data				: .res 1
 
 is_stomp_jumping					: .res 1
+
+item_velocity_x					: .byte 0
+item_velocity_y					: .byte 0
+item_counter					: .byte 0
+is_animation					: .byte 0
+item_id							: .byte 0
+item_attr						: .byte 0		; BIT7 -> 利用中, BIT1 -> 左端フラグ
+item_pos_x						: .byte 0
+item_pos_y						: .byte 0
+item_float_velocity_x			: .byte 0
+item_float_velocity_y			: .byte 0
+item_decimal_part_velocity_x	: .byte 0
+item_decimal_part_velocity_y	: .byte 0
+
 
 .code

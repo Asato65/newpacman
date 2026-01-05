@@ -158,7 +158,7 @@
 ; @CLOBBERS		A Y
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
-.proc _trfPltDataToBuff
+.proc _tfrPltDataToBuff
 		ldy #0
 :
 		ldarr PALETTES

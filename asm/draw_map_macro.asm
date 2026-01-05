@@ -7,7 +7,7 @@
 ; @RETURNS		None (Y: 3)
 ;*------------------------------------------------------------------------------
 
-.macro trfToBgMapBuf
+.macro tfrToBgMapBuf
 		lda BLOCK_ID_ARR+LO, x
 		sta addr_tmp2+LO
 		lda BLOCK_ID_ARR+HI, x

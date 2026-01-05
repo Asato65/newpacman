@@ -219,7 +219,7 @@ fill_ground_start		: .byte 0
 		shl #1
 
 		tax
-		trfToBgMapBuf
+		tfrToBgMapBuf
 
 		ldy tmp1
 		iny
@@ -377,7 +377,7 @@ fill_ground_start		: .byte 0
 		tya
 		pha
 		lda STAGE_PALETTE_ARR, y
-		tax							; _trfPltDataToBuffで転送するパレット番号に使う
+		tax							; _tfrPltDataToBuffで転送するパレット番号に使う
 
 		jsr Enemy::_reset
 
@@ -389,7 +389,7 @@ fill_ground_start		: .byte 0
 		cmp nmi_cnt
 		beq :-
 
-		jsr Subfunc::_trfPltDataToBuff	; Yレジスタ破壊
+		jsr Subfunc::_tfrPltDataToBuff	; Yレジスタ破壊
 		lda #$3f
 		sta PPU_ADDR
 		lda #$00
