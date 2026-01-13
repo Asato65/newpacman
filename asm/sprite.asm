@@ -135,7 +135,7 @@ AMOUNT_INC_SPD_R:
 		lda #$ff
 		sta SPR_BLOCK_ANIMATION+0, x
 :
-		add x, #4
+		adx #4
 		cpx #$10
 		bne :--
 		rts
@@ -418,10 +418,9 @@ AMOUNT_INC_SPD_R:
 
 		; buff indexを増やす（4byte * 2列）
 		; add x, tmp6
-		lda tmp5
-		add #8
-		sta tmp5
-		tax
+		ldx tmp5
+		adx #8
+		stx tmp5
 
 		lda tmp4
 		shl #1
@@ -571,10 +570,9 @@ AMOUNT_INC_SPD_R:
 
 		; buff indexを増やす（4byte * 2列）
 		; add x, tmp6
-		lda tmp5
-		add #8
-		sta tmp5
-		tax
+		ldx tmp5
+		adx #8
+		stx tmp5
 
 		lda tmp4
 		shl #1
@@ -1114,7 +1112,7 @@ AMOUNT_INC_SPD_R:
 @COLLISION:
 		lda #0
 		sta engine_flag
-		lda #2
+		lda #DEATH_ENGINE_ID
 		sta engine
 		bne @EXIT
 		;----------------

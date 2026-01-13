@@ -541,7 +541,7 @@ EXIT:
 		beq @EXIT
 		lda #0
 		sta engine_flag
-		lda #2
+		lda #DEATH_ENGINE_ID
 		sta engine
 		bne @EXIT
 :
@@ -1026,9 +1026,8 @@ switch(playerColllisionFixFlags) {
 		lda #0
 		beq @LOOP2_END
 @NO_HIDE_BLOCK:
-		lda tmp1
-		cnn
-		add #3
+		lda #3
+		sub tmp1
 		tax
 		lda #1
 @LOOP2_START:
@@ -1698,7 +1697,7 @@ BLOCK_ANIMATION_TILE_ATTRSET:
 		and #BYT_GET_LO
 		cmp #$08
 		bcc :+
-		lda #5
+		lda #GOAL_ENGINE
 		sta engine
 		lda #0
 		sta engine_flag
@@ -1737,7 +1736,7 @@ ANIME_Y_LIST:
 		add tmp1
 		sta SPR_BLOCK_ANIMATION, x
 
-		add x, #4
+		adx #4
 
 		cpx #$10
 		bne :-

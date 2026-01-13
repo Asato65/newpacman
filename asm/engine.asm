@@ -21,6 +21,7 @@ ENGINE_ADDR:
 	.addr _goalEngine
 	.addr _blackBg
 
+
 ;*------------------------------------------------------------------------------
 ; メインのゲームエンジン
 ; engine_id = 0
@@ -72,7 +73,7 @@ ENGINE_ADDR:
 		and #Joypad::BTN_U
 		beq @NO_PUSHED_BTN_U
 
-		lda #5
+		lda #GOAL_ENGINE
 		sta engine
 		lda #0
 		sta engine_flag
@@ -91,7 +92,7 @@ ENGINE_ADDR:
 		and #Joypad::BTN_T
 		beq @NO_PUSHED_BTN_T
 
-		lda #1
+		lda #PAUSE_ENGINE_ID
 		sta engine
 		shr #1
 		sta engine_flag
@@ -160,7 +161,7 @@ ENGINE_ADDR:
 
 ;*------------------------------------------------------------------------------
 ; ポーズ中のエンジン
-; engine_id = 1
+; engine_id = 3
 ; @PARAMS		None
 ; @CLOBBERS		A X Y
 ; @RETURNS		None
@@ -182,7 +183,7 @@ ENGINE_ADDR:
 		and #Joypad::BTN_T
 		beq @NO_PUSHED_BTN_T
 
-		lda #0
+		lda #MAIN_GAME_ENGINE_ID
 		sta engine
 		lda	se_pause
 		ldx	se_pause+1
@@ -214,7 +215,7 @@ ENGINE_ADDR:
 
 ;*------------------------------------------------------------------------------
 ; 死亡画面（ライフ-1）のときのエンジン
-; engine_id = 2
+; engine_id = 1
 ; @PARAMS		None
 ; @CLOBBERS		A X Y
 ; @RETURNS		None
@@ -284,7 +285,7 @@ ENGINE_ADDR:
 		ldy engine_timer+$0
 		bne :+
 		; 終了処理
-		lda #0
+		lda #MAIN_GAME_ENGINE_ID
 		sta engine
 		ldy map_num
 		jsr DrawMap::_changeStage
@@ -345,7 +346,7 @@ TITLE_DATA3:
 
 ;*------------------------------------------------------------------------------
 ; タイトル画面表示中のエンジン
-; engine_id = 3
+; engine_id = 2
 ; @PARAMS		None
 ; @CLOBBERS		A X Y
 ; @RETURNS		None
@@ -485,7 +486,7 @@ TITLE_DATA3:
 		; -----------------------------
 
 @START_GAME:
-		lda #0
+		lda #MAIN_GAME_ENGINE_ID
 		sta engine
 
 		ldy #2
@@ -508,7 +509,7 @@ TITLE_DATA3:
 		iny
 		sty map_num
 		jsr DrawMap::_changeStage
-		lda #0
+		lda #MAIN_GAME_ENGINE_ID
 		sta engine
 		sta is_processing_main
 		jmp _main
@@ -530,7 +531,7 @@ TITLE_DATA3:
 	lda #1
 	sta engine_flag
 
-	lda #5
+	lda #2
 	sta engine_timer+0					; seconds
 	lda #1
 	sta engine_timer+1					; frame
@@ -584,7 +585,7 @@ TITLE_DATA3:
 	and #Joypad::BTN_T
 	beq @NO_PUSHED_BTN_T
 
-	lda #0
+	lda #MAIN_GAME_ENGINE_ID
 	sta engine
 	lda	se_pause
 	ldx	se_pause+1
@@ -595,7 +596,7 @@ TITLE_DATA3:
 	jmp @EXIT
 	; ------------------------------
 @EXIT_AUTO_MOVE:
-	lda #6
+	lda #BLACK_BG_ENGINE
 	sta engine
 	lda #0
 	sta engine_flag
@@ -619,6 +620,18 @@ TITLE_DATA3:
 
 @INIT:
 	jsr _nsd_pause_bgm
+	jsr _nsd_stop_se
+	jsr _nsd_stop_bgm
+
+	; NMI待ちをする際に，画面のスクロールを正しく設定して置かないと画面が乱れる
+	jsr Func::_waitDispStatus
+
+	lda scroll_x
+	sta PPU_SCROLL
+	lda #0
+	sta PPU_SCROLL
+
+	jsr Subfunc::_waitVblankUsingNmi
 
 	lda #0
 	sta PPU_SCROLL
@@ -630,9 +643,6 @@ TITLE_DATA3:
 	sta PPU_CTRL1
 	lda #0
 	sta PPU_CTRL2
-
-	jsr _nsd_stop_se
-	jsr _nsd_stop_bgm
 
 	jsr Enemy::_reset
 	lda #$ff
@@ -731,19 +741,37 @@ TITLE_DATA3:
 	sta PPU_DATA		; font color (white)
 
 	; write bg
-	jsr Subfunc::_dispStatus			; x = bg_buff_pointer
+	jsr Subfunc::_dispStatus
 
 	jsr Time::_dispTimer
-	jsr Func::_pltAnimation
 	jsr Func::_dispCoin
+
+	jsr Subfunc::_waitVblank
+
+	lda #$3f
+	sta PPU_ADDR
+	lda #$00
+	sta PPU_ADDR
+
+	jsr Subfunc::_waitVblank
 
 	lda ppu_ctrl1_cpy				; NMI ON
 	sta PPU_CTRL1
+
+	jsr Subfunc::_setScroll
+	lda #$3f
+	sta PPU_ADDR
+	lda #$00
+	sta PPU_ADDR
+
+	jsr Subfunc::_waitVblankUsingNmi
+
 	lda ppu_ctrl2_cpy
 	sta PPU_CTRL2
 
 	lda #0
 	sta scroll_x
+	jsr Subfunc::_setScroll
 
 	; set timer
 	lda #2
@@ -773,7 +801,7 @@ TITLE_DATA3:
 	; ------------------------------
 
 @EXIT_ENGINE:
-	lda #4
+	lda #TST_STAGE_CHANGE_ENGINE
 	sta engine
 	lda #0
 	sta Joypad::joy1_manual

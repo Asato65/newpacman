@@ -197,8 +197,7 @@
 		sta PPU_DATA
 		sta PPU_DATA
 
-		inx
-		inx
+		add x, #2
 		cpx Player::collision_coin_counter
 		bcc :-
 

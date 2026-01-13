@@ -41,7 +41,7 @@ bgm0:
 
 		sta is_scroll_locked
 		sta is_updated_map
-		lda #3
+		lda #TITLE_ENGINE_ID
 		sta engine
 
 		lda #$ff

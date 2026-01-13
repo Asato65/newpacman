@@ -285,3 +285,22 @@
 		cpx #$3*8
 		bcc :--
 .endmacro
+
+
+;*------------------------------------------------------------------------------
+; x += VAL
+; 非公式オペコードを使用した最適化
+; @PARAMS		VAL: value(add)
+; @CLOBBERS		A, X
+; @RETURN		X
+;*------------------------------------------------------------------------------
+
+.macro adx VAL
+		txa
+		.byte $cb
+		.if (.right(.tcount ({VAL})-1, {VAL})) <> 0
+			.byte 255 - (.right(.tcount ({VAL})-1, {VAL})) + 1
+		.else
+			.byte 0
+		.endif
+.endmacro

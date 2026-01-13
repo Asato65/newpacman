@@ -21,7 +21,7 @@
 		bpl @DEC_HUNDREDS_PLACE
 		lda #0
 		sta engine_flag
-		lda #2							; death
+		lda #DEATH_ENGINE_ID				; death
 		sta engine
 		bne @EXIT
 @DEC_HUNDREDS_PLACE:

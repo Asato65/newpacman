@@ -35,6 +35,14 @@ PLAYER_PADDING							= $2
 PLAYER_MAX_POSX							= $70				; マリオの行ける最大X座標（スクロールロックが無いとき）
 
 
+MAIN_GAME_ENGINE_ID						= $0
+PAUSE_ENGINE_ID							= $1
+DEATH_ENGINE_ID							= $2
+TITLE_ENGINE_ID							= $3
+TST_STAGE_CHANGE_ENGINE					= $4
+GOAL_ENGINE								= $5
+BLACK_BG_ENGINE							= $6
+
 
 NUM2BIT:
 	.byte $01, $02, $04, $08, $10, $20, $40, $80
