@@ -813,7 +813,10 @@ TITLE_DATA3:
 	sta PPU_SCROLL
 	sta is_processing_main
 
+	; ステージ番号表示時に画面を0に固定する（最初にも設定しているがどっかで上書きされてしまうらしい）
 	lda ppu_ctrl1_cpy
+	and #%1111_1100
+	sta ppu_ctrl1_cpy
 	sta PPU_CTRL1
 
 	jmp _main
