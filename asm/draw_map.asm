@@ -3,7 +3,7 @@
 .scope DrawMap
 
 .ZeroPage
-map_buff_num			: .byte 0
+map_buff_num			: .byte 0		; マップの番号（0: 最初のscreen1，1: screen2, 2: 次のscreen1 → というデータ）
 map_arr_addr			: .addr 0
 map_addr				: .addr 0		; Map obj/position data (-> data addr: ROM)
 isend_draw_stage		: .byte 0
@@ -61,14 +61,13 @@ fill_ground_start		: .byte 0
 
 		ldy DrawMap::index
 @GET_POS_AND_OBJ_LOOP:
-		; ----------- get pos ----------
+		; --------- get pos ----------
 		lda (DrawMap::map_addr), y
 		sta tmp1
 
 		; Check Special Code
 		cmp #OBJMAP_NEXT
 		beq @LOAD_NEXT_MAP
-
 		cmp #OBJMAP_END
 		beq @END_OF_MAP
 
@@ -86,19 +85,51 @@ fill_ground_start		: .byte 0
 		ora #4
 		sta addr_tmp1+HI
 
-
 		lda tmp1						; End using tmp1
 		sta addr_tmp1+LO
+		sta tmp2						; save (to restore)
 
-		; ----------- get chr ----------
+		; ------- get obj contents -----
+		sty tmp1						; save Y
+		ldy #0
+@GET_OBJ_CONTENTS_LOOP:
+		ldx tmp1
+		ldarr DrawMap::map_addr		; map_addr[x][y]: nextline & obj
+		; .byte OBJ('^', 1)などの値が取得できているはず
+		pha								; obj & nextline
+		cmp #PARTS_ENDCODE
+		beq @END_SET_PARTS
+		and #%0111_1111
+		pha								; obj
+
+		; change addr
 		iny
+		ldarr DrawMap::map_addr			; posY(upper 4bit)
+		add addr_tmp1+LO
+		sta addr_tmp1+LO
+
+		; store obj ('H', 'B', '^') -> $04xx, $05xx
 		ldx #0
-		lda (DrawMap::map_addr), y
+		pla								; obj
 		sta (addr_tmp1, x)
 
+		; restore addr
+		lda tmp2
+		sta addr_tmp1+LO
+
+		; continue?
+		pla
+		and #BIT7						; nextline flag
+		bne @BREAK_LOOP
 		iny
-		bne @GET_POS_AND_OBJ_LOOP		; Jmp
-		; ------------------------------
+		bne @GET_OBJ_CONTENTS_LOOP
+
+@BREAK_LOOP:
+		; loop end
+		ldy tmp1
+		iny
+		iny
+		sty DrawMap::index
 
 @GET_POS_AND_OBJ_LOOP_EXIT:
 		sty DrawMap::index

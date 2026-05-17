@@ -1,15 +1,31 @@
 MAP_ARR_13:
+	.addr MAP_13_TEST
+	.addr $ffff
 	.addr MAP_13_1
 	.addr MAP_13_2
 	.addr MAP_13_3
 	.addr MAP_13_4
-	.addr $ffff
+
+
+
+MAP_13_TEST:
+	.byte $bd
+	.byte 'B', %00000000, %00000000
+	; objposで，ffなどを設定したときは，直接'H'のようにオブジェクトを指定できてもいい？
+	; (addr PARTS_...ではなく，.byte 'H'で指定できるのでメモリ削減)
+	.byte (GET_OBJ_POS $c, $8)
+	.addr PARTS_COINS_4COL
+	.byte (GET_OBJ_POS $c, $9)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $d, $8)
+	.addr PARTS_COIN_1
+	.byte OBJMAP_END
+
 
 
 MAP_13_1:
 	.byte $bd
 	.byte 'B', %00000000, %00000000
-	; .byte '^', %00011111, %11111100
 	.byte (GET_OBJ_POS $3, $8), 'H'
 	.byte (GET_OBJ_POS $3, $b), 'H'
 	.byte (GET_OBJ_POS $4, $8), 'H'

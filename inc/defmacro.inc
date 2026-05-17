@@ -39,9 +39,14 @@
 
 .define GET_OBJ_POS(posX, posY)		($c - (posY)) * $10 + (posX)
 
-
 ;*------------------------------------------------------------------------------
 ; Return negative number
 ;*------------------------------------------------------------------------------
 
 .define NEGATIVE(val)	256 - (val)
+
+
+
+; obj and next line
+; used in objects.inc
+.define OBJ(obj, nextline) nextline*$80 + obj
