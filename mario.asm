@@ -27,6 +27,7 @@
 .include "map_data.inc"
 .include "enemy_data.inc"
 .include "item_data.inc"
+.include "objects.inc"
 
 .code									; ----- code -----
 

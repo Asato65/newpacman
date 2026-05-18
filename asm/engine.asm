@@ -338,7 +338,7 @@ TITLE_DATA1:
 
 
 TITLE_DATA2:
-		.byte $40, "2024", $3a, "2025 VER1", $3d, "0"
+		.byte "2024", $3a, "2026"
 
 TITLE_DATA3:
 		.byte "PUSH START BUTTON"
@@ -415,13 +415,13 @@ TITLE_DATA3:
 		ldy #0
 		lda #$23
 		sta PPU_ADDR
-		lda #$28
+		lda #$2c
 		sta PPU_ADDR
 :
 		lda TITLE_DATA2, y
 		sta PPU_DATA
 		iny
-		cpy #17
+		cpy #9
 		bne :-
 
 		ldy #0

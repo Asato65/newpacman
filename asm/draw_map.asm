@@ -55,14 +55,44 @@ fill_ground_start		: .byte 0
 		sta addr_tmp2+HI
 
 		lda DrawMap::row_counter
-		sta addr_tmp2+LO
+		sta addr_tmp2+LO				; unused
 
 		fillBlocks
 
-		; new parts
+
+; ------------ slot parts --------------
+		lda used_part_slots
+		ldx #$ff
+@SLOT_LOOP:
+		inx
+		cpx #8
+		beq @SET_NEW_PARTS_LOOP
+		shl
+		bcc @SLOT_LOOP
+		pha
+		txa
+		pha
+		; load slot data
+		lda addr_tmp2+HI
+		sta addr_tmp1+HI
+		lda part_slot_addr_arr, x
+		sta addr_tmp1+LO
+		sta tmp2
+		lda part_slot_index_arr, x
+		sta tmp1
+		jsr _setParts					; arg: tmp1, tmp2, addr_tmp1
+		pla
+		tax
+		pla
+		inx
+		cpx #8
+		bne @SLOT_LOOP
+
+
+;--- -------- new parts ----------------
 		ldy DrawMap::index
-@GET_POS_AND_OBJ_LOOP:
-		; ------- get parts pos --------
+@SET_NEW_PARTS_LOOP:
+		; get parts pos
 		lda (DrawMap::map_addr), y
 		sta tmp1
 
@@ -75,11 +105,11 @@ fill_ground_start		: .byte 0
 		; Check if it can be updated
 		and #BYT_GET_LO
 		cmp DrawMap::row_counter
-		bne @GET_POS_AND_OBJ_LOOP_EXIT
+		bne @SET_NEW_PARTS_LOOP_EXIT
 
 		lda DrawMap::map_buff_num
 		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
-		bne @GET_POS_AND_OBJ_LOOP_EXIT
+		bne @SET_NEW_PARTS_LOOP_EXIT
 
 		; -- Set addr of bg map buff ---
 		and #BIT0
@@ -93,71 +123,17 @@ fill_ground_start		: .byte 0
 		; ------- get obj contents -----
 		sty tmp1						; save Y
 		ldy #0
-@GET_OBJ_CONTENTS_LOOP:
-		ldx tmp1
-		ldarr DrawMap::map_addr		; map_addr[x][y]: nextline & obj
-		; .byte OBJ('^', 1)などの値が取得できているはず
-		pha								; obj & nextline
-		cmp #PARTS_ENDCODE
-		beq @END_SET_PARTS
-		and #%0111_1111
-		pha								; obj
+		ldx #$ff
+		jsr _setParts
+		jmp @PREPARE_BG_MAP_BUF
 
-		; change addr
-		iny
-		ldarr DrawMap::map_addr			; posY(upper 4bit)
-		add addr_tmp1+LO
-		sta addr_tmp1+LO
-
-		; store obj ('H', 'B', '^') -> $04xx, $05xx
-		ldx #0
-		pla								; obj
-		sta (addr_tmp1, x)
-
-		; restore addr
-		lda tmp2
-		sta addr_tmp1+LO
-
-		; continue?
-		pla
-		and #BIT7						; nextline flag
-		bne @BREAK_LOOP
-		iny
-		bne @GET_OBJ_CONTENTS_LOOP
-		; ------------------------------
-@END_SET_PARTS:
-		; do nothing??
-@BREAK_LOOP:
-		sty tmp2
-		; loop end
+@SET_NEW_PARTS_LOOP_EXIT:
 		ldy tmp1
 		iny
 		iny
 		sty DrawMap::index
-
-		lda DrawMap::ARR_USED
-		ldx #8
-@LOOP:
-		cpx #0
-		beq @OVERFLOW
-		dex
-		shl
-		bcs @LOOP
-		lda DrawMap::addr_tmp1+LO
-		sta DrawMap::ADDR_ARR, x
-		lda tmp2
-		sta DrawMap::INDEX_ARR, x
 		jmp @PREPARE_BG_MAP_BUF
 		; ------------------------------
-
-@OVERFLOW:
-
-@GET_POS_AND_OBJ_LOOP_EXIT:
-		sty DrawMap::index
-		; sty DrawMap::index
-		jmp @PREPARE_BG_MAP_BUF
-		; ------------------------------
-
 
 		; End of map data (Not end of stage)
 @END_OF_MAP:
@@ -172,7 +148,7 @@ fill_ground_start		: .byte 0
 @LOAD_NEXT_MAP:
 		inc DrawMap::cnt_map_next
 		iny
-		jmp @GET_POS_AND_OBJ_LOOP
+		jmp @SET_NEW_PARTS_LOOP
 		; ------------------------------
 
 @END_OF_STAGE:
@@ -283,6 +259,96 @@ fill_ground_start		: .byte 0
 		rts
 		;-------------------------------
 .endproc
+
+
+
+;*------------------------------------------------------------------------------
+; パーツスロットに保存されているパーツ（描画中のパーツ）を指定して
+; ブロックを保存（$04xx/$05xxへ書き込み）
+; @PARAMS		x: スロットのインデックス（新規の場合ff）
+;				addr_tmp1: 配置する列の一番上のアドレス
+;				（$0401の列（$0401-$04e1）に書き込み，8行目が一番上→addr_tmp1=$0471）
+;				tmp1: DrawMap::indexの値
+;				tmp2: addr_tmp1+LOの値
+; @CLOBBERS		A X Y tmp1 tmp2 addr_tmp1
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _setParts
+		stx tmp3						; slot index
+@GET_OBJ_CONTENTS_LOOP:
+		ldx tmp1
+		ldarr DrawMap::map_addr		; map_addr[x][y]: nextline & obj
+		; .byte OBJ('^', 1)などの値が取得できているはず
+		cmp #PARTS_ENDCODE
+		beq @END_SET_PARTS
+		pha								; obj & nextline
+		and #%0111_1111
+		pha								; obj
+
+		; change addr
+		iny
+		ldarr DrawMap::map_addr			; posY(upper 4bit)
+		add addr_tmp1+LO
+		sta addr_tmp1+LO
+
+		; store obj ('H', 'B', '^') -> $04xx, $05xx
+		ldx #0
+		pla								; obj
+		sta (addr_tmp1, x)
+
+		; restore addr
+		lda tmp2
+		sta addr_tmp1+LO
+
+		; continue?
+		pla
+		and #BIT7						; nextline flag
+		bne @BREAK_LOOP
+		iny
+		bne @GET_OBJ_CONTENTS_LOOP
+		; ------------------------------
+@END_SET_PARTS:
+		ldx tmp3
+		cpx #$ff
+		beq @EXIT
+		lda NUM2BIT, x
+		eor #$ff
+		and used_part_slots
+		sta used_part_slots
+		bne @EXIT
+		; ------------------------------
+
+@BREAK_LOOP:
+		sty tmp2
+		; loop end
+		lda used_part_slots
+		ldx #$ff
+@SAVE_PARTS_LOOP:
+		inx
+		cpx #8
+		beq @SLOT_OVERFLOW
+		shl
+		bcs @SAVE_PARTS_LOOP
+		lda NUM2BIT, x					; x=0 -> BIT0
+		ora used_part_slots
+		sta used_part_slots
+		lda addr_tmp1+LO
+		sta part_slot_addr_arr, x
+		lda tmp2
+		sta part_slot_index_arr, x
+@EXIT:
+		rts
+		; ------------------------------
+
+@SLOT_OVERFLOW:
+		; for debug
+		jmp @SLOT_OVERFLOW
+		; ------------------------------
+.endproc
+
 
 ;*------------------------------------------------------------------------------
 ; Set addr of stages

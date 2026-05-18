@@ -89,6 +89,7 @@ spr_buff_start_addr					: .res 6		; 各スプライトのバッファの開始�
 spr_acceleration_x					: .res 5		; プレイヤーのデータはいらないので一つ減らす
 spr_acceleration_y					: .res 5		; インデックスはi-1
 
+; 残64byte程度
 
 
 .segment "USER_MEM_SND"
@@ -132,6 +133,10 @@ item_float_velocity_x			: .byte 0
 item_float_velocity_y			: .byte 0
 item_decimal_part_velocity_x	: .byte 0
 item_decimal_part_velocity_y	: .byte 0
+
+used_part_slots						: .res 1
+part_slot_addr_arr					: .res 8
+part_slot_index_arr					: .res 8
 
 
 .code
