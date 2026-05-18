@@ -59,9 +59,10 @@ fill_ground_start		: .byte 0
 
 		fillBlocks
 
+		; new parts
 		ldy DrawMap::index
 @GET_POS_AND_OBJ_LOOP:
-		; --------- get pos ----------
+		; ------- get parts pos --------
 		lda (DrawMap::map_addr), y
 		sta tmp1
 
@@ -123,16 +124,37 @@ fill_ground_start		: .byte 0
 		bne @BREAK_LOOP
 		iny
 		bne @GET_OBJ_CONTENTS_LOOP
-
+		; ------------------------------
+@END_SET_PARTS:
+		; do nothing??
 @BREAK_LOOP:
+		sty tmp2
 		; loop end
 		ldy tmp1
 		iny
 		iny
 		sty DrawMap::index
 
+		lda DrawMap::ARR_USED
+		ldx #8
+@LOOP:
+		cpx #0
+		beq @OVERFLOW
+		dex
+		shl
+		bcs @LOOP
+		lda DrawMap::addr_tmp1+LO
+		sta DrawMap::ADDR_ARR, x
+		lda tmp2
+		sta DrawMap::INDEX_ARR, x
+		jmp @PREPARE_BG_MAP_BUF
+		; ------------------------------
+
+@OVERFLOW:
+
 @GET_POS_AND_OBJ_LOOP_EXIT:
 		sty DrawMap::index
+		; sty DrawMap::index
 		jmp @PREPARE_BG_MAP_BUF
 		; ------------------------------
 
