@@ -137,6 +137,6 @@ item_decimal_part_velocity_y	: .byte 0
 used_part_slots						: .res 1
 part_slot_addr_arr					: .res 8
 part_slot_index_arr					: .res 8
-
+map_data_index_arr					: .res 8	; drawmap::index値
 
 .code

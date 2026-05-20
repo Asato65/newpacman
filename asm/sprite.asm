@@ -381,9 +381,9 @@ AMOUNT_INC_SPD_R:
 		iny
 		lda (addr_tmp2), y
 		sta CHR_BUFF+$5, x
+
 		; attr
 		tya
-
 		add tmp4
 		add tmp4
 		sub #1
@@ -417,17 +417,17 @@ AMOUNT_INC_SPD_R:
 		sta CHR_BUFF+$7, x
 
 		; buff indexを増やす（4byte * 2列）
-		; add x, tmp6
-		ldx tmp5
-		adx #8
-		stx tmp5
+		lda tmp5
+		add #8
+		sta tmp5
+		tax
 
 		lda tmp4
 		shl #1
 		sub #1
-		sta tmp6
+		sta tmp_rgstA
 		tya
-		sub tmp6
+		sub tmp_rgstA
 		tay
 		; sub y, #3  = (2 * 2 - 1)
 		; sub y, #5  = (2 * 3 - 1)
@@ -798,7 +798,7 @@ AMOUNT_INC_SPD_R:
 		ldy #2
 		ldarr SPRITE_ARR
 		shr #4
-		sta spr_anime_num, x			; アニメーション開始番号
+		sta tmp1	; xはインデックスではなくIDなので，あとでxの値を戻すまで保存
 		; [enemyname]_MOVE_ARRを読みこむ
 		ldy #7
 		ldarr SPRITE_ARR
@@ -808,6 +808,8 @@ AMOUNT_INC_SPD_R:
 		sta addr_tmp1+HI
 		pla
 		tax
+		lda tmp1
+		sta spr_anime_num, x			; アニメーション開始番号
 
 		lda #0
 		sta spr_anime_timer, x			; 初期化
@@ -1057,6 +1059,7 @@ AMOUNT_INC_SPD_R:
 	adc spr_collision_box_x2, x		; 敵右
 	cmp tmp1
 	bcc @NEXT_ENEMY
+
 	lda spr_posX_arr+$0
 	add spr_collision_box_x2+$0
 	sta tmp1						; プレイヤー右
@@ -1075,6 +1078,7 @@ AMOUNT_INC_SPD_R:
 	adc spr_collision_box_y2, x		; 敵下
 	cmp tmp1
 	bcc @NEXT_ENEMY
+
 	lda spr_posY_arr+$0
 	add spr_collision_box_y2+$0
 	sta tmp1						; プレイヤー下
@@ -1085,9 +1089,16 @@ AMOUNT_INC_SPD_R:
 	cmp tmp1
 	bcs @NEXT_ENEMY
 
+	; プレイヤーと敵は接触済み
+
+	; 当たり判定ボックスで，
+	; 敵上 <= プレイヤー上 || 敵
+	; ならば衝突
 	lda tmp3
 	cmp tmp2
+	beq @COLLISION
 	bcc @COLLISION
+
 
 	lda is_stomp_jumping
 	bne :+

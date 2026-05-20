@@ -22,4 +22,54 @@ PARTS_COINS_4COL:
 	.byte (OBJ '^', 0), $0
 	.byte PARTS_ENDCODE
 
+PARTS_8STAIRS:
+	.byte (OBJ 'H', 1), $70
+	.byte (OBJ 'H', 0), $70
+	.byte (OBJ 'H', 1), $60
+	.byte (OBJ 'H', 0), $70
+	.byte (OBJ 'H', 0), $60
+	.byte (OBJ 'H', 1), $50
+	.byte (OBJ 'H', 0), $70
+	.byte (OBJ 'H', 0), $60
+	.byte (OBJ 'H', 0), $50
+	.byte (OBJ 'H', 1), $40
+	.byte (OBJ 'H', 0), $70
+	.byte (OBJ 'H', 0), $60
+	.byte (OBJ 'H', 0), $50
+	.byte (OBJ 'H', 0), $40
+	.byte (OBJ 'H', 1), $30
+	.byte (OBJ 'H', 0), $70
+	.byte (OBJ 'H', 0), $60
+	.byte (OBJ 'H', 0), $50
+	.byte (OBJ 'H', 0), $40
+	.byte (OBJ 'H', 0), $30
+	.byte (OBJ 'H', 1), $20
+	.byte (OBJ 'H', 0), $70
+	.byte (OBJ 'H', 0), $60
+	.byte (OBJ 'H', 0), $50
+	.byte (OBJ 'H', 0), $40
+	.byte (OBJ 'H', 0), $30
+	.byte (OBJ 'H', 0), $20
+	.byte (OBJ 'H', 1), $10
+	.byte (OBJ 'H', 0), $70
+	.byte (OBJ 'H', 0), $60
+	.byte (OBJ 'H', 0), $50
+	.byte (OBJ 'H', 0), $40
+	.byte (OBJ 'H', 0), $30
+	.byte (OBJ 'H', 0), $20
+	.byte (OBJ 'H', 0), $10
+	.byte (OBJ 'H', 1), $00
+	.byte (OBJ 'H', 0), $70
+	.byte (OBJ 'H', 0), $60
+	.byte (OBJ 'H', 0), $50
+	.byte (OBJ 'H', 0), $40
+	.byte (OBJ 'H', 0), $30
+	.byte (OBJ 'H', 0), $20
+	.byte (OBJ 'H', 0), $10
+	.byte (OBJ 'H', 1), $00
+	.byte PARTS_ENDCODE
+
+PARTS_SKY_1:
+	.byte (OBJ 0, 0), $0
+	.byte PARTS_ENDCODE
 

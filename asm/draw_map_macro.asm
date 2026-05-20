@@ -53,7 +53,8 @@
 		iny
 		cpy #$10
 		bne @NO_OVF_ROW_CNT
-
+		lda #0
+		sta DrawMap::is_read_objmap_next
 		ldy #0
 		inc DrawMap::map_buff_num
 @NO_OVF_ROW_CNT:

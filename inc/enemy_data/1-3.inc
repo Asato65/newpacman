@@ -5,6 +5,7 @@ ENEMY_ARR_13:
 	.byte $02, $82, KURIBO_ID
 	.byte $02, $92, KURIBO_ID
 	.byte $03, $05, FLOWER_ID
+	.byte $03, $12, KURIBO_ID
 	; .byte $02, $a2, KURIBO_ID
 	; .byte $02, $b2, KURIBO_ID
 	; .byte $02, $c2, KURIBO_ID

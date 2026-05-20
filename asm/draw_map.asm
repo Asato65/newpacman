@@ -17,6 +17,7 @@ fill_ground_block		: .byte 0
 fill_block				: .byte 0
 fill_ground_end			: .byte 0
 fill_ground_start		: .byte 0
+is_read_objmap_next		: .byte 0
 
 
 ;*------------------------------------------------------------------------------
@@ -38,12 +39,6 @@ fill_ground_start		: .byte 0
 .code									; ----- code -----
 
 .proc _updateOneLine
-		lda DrawMap::isend_draw_stage
-		beq @START
-		rts
-		; ------------------------------
-
-@START:
 		lda #1
 		sta is_updated_map
 
@@ -59,15 +54,14 @@ fill_ground_start		: .byte 0
 
 		fillBlocks
 
-
 ; ------------ slot parts --------------
 		lda used_part_slots
 		ldx #$ff
 @SLOT_LOOP:
 		inx
 		cpx #8
-		beq @SET_NEW_PARTS_LOOP
-		shl
+		beq @CHECK_IS_END_STAGE
+		shr
 		bcc @SLOT_LOOP
 		pha
 		txa
@@ -76,10 +70,13 @@ fill_ground_start		: .byte 0
 		lda addr_tmp2+HI
 		sta addr_tmp1+HI
 		lda part_slot_addr_arr, x
+		add #1
 		sta addr_tmp1+LO
 		sta tmp2
-		lda part_slot_index_arr, x
+		lda map_data_index_arr, x
 		sta tmp1
+		lda part_slot_index_arr, x
+		sta tmp3
 		jsr _setParts					; arg: tmp1, tmp2, addr_tmp1
 		pla
 		tax
@@ -88,8 +85,13 @@ fill_ground_start		: .byte 0
 		cpx #8
 		bne @SLOT_LOOP
 
+@CHECK_IS_END_STAGE:
+		lda DrawMap::isend_draw_stage
+		beq @SET_NEW_PARTS
+		jmp @PREPARE_BG_MAP_BUF
 
 ;--- -------- new parts ----------------
+@SET_NEW_PARTS:
 		ldy DrawMap::index
 @SET_NEW_PARTS_LOOP:
 		; get parts pos
@@ -121,16 +123,18 @@ fill_ground_start		: .byte 0
 		sta tmp2						; save (to restore)
 
 		; ------- get obj contents -----
+		iny
 		sty tmp1						; save Y
-		ldy #0
+		lda #0
+		sta tmp3
 		ldx #$ff
-		jsr _setParts
-		jmp @PREPARE_BG_MAP_BUF
+		jsr _setParts					; don't break tmp1
+		ldy tmp1
+		add y, #2
+		jmp @SET_NEW_PARTS_LOOP
 
 @SET_NEW_PARTS_LOOP_EXIT:
-		ldy tmp1
-		iny
-		iny
+		; ldy tmp1
 		sty DrawMap::index
 		jmp @PREPARE_BG_MAP_BUF
 		; ------------------------------
@@ -139,16 +143,17 @@ fill_ground_start		: .byte 0
 @END_OF_MAP:
 		loadNextMap
 
-		lda DrawMap::map_addr+HI
-		cmp #ENDCODE					; A = Addr Hi
+		cmp #ENDCODE
 		beq @END_OF_STAGE
 
 		ldy #3							; この後inyされてy(index) = 4に
 
 @LOAD_NEXT_MAP:
+		lda DrawMap::is_read_objmap_next
+		bne @PREPARE_BG_MAP_BUF
 		inc DrawMap::cnt_map_next
 		iny
-		jmp @SET_NEW_PARTS_LOOP
+		jmp @PREPARE_BG_MAP_BUF
 		; ------------------------------
 
 @END_OF_STAGE:
@@ -270,17 +275,27 @@ fill_ground_start		: .byte 0
 ;				（$0401の列（$0401-$04e1）に書き込み，8行目が一番上→addr_tmp1=$0471）
 ;				tmp1: DrawMap::indexの値
 ;				tmp2: addr_tmp1+LOの値
-; @CLOBBERS		A X Y tmp1 tmp2 addr_tmp1
+;				tmp3: slot_index_arr[slot_index]の値
+; @CLOBBERS		A X Y tmp3 tmp4 addr_tmp1
 ; @RETURNS		None
 ;*------------------------------------------------------------------------------
 
 .code									; ----- code -----
 
 .proc _setParts
-		stx tmp3						; slot index
+		stx tmp4						; slot index
 @GET_OBJ_CONTENTS_LOOP:
-		ldx tmp1
-		ldarr DrawMap::map_addr		; map_addr[x][y]: nextline & obj
+		; ldarr DrawMap::map_addr		; map_addr[x][y]: nextline & obj
+		; ldarr[x][y]だと，アドレスのみが格納されている必要がある（xが2倍される）
+		; DrawMap::map_addr[tmp1][tmp3]を求める
+		ldy tmp1
+		lda (DrawMap::map_addr), y
+		sta ldarr_addr_tmp+LO
+		iny
+		lda (DrawMap::map_addr), y
+		sta ldarr_addr_tmp+HI
+		ldy tmp3
+		lda (DrawMap::ldarr_addr_tmp), y
 		; .byte OBJ('^', 1)などの値が取得できているはず
 		cmp #PARTS_ENDCODE
 		beq @END_SET_PARTS
@@ -290,7 +305,8 @@ fill_ground_start		: .byte 0
 
 		; change addr
 		iny
-		ldarr DrawMap::map_addr			; posY(upper 4bit)
+		lda (DrawMap::ldarr_addr_tmp), y		; posY(upper 4bit)
+		; ldarr DrawMap::map_addr			; posY(upper 4bit)
 		add addr_tmp1+LO
 		sta addr_tmp1+LO
 
@@ -304,14 +320,14 @@ fill_ground_start		: .byte 0
 		sta addr_tmp1+LO
 
 		; continue?
-		pla
-		and #BIT7						; nextline flag
-		bne @BREAK_LOOP
 		iny
-		bne @GET_OBJ_CONTENTS_LOOP
+		sty tmp3
+		pla
+		bmi @BREAK_LOOP					; bit7: nextline flag
+		bpl @GET_OBJ_CONTENTS_LOOP
 		; ------------------------------
 @END_SET_PARTS:
-		ldx tmp3
+		ldx tmp4						; slot index(ff: new(no slot))
 		cpx #$ff
 		beq @EXIT
 		lda NUM2BIT, x
@@ -322,7 +338,6 @@ fill_ground_start		: .byte 0
 		; ------------------------------
 
 @BREAK_LOOP:
-		sty tmp2
 		; loop end
 		lda used_part_slots
 		ldx #$ff
@@ -337,8 +352,10 @@ fill_ground_start		: .byte 0
 		sta used_part_slots
 		lda addr_tmp1+LO
 		sta part_slot_addr_arr, x
-		lda tmp2
+		lda tmp3
 		sta part_slot_index_arr, x
+		lda tmp1
+		sta map_data_index_arr, x
 @EXIT:
 		rts
 		; ------------------------------
@@ -389,25 +406,27 @@ fill_ground_start		: .byte 0
 		tay
 		pha								; push y
 
-		lda (DrawMap::map_arr_addr), y
-		sta DrawMap::map_addr+LO
-		iny
-		lda (DrawMap::map_arr_addr), y
-		sta DrawMap::map_addr+HI
-
 		; ffコードをこの関数の返値にして，この関数の外でマップ終了を判定しているが
 		; その前に@NO_EXIT以下の処理を行ってしまい，バグるため，ここで抜ける
 		; 直接@END_OF_STAGEにジャンプしてもOKなはずだが（マップ終了判定でジャンプするラベル）
 		; procを使っているため今は無理
+		iny
+		lda (DrawMap::map_arr_addr), y
 		cmp #ENDCODE
 		bne @NO_EXIT
 		pla
 		tay
-		lda #ENDCODE
+		lda #ENDCODE					; マップ終了時にはmapaddrを書き換えない
 		rts
 		; ------------------------------
 
 @NO_EXIT:
+		lda (DrawMap::map_arr_addr), y
+		sta DrawMap::map_addr+HI
+		dey
+		lda (DrawMap::map_arr_addr), y
+		sta DrawMap::map_addr+LO
+
 		ramFillGround
 		ramFillBlocks
 
@@ -416,6 +435,8 @@ fill_ground_start		: .byte 0
 
 		pla
 		tay
+
+		lda #0							; return value != ENDCODE
 
 		rts
 		; ------------------------------

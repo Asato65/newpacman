@@ -123,22 +123,17 @@ enemy_block_pos_bottom:		.byte 0
 		; MEMO: 敵の出すX座標はマップ上（画面上ではない！）の座標でもいいかも？scroll_xを使えば実装できそう
 		; MEMO: 右端を超えたフラグも用意できるかも
 
-		cpx #0
-		bne :+
-		lda #0
-		sta spr_buff_start_addr, x
-		beq :++
-:
-		dex
-		lda spr_attr2_arr, x
+
+		; buff_addr[x-1] + bytesize[x-1] = buff_addr[x] -> store
+		; buff_addr[x] + bytesize[x] < buff_addr[x+1] && attr[x]&BIT7: none
+
+		; x >= 1は確定している
+		lda spr_attr2_arr-1, x
 		shl #1
 		and #%0011_1000
 		clc
-		adc spr_buff_start_addr, x
-
-		inx
+		adc spr_buff_start_addr-1, x
 		sta spr_buff_start_addr, x
-:
 
 		; 敵の座標をストア
 		lda #$ff
@@ -232,6 +227,30 @@ enemy_block_pos_bottom:		.byte 0
 
 		lda #$ff
 		sta spr_move_counter, x
+
+		; ここで各敵のバッファ開始インデックスを再構築
+		; slot1: クリボー→empty(8byte), slot2: クリボー(8byte)
+		; slot1にパックンが追加される→slot1は12byteに増加
+		; だが，slot2のアドレスは移動しないので，slot1の増加分が上書きされて消える
+		; 以下の処理でslot1以降のアドレスを再計算し，メモリを確保する
+		; 逆に，パックンが消えた後，アドレスを詰めることもできる
+		ldx tmp1		; 開始はスポーンさせた敵のインデックスから
+@ALLOC_BUFF_ADDR_LOOP:
+		cpx #5
+		beq @EXIT_ALLOC_LOOP
+		lda spr_attr_arr, x		; ループ1回目はスポーンさせた敵情報が入る
+		and #BIT7
+		beq @CONTINUE_ALLOC_LOOP
+		lda spr_attr2_arr, x
+		shl #1
+		and #%0011_1000				; height*4 byte
+		clc
+		adc spr_buff_start_addr, x
+		sta spr_buff_start_addr+1, x
+@CONTINUE_ALLOC_LOOP:
+		inx
+		bne @ALLOC_BUFF_ADDR_LOOP
+@EXIT_ALLOC_LOOP:
 
 		rts
 		; ------------------------------

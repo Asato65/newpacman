@@ -1389,6 +1389,7 @@ COLLISION_FIX_FLAGS_ARR:
 		bmi :+
 		lda #0
 		sta is_jumping
+		sta is_stomp_jumping
 		lda #1							; Y方向の加速度が正（下向き）の場合
 		sta spr_velocity_y_arr+$0
 		sta spr_decimal_part_velocity_y_arr+$0
