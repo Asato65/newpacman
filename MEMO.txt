@@ -67,3 +67,88 @@ FIXME: マジックコードの消去（エンジンIDなど）
 
 現在敵同士の当たり判定にはヒットボックスを利用していない
 また，パックンフラワーなどほかの敵とは当たり判定がない（跳ね返らない）敵もあり，その実装をどうするのか
+
+
+; header
+timer*2
+height & autowalk 3
+level backdrop 3 (water, night, ...)
+
+tile type 2 (mash, color, cloud)
+background 2
+floor 4
+
+; tile
+1:	xxxxyyyy
+	x: Xpos, y: Ypos(4)
+2:	pabcdefg
+	p: next,
+	0 <= y <=11:
+		abc != 0:
+			abc: type
+				1: mash/killer
+				2: block_col
+				3: hard_col
+				4: coin_col
+				5: block_row
+				6: hard_row
+				(7: pipe)
+			defg: size
+		abc = 7:
+			type: pipe
+			d: exit enable
+			efg: size
+		abc == 0:
+			defg: sub type
+				0: Q&powerup
+				1: Q&coin
+				2: hide&coin
+				3: hide&1up
+				4: block&powerup
+				5: block&ツタ
+				6: block&star
+				7: block&10coin
+				8: block&1up
+				9: hard2(used block)
+				10: water exit
+				11: spring
+				12: 複合土管（1-2スタート）
+				13: flag pall
+	y == 12:
+		abc: subtype
+			0: 落とし穴
+			1: ロープでつながったプラットフォーム
+			2: 橋(y=7)
+			3: 橋(y=8)
+			4: 橋(y=10)
+			5: 水あり落とし穴
+			6: Q(y=3)
+			7: Q(y=7)
+		defg: size
+	y == 15:
+		abc: subtype
+			0, 1: vertical rope
+			2: castle(level start, end)
+			3: stair(size==9でもheightは8に)
+			4: 大きい複合土管（1-2終了）
+	y == 13:
+		a == 1:
+			0: 複合土管
+			1: flag pall
+			2: 斧
+			3: チェーン
+			4: クッパの足場
+			5: warp zone
+			6, 7: scroll stop
+			8: パタパタ（赤）生成
+			9: パタパタ（灰色），キラー生成
+			10: 生成終了
+			11: ループコマンド（迷路用？）
+		a == 0:
+			cdefg: screen number（1-1で土管出たあとなど）
+	y == 14:
+		a == 1:
+			efg: level backdrop
+		a == 0:
+			bc: background
+			defg: floor pattern

@@ -67,12 +67,20 @@ is_read_objmap_next		: .byte 0
 		txa
 		pha
 		; load slot data
+		; addr hi
 		lda addr_tmp2+HI
 		sta addr_tmp1+HI
+		; addr lo（$043f->$0540のように，画面境界で下の行へ行かないように）
+		lda part_slot_addr_arr, x
+		and #%1111_0000
+		sta tmp1
 		lda part_slot_addr_arr, x
 		add #1
+		and #%0000_1111
+		ora tmp1
 		sta addr_tmp1+LO
 		sta tmp2
+		; index
 		lda map_data_index_arr, x
 		sta tmp1
 		lda part_slot_index_arr, x
@@ -153,6 +161,7 @@ is_read_objmap_next		: .byte 0
 		bne @PREPARE_BG_MAP_BUF
 		inc DrawMap::cnt_map_next
 		iny
+		sty DrawMap::index
 		jmp @PREPARE_BG_MAP_BUF
 		; ------------------------------
 
@@ -334,7 +343,7 @@ is_read_objmap_next		: .byte 0
 		eor #$ff
 		and used_part_slots
 		sta used_part_slots
-		bne @EXIT
+		jmp @EXIT
 		; ------------------------------
 
 @BREAK_LOOP:

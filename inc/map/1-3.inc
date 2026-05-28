@@ -1,265 +1,147 @@
 MAP_ARR_13:
-	.addr MAP_13_TEST
+	.addr MAP_13_1_NEW
+	.addr MAP_13_2_NEW
+	.addr MAP_13_3_NEW
 	.addr $ffff
-	.addr MAP_13_1
-	.addr MAP_13_2
-	.addr MAP_13_3
-	.addr MAP_13_4
 
-
-
-MAP_13_TEST:
+MAP_13_1_NEW:
 	.byte $bd
 	.byte 'B', %00000000, %00000000
-	; objposで，ffなどを設定したときは，直接'H'のようにオブジェクトを指定できてもいい？
-	; (addr PARTS_...ではなく，.byte 'H'で指定できるのでメモリ削減)
-	; .byte (GET_OBJ_POS $c, $8)
-	; .addr PARTS_COINS_4COL
-	; .byte (GET_OBJ_POS $c, $9)
-	; .addr PARTS_BLOCK_1
-	; .byte (GET_OBJ_POS $d, $8)
-	; .addr PARTS_COIN_1
-	; .byte OBJMAP_NEXT
+
+	.byte OBJMAP_NEXT
+
+	.byte (GET_OBJ_POS $0, $5)
+	.addr PARTS_QBLOCK_1
+	.byte (GET_OBJ_POS $4, $5)
+	.addr PARTS_BLOCK_5COL
+	.byte (GET_OBJ_POS $5, $5)			; レンガ*5を上書き
+	.addr PARTS_QBLOCK_FLWR_1
+	.byte (GET_OBJ_POS $6, $9)
+	.addr PARTS_QBLOCK_1
+	.byte (GET_OBJ_POS $7, $5)			; 上書き
+	.addr PARTS_QBLOCK_1
+
+	.byte (GET_OBJ_POS $c, $3)			; 土管1
+	.addr PARTS_PIPE_2ROW
+	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $6, $4)			; 土管2
+	.addr PARTS_PIPE_3ROW
+	.byte (GET_OBJ_POS $e, $5)			; 土管3
+	.addr PARTS_PIPE_4ROW
+	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $9, $5)			; 土管4
+	.addr PARTS_PIPE_4ROW
+	.byte OBJMAP_NEXT
+
+	.byte (GET_OBJ_POS $0, $6)			; 隠し
+	.addr PARTS_HIDE_1
+	.byte (GET_OBJ_POS $5, $1)			; 落とし穴
+	.addr PARTS_SKY_2ROW2COL
+
+	.byte (GET_OBJ_POS $d, $5)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $e, $5)
+	.addr PARTS_QBLOCK_1
+	.byte (GET_OBJ_POS $f, $5)
+	.addr PARTS_BLOCK_1
+	.byte OBJMAP_END
+
+MAP_13_2_NEW:
+	.byte $bd
+	.byte 'B', %00000010, %00000000
+
+	.byte (GET_OBJ_POS $6, $1)
+	.addr PARTS_SKY_2ROW3COL
+	.byte (GET_OBJ_POS $8, $9)
+	.addr PARTS_SKY_2ROW3COL			; 少し無駄に書き換えるがマップサイズは小さくなる
+	.byte (GET_OBJ_POS $e, $5)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $e, $9)
+	.addr PARTS_QBLOCK_1
+	.byte OBJMAP_END
+
+MAP_13_3_NEW:
+	.byte $bd
+	.byte 'B', %00000000, %00000000
+
+	.byte (GET_OBJ_POS $4, $5)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $5, $5)			; スターが出る場所
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $a, $5)
+	.addr PARTS_QBLOCK_1
+	.byte (GET_OBJ_POS $d, $5)
+	.addr PARTS_QBLOCK_1
+	.byte (GET_OBJ_POS $d, $9)			; パワーアップアイテム
+	.addr PARTS_QBLOCK_1
+	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $0, $5)
+	.addr PARTS_QBLOCK_1
+
+	.byte (GET_OBJ_POS $6, $5)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $9, $9)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $a, $9)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $b, $9)
+	.addr PARTS_BLOCK_1
+	.byte OBJMAP_NEXT
+
+	.byte (GET_OBJ_POS $0, $9)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $1, $9)
+	.addr PARTS_QBLOCK_1
+	.byte (GET_OBJ_POS $1, $5)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $2, $9)
+	.addr PARTS_QBLOCK_1
+	.byte (GET_OBJ_POS $2, $5)
+	.addr PARTS_BLOCK_1
+	.byte (GET_OBJ_POS $3, $9)
+	.addr PARTS_BLOCK_1
+
+	.byte (GET_OBJ_POS $6, $5)
+	.addr PARTS_4STAIRS
+	.byte (GET_OBJ_POS $c, $5)
+	.addr PARTS_4STAIRS_REV
+	.byte OBJMAP_NEXT
+	.byte (GET_OBJ_POS $4, $5)
+	.addr PARTS_4STAIRS
+	.byte (GET_OBJ_POS $8, $5)
+	.addr PARTS_HARD_4ROW
+	.byte (GET_OBJ_POS $9, $7)
+	.addr PARTS_SKY_4ROW2COL
+	.byte (GET_OBJ_POS $9, $3)
+	.addr PARTS_SKY_4ROW2COL
+	.byte (GET_OBJ_POS $b, $5)
+	.addr PARTS_4STAIRS_REV
+	.byte OBJMAP_NEXT
+
+	.byte (GET_OBJ_POS $3, $3)
+	.addr PARTS_PIPE_2ROW
+	.byte (GET_OBJ_POS $8, $5)
+	.addr PARTS_BLOCK_5COL
+	.byte (GET_OBJ_POS $a, $5)
+	.addr PARTS_QBLOCK_1
+	.byte (GET_OBJ_POS $c, $5)
+	.addr PARTS_SKY_1
+	.byte OBJMAP_NEXT
+
+	.byte (GET_OBJ_POS $3, $3)
+	.addr PARTS_PIPE_2ROW
 	.byte (GET_OBJ_POS $5, $9)
 	.addr PARTS_8STAIRS
+	.byte (GET_OBJ_POS $d, $9)
+	.addr PARTS_HARD_4ROW
+	.byte (GET_OBJ_POS $d, $5)
+	.addr PARTS_HARD_4ROW
+	.byte OBJMAP_NEXT
+
+	.byte (GET_OBJ_POS $6, $c)
+	.addr PARTS_GOAL
+	.byte (GET_OBJ_POS $d, $2)
+	.addr PARTS_BLOCK_1
+
 	.byte OBJMAP_END
 
-
-
-MAP_13_1:
-	.byte $bd
-	.byte 'B', %00000000, %00000000
-	.byte (GET_OBJ_POS $3, $8), 'H'
-	.byte (GET_OBJ_POS $3, $b), 'H'
-	.byte (GET_OBJ_POS $4, $8), 'H'
-	.byte (GET_OBJ_POS $4, $9), 'H'
-	.byte (GET_OBJ_POS $4, $a), 'H'
-	.byte (GET_OBJ_POS $4, $b), 'H'
-	.byte (GET_OBJ_POS $4, $c), 'H'
-	.byte (GET_OBJ_POS $5, $8), 'H'
-	.byte (GET_OBJ_POS $6, $a), 'H'
-	.byte (GET_OBJ_POS $7, $a), 'H'
-	.byte (GET_OBJ_POS $8, $a), 'H'
-	.byte (GET_OBJ_POS $a, $8), 'H'
-	.byte (GET_OBJ_POS $a, $b), 'H'
-	.byte (GET_OBJ_POS $b, $8), 'H'
-	.byte (GET_OBJ_POS $b, $9), 'H'
-	.byte (GET_OBJ_POS $b, $a), 'H'
-	.byte (GET_OBJ_POS $b, $b), 'H'
-	.byte (GET_OBJ_POS $b, $c), 'H'
-	.byte (GET_OBJ_POS $c, $8), 'H'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $5), 'Q'
-	.byte (GET_OBJ_POS $4, $5), 'B'
-	.byte (GET_OBJ_POS $5, $5), '['
-	.byte (GET_OBJ_POS $6, $5), 'B'
-	.byte (GET_OBJ_POS $6, $9), 'Q'
-	.byte (GET_OBJ_POS $7, $5), 'Q'
-	.byte (GET_OBJ_POS $8, $5), 'B'
-	.byte (GET_OBJ_POS $c, $2), '`'		; 土管1
-	.byte (GET_OBJ_POS $c, $3), 'a'
-	.byte (GET_OBJ_POS $d, $2), 'b'
-	.byte (GET_OBJ_POS $d, $3), 'c'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $6, $2), '`'		; 土管2
-	.byte (GET_OBJ_POS $6, $3), '`'
-	.byte (GET_OBJ_POS $6, $4), 'a'
-	.byte (GET_OBJ_POS $7, $2), 'b'
-	.byte (GET_OBJ_POS $7, $3), 'b'
-	.byte (GET_OBJ_POS $7, $4), 'c'
-	.byte (GET_OBJ_POS $e, $2), '`'		; 土管3
-	.byte (GET_OBJ_POS $e, $3), '`'
-	.byte (GET_OBJ_POS $e, $4), '`'
-	.byte (GET_OBJ_POS $e, $5), 'a'
-	.byte (GET_OBJ_POS $f, $2), 'b'
-	.byte (GET_OBJ_POS $f, $3), 'b'
-	.byte (GET_OBJ_POS $f, $4), 'b'
-	.byte (GET_OBJ_POS $f, $5), 'c'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $9, $2), '`'		; 土管4
-	.byte (GET_OBJ_POS $9, $3), '`'
-	.byte (GET_OBJ_POS $9, $4), '`'
-	.byte (GET_OBJ_POS $9, $5), 'a'
-	.byte (GET_OBJ_POS $a, $2), 'b'		; 土管4
-	.byte (GET_OBJ_POS $a, $3), 'b'
-	.byte (GET_OBJ_POS $a, $4), 'b'
-	.byte (GET_OBJ_POS $a, $5), 'c'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $6), '_'		; 隠しブロック
-	.byte (GET_OBJ_POS $5, $0), 0
-	.byte (GET_OBJ_POS $5, $1), 0
-	.byte (GET_OBJ_POS $6, $0), 0
-	.byte (GET_OBJ_POS $6, $1), 0
-	.byte (GET_OBJ_POS $d, $5), 'B'
-	.byte (GET_OBJ_POS $e, $5), 'Q'
-	.byte (GET_OBJ_POS $f, $5), 'B'
-	.byte OBJMAP_END
-
-
-MAP_13_2:
-	.byte $bd
-	.byte 'B'
-	.byte %00000010, %00000000
-	.byte (GET_OBJ_POS $6, $0), 0
-	.byte (GET_OBJ_POS $6, $1), 0
-	.byte (GET_OBJ_POS $7, $0), 0
-	.byte (GET_OBJ_POS $7, $1), 0
-	.byte (GET_OBJ_POS $8, $0), 0
-	.byte (GET_OBJ_POS $8, $1), 0
-	.byte (GET_OBJ_POS $8, $9), 0
-	.byte (GET_OBJ_POS $9, $9), 0
-	.byte (GET_OBJ_POS $a, $9), 0
-	.byte (GET_OBJ_POS $e, $5), 'B'
-	.byte (GET_OBJ_POS $e, $9), 'Q'
-	.byte OBJMAP_END
-
-MAP_13_3:
-	.byte $bd
-	.byte 'B'
-	.byte %00000000, %00000000
-	.byte (GET_OBJ_POS $4, $5), 'B'
-	.byte (GET_OBJ_POS $5, $5), 'B'
-	.byte (GET_OBJ_POS $a, $5), 'Q'
-	.byte (GET_OBJ_POS $d, $5), 'Q'
-	.byte (GET_OBJ_POS $d, $9), 'Q'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $5), 'Q'
-	.byte (GET_OBJ_POS $5, $5), 'B'
-	.byte (GET_OBJ_POS $8, $9), 'B'
-	.byte (GET_OBJ_POS $9, $9), 'B'
-	.byte (GET_OBJ_POS $a, $9), 'B'
-	.byte (GET_OBJ_POS $e, $9), 'B'
-	.byte (GET_OBJ_POS $f, $5), 'B'
-	.byte (GET_OBJ_POS $f, $9), 'Q'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $5), 'B'
-	.byte (GET_OBJ_POS $0, $9), 'Q'
-	.byte (GET_OBJ_POS $1, $9), 'B'
-	.byte (GET_OBJ_POS $4, $2), 'H'
-	.byte (GET_OBJ_POS $5, $2), 'H'
-	.byte (GET_OBJ_POS $5, $3), 'H'
-	.byte (GET_OBJ_POS $6, $2), 'H'
-	.byte (GET_OBJ_POS $6, $3), 'H'
-	.byte (GET_OBJ_POS $6, $4), 'H'
-	.byte (GET_OBJ_POS $7, $2), 'H'
-	.byte (GET_OBJ_POS $7, $3), 'H'
-	.byte (GET_OBJ_POS $7, $4), 'H'
-	.byte (GET_OBJ_POS $7, $5), 'H'
-	.byte (GET_OBJ_POS $a, $2), 'H'
-	.byte (GET_OBJ_POS $a, $3), 'H'
-	.byte (GET_OBJ_POS $a, $4), 'H'
-	.byte (GET_OBJ_POS $a, $5), 'H'
-	.byte (GET_OBJ_POS $b, $2), 'H'
-	.byte (GET_OBJ_POS $b, $3), 'H'
-	.byte (GET_OBJ_POS $b, $4), 'H'
-	.byte (GET_OBJ_POS $c, $2), 'H'
-	.byte (GET_OBJ_POS $c, $3), 'H'
-	.byte (GET_OBJ_POS $d, $2), 'H'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $2, $2), 'H'
-	.byte (GET_OBJ_POS $3, $2), 'H'
-	.byte (GET_OBJ_POS $3, $3), 'H'
-	.byte (GET_OBJ_POS $4, $2), 'H'
-	.byte (GET_OBJ_POS $4, $3), 'H'
-	.byte (GET_OBJ_POS $4, $4), 'H'
-	.byte (GET_OBJ_POS $5, $2), 'H'
-	.byte (GET_OBJ_POS $5, $3), 'H'
-	.byte (GET_OBJ_POS $5, $4), 'H'
-	.byte (GET_OBJ_POS $5, $5), 'H'
-	.byte (GET_OBJ_POS $6, $2), 'H'
-	.byte (GET_OBJ_POS $6, $3), 'H'
-	.byte (GET_OBJ_POS $6, $4), 'H'
-	.byte (GET_OBJ_POS $6, $5), 'H'
-	.byte (GET_OBJ_POS $7, $0), 0
-	.byte (GET_OBJ_POS $7, $1), 0
-	.byte (GET_OBJ_POS $8, $0), 0
-	.byte (GET_OBJ_POS $8, $1), 0
-	.byte (GET_OBJ_POS $9, $2), 'H'
-	.byte (GET_OBJ_POS $9, $3), 'H'
-	.byte (GET_OBJ_POS $9, $4), 'H'
-	.byte (GET_OBJ_POS $9, $5), 'H'
-	.byte (GET_OBJ_POS $a, $2), 'H'
-	.byte (GET_OBJ_POS $a, $3), 'H'
-	.byte (GET_OBJ_POS $a, $4), 'H'
-	.byte (GET_OBJ_POS $b, $2), 'H'
-	.byte (GET_OBJ_POS $b, $3), 'H'
-	.byte (GET_OBJ_POS $c, $2), 'H'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $1, $2), '`'		; 土管5（出口）
-	.byte (GET_OBJ_POS $1, $3), 'a'
-	.byte (GET_OBJ_POS $2, $2), 'b'
-	.byte (GET_OBJ_POS $2, $3), 'c'
-	.byte (GET_OBJ_POS $6, $5), 'B'
-	.byte (GET_OBJ_POS $7, $5), 'B'
-	.byte (GET_OBJ_POS $8, $5), 'Q'
-	.byte (GET_OBJ_POS $9, $5), 'B'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $1, $2), '`'		; 土管6
-	.byte (GET_OBJ_POS $1, $3), 'a'
-	.byte (GET_OBJ_POS $2, $2), 'b'
-	.byte (GET_OBJ_POS $2, $3), 'c'
-	.byte (GET_OBJ_POS $3, $2), 'H'
-	.byte (GET_OBJ_POS $4, $2), 'H'
-	.byte (GET_OBJ_POS $4, $3), 'H'
-	.byte (GET_OBJ_POS $5, $2), 'H'
-	.byte (GET_OBJ_POS $5, $3), 'H'
-	.byte (GET_OBJ_POS $5, $4), 'H'
-	.byte (GET_OBJ_POS $6, $2), 'H'
-	.byte (GET_OBJ_POS $6, $3), 'H'
-	.byte (GET_OBJ_POS $6, $4), 'H'
-	.byte (GET_OBJ_POS $6, $5), 'H'
-	.byte (GET_OBJ_POS $7, $2), 'H'
-	.byte (GET_OBJ_POS $7, $3), 'H'
-	.byte (GET_OBJ_POS $7, $4), 'H'
-	.byte (GET_OBJ_POS $7, $5), 'H'
-	.byte (GET_OBJ_POS $7, $6), 'H'
-	.byte (GET_OBJ_POS $8, $2), 'H'
-	.byte (GET_OBJ_POS $8, $3), 'H'
-	.byte (GET_OBJ_POS $8, $4), 'H'
-	.byte (GET_OBJ_POS $8, $5), 'H'
-	.byte (GET_OBJ_POS $8, $6), 'H'
-	.byte (GET_OBJ_POS $8, $7), 'H'
-	.byte (GET_OBJ_POS $9, $2), 'H'
-	.byte (GET_OBJ_POS $9, $3), 'H'
-	.byte (GET_OBJ_POS $9, $4), 'H'
-	.byte (GET_OBJ_POS $9, $5), 'H'
-	.byte (GET_OBJ_POS $9, $6), 'H'
-	.byte (GET_OBJ_POS $9, $7), 'H'
-	.byte (GET_OBJ_POS $9, $8), 'H'
-	.byte (GET_OBJ_POS $a, $2), 'H'
-	.byte (GET_OBJ_POS $a, $3), 'H'
-	.byte (GET_OBJ_POS $a, $4), 'H'
-	.byte (GET_OBJ_POS $a, $5), 'H'
-	.byte (GET_OBJ_POS $a, $6), 'H'
-	.byte (GET_OBJ_POS $a, $7), 'H'
-	.byte (GET_OBJ_POS $a, $8), 'H'
-	.byte (GET_OBJ_POS $a, $9), 'H'
-	.byte (GET_OBJ_POS $b, $2), 'H'
-	.byte (GET_OBJ_POS $b, $3), 'H'
-	.byte (GET_OBJ_POS $b, $4), 'H'
-	.byte (GET_OBJ_POS $b, $5), 'H'
-	.byte (GET_OBJ_POS $b, $6), 'H'
-	.byte (GET_OBJ_POS $b, $7), 'H'
-	.byte (GET_OBJ_POS $b, $8), 'H'
-	.byte (GET_OBJ_POS $b, $9), 'H'
-	.byte OBJMAP_END
-
-MAP_13_4:
-	.byte $bd
-	.byte 'B'
-	.byte %00000000, %00000000
-	.byte (GET_OBJ_POS $4, $2), 'H'
-	.byte (GET_OBJ_POS $4, $3), 'd'
-	.byte (GET_OBJ_POS $4, $4), 'd'
-	.byte (GET_OBJ_POS $4, $5), 'd'
-	.byte (GET_OBJ_POS $4, $6), 'd'
-	.byte (GET_OBJ_POS $4, $7), 'd'
-	.byte (GET_OBJ_POS $4, $8), 'd'
-	.byte (GET_OBJ_POS $4, $9), 'd'
-	.byte (GET_OBJ_POS $4, $a), 'd'
-	.byte (GET_OBJ_POS $4, $b), 'd'
-	.byte (GET_OBJ_POS $4, $c), 'e'
-	.byte (GET_OBJ_POS $b, $2), 'B'
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $f, $0), 'G'
-	.byte OBJMAP_END

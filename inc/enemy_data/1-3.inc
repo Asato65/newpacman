@@ -1,14 +1,9 @@
 ENEMY_ARR_13:
-	; .byte $00, $c2, KURIBO_ID			; マップ0, X=cにマリオが来たら、Y=2にクリボー
+	.byte $00, $c2, KURIBO_ID			; マップ0, X=cにマリオが来たら、Y=2にクリボー
 	.byte $02, $12, KURIBO_ID
-	; .byte $02, $72, KURIBO_ID
 	.byte $02, $82, KURIBO_ID
 	.byte $02, $92, KURIBO_ID
 	.byte $03, $05, FLOWER_ID
-	.byte $03, $12, KURIBO_ID
-	; .byte $02, $a2, KURIBO_ID
-	; .byte $02, $b2, KURIBO_ID
-	; .byte $02, $c2, KURIBO_ID
 	.byte $04, $8a, KURIBO_ID
 	.byte $04, $9a, KURIBO_ID
 	.byte $05, $62, KURIBO_ID
@@ -19,9 +14,8 @@ ENEMY_ARR_13:
 	.byte $07, $52, KURIBO_ID
 	.byte $07, $82, KURIBO_ID
 	.byte $07, $92, KURIBO_ID
-	.byte $0a, $02, KURIBO_ID
-	.byte $0a, $12, KURIBO_ID
-	.byte $0b, $ca, KURIBO_ID
+	.byte $0a, $42, KURIBO_ID
+	.byte $0a, $52, KURIBO_ID
 	.byte $ff							; マップff、Y=f、敵ffはありえないのでffはエンドコードに使える
 
 
