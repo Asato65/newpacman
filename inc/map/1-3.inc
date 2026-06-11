@@ -8,7 +8,8 @@ MAP_13_1_NEW:
 	.byte $bd
 	.byte 'B', %00000000, %00000000
 
-	.byte OBJMAP_NEXT
+	; .addr (PART x, y, type, size, flag(pipe exit, a))
+	; .addr (CTR id) -> BG, floor...
 
 	.byte (GET_OBJ_POS $0, $5)
 	.addr PARTS_QBLOCK_1

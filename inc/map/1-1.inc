@@ -46,7 +46,7 @@ MAP_11_1_NEW:
 	.addr PARTS_BLOCK_1
 	.byte OBJMAP_END
 
-MAP_11_1_NEW:
+MAP_11_2_NEW:
 	.byte $bd
 	.byte 'B', %00000010, %00000000
 
@@ -60,7 +60,7 @@ MAP_11_1_NEW:
 	.addr PARTS_QBLOCK_1
 	.byte OBJMAP_END
 
-MAP_11_1_NEW:
+MAP_11_3_NEW:
 	.byte $bd
 	.byte 'B', %00000000, %00000000
 

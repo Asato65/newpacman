@@ -18,7 +18,8 @@ fill_block				: .byte 0
 fill_ground_end			: .byte 0
 fill_ground_start		: .byte 0
 is_read_objmap_next		: .byte 0
-
+objtype					: .byte 0
+objsize					: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Update one row
@@ -104,14 +105,90 @@ is_read_objmap_next		: .byte 0
 @SET_NEW_PARTS_LOOP:
 		; get parts pos
 		lda (DrawMap::map_addr), y
-		sta tmp1
+		sta tmp1					; xxxxyyyy
+		iny
+		lda (DrawMap::map_addr), y
+		sta tmp2					; pabcdefg
+		and #BIT7
+		bne @LOAD_NEXT_MAP			; p == 1
 
-		; Check Special Code
-		cmp #OBJMAP_NEXT
-		beq @LOAD_NEXT_MAP
-		cmp #OBJMAP_END
-		beq @END_OF_MAP
+		lda tmp1
+		cmp #$0c
+		beq @SUBTYPE2
+		cmp #$0f
+		beq @SUBTYPE3
+		cmp #$0d
+		beq @SP_TYPE1
+		cmp #$0e
+		beq @NO_TYPE					; 増設可能，今はなにもせず終了？
 
+		; 0 <= y <= 11 ??
+		lda tmp2
+		and #%0111_0000					; 0abc0000
+		beq @SUBTYPE1
+		shr #4							; abc
+		sta objtype
+
+		lda tmp2
+		and #%0000_1111					; defg
+		sta objsize
+
+		; ------------------------
+
+		; type=7なら土管，sizeのbit3が入れる土管かのフラグを示す
+		; 判定は別の場所で行う？
+		; マリオがどの土管に接していて，入れるかどうかをどうやって判定するのか，行先をどうするか
+		; 少なくともここで処理をしなくてもいいのかもしれない
+
+@SUBTYPE1:
+		lda tmp2
+		and #%0000_1111					; defg
+		; indexを使って実際のtype番号を取ってくる？
+		sta objtype
+
+		; -----------------------
+
+@SUBTYPE2:
+		lda tmp2
+		and #%0111_0000
+		shr #4
+		; index使用？
+		sta objtype
+
+		lda tmp2
+		and #%00001111
+		sta objsize
+
+@SUBTYPE3:
+	lda tmp2
+	bpl 
+
+
+@SPECIAL_OBJ:
+		lda tmp1
+		and #BYT_GET_LO
+		cmp #((12+2)&$f)
+		bne :+
+
+		; y == 12
+		lda tmp2
+		and #%0111_0000				; abc
+:
+		cmp #((13+2)&$f)
+		bne :+
+
+		; y == 13
+		lda tmp2
+		bmi :+
+		; a == 0
+
+		; cdefg: screen number
+:
+		; a == 1
+
+
+
+@PREPARE_STORE_OBJ:
 		; Check if it can be updated
 		and #BYT_GET_LO
 		cmp DrawMap::row_counter
@@ -129,6 +206,10 @@ is_read_objmap_next		: .byte 0
 		lda tmp1						; End using tmp1
 		sta addr_tmp1+LO
 		sta tmp2						; save (to restore)
+
+
+
+
 
 		; ------- get obj contents -----
 		iny

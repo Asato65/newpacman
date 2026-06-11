@@ -78,6 +78,25 @@ tile type 2 (mash, color, cloud)
 background 2
 floor 4
 
+/*
+line Y  objy
+1    e
+2    d
+3    c   b
+4    b   a
+5    a   9
+6    9   8
+7    8   7
+8    7   6
+9    6   5
+10   5   4
+11   4   3
+12   3   2
+13   2   1
+14   1   0
+15   0
+*/
+
 ; tile
 1:	xxxxyyyy
 	x: Xpos, y: Ypos(4)
@@ -98,7 +117,7 @@ floor 4
 			type: pipe
 			d: exit enable
 			efg: size
-		abc == 0:
+		abc == 0: SUBTYPE1
 			defg: sub type
 				0: Q&powerup
 				1: Q&coin
@@ -114,7 +133,8 @@ floor 4
 				11: spring
 				12: 複合土管（1-2スタート）
 				13: flag pall
-	y == 12:
+	y == 12: SUBTYPE2
+		; y座標固定，サイズ可変
 		abc: subtype
 			0: 落とし穴
 			1: ロープでつながったプラットフォーム
@@ -125,19 +145,23 @@ floor 4
 			6: Q(y=3)
 			7: Q(y=7)
 		defg: size
-	y == 15:
+	y == 15: SUBTYPE3
+		; y座標固定
 		abc: subtype
 			0, 1: vertical rope
 			2: castle(level start, end)
 			3: stair(size==9でもheightは8に)
 			4: 大きい複合土管（1-2終了）
-	y == 13:
-		a == 1:
+		defg: ??
+	y == 13: SP_TYPE1
+		a == 1: （まだ実装いらないかな）
+			defg: subtype
 			0: 複合土管
 			1: flag pall
 			2: 斧
 			3: チェーン
 			4: クッパの足場
+			; ------------
 			5: warp zone
 			6, 7: scroll stop
 			8: パタパタ（赤）生成
@@ -146,9 +170,82 @@ floor 4
 			11: ループコマンド（迷路用？）
 		a == 0:
 			cdefg: screen number（1-1で土管出たあとなど）
-	y == 14:
+	y == 14: SP_TYPE2（y==13にまぜてもいいかも）
 		a == 1:
 			efg: level backdrop
 		a == 0:
 			bc: background
 			defg: floor pattern
+
+
+; data
+PARTS_DEFINE:
+	; ATTR:
+	;	Ypos: 4bit
+	;		Ypos == f: end
+	;	repeatX: 1bit
+	;	repeatY: 1bit
+	;	1block: 1bit
+	;	nextLine: 1bit
+	; repeatフラグは二つセット可能，その間をリピートする
+	.byte 'b', (ATTR $4, 0, 0, 0, 1)
+	.byte 'b', (ATTR $f, 0, 0, 0, 0)
+
+; addr-table (split)
+PARTS_LO:
+	.byte <PARTS_0
+		...
+	.byte <PARTS_21
+PARTS_SP12:
+	.byte <PARTS_22
+		...
+
+PARTS_HI:
+	.byte >PARTS_0
+		...
+	.byte >PARTS_21
+	.byte >PARTS_22
+
+; table for sp obj
+PARTS_SP_INDEX_CALC_TABLE:
+	.byte PARTS_SP12 - PARTS_LO
+
+
+; prg
+func setAddr(index) {
+	addr_hi = PARTS_HI[index]
+	addr_lo = PARTS_LO[index]
+	; (addr_hi), y = *(PARTS_DEFINE+y)
+}
+func spObjSet(type, y) {
+	; PARTS_SP_INDEX_CALC_TABLEのインデックスは最大4種類
+	; → 条件分岐で，定数として読み込んでも良い
+	index = type + PARTS_SP_INDEX_CALC_TABLE[y-12]
+	setAddr(index, y)
+	posY = PARTS_YPOS[index]
+}
+
+0 <= y <= 12:
+	type = 0x00000abc
+	subtype = 0x0000defg
+	index = type ? type : subtype + 8
+	setAddr(index)
+y == 12:
+	spObjSet(0x00000abc, y)
+y == 13:
+	val = 0x000cdefg
+	if a == 1:
+		if val <= 4:
+			spObjSet(val, y)
+		else:
+			ctrlObjSet(val)
+	else:
+		setScreenNumber(val)
+y == 14:
+	if a == 1:
+		setLevelBackdrop(0x00000efg)
+	else:
+		setBg(0x000000bc)
+		setFloorPattern(0x0000defg)
+y == 15:
+	spObjSet(0x00000abc, y)
