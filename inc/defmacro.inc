@@ -32,12 +32,29 @@
 
 
 ;*------------------------------------------------------------------------------
-; Get obj position
-; @PARAMS		posX, posY
-; @RETURNS		$YX
+; SMB風レベルヘッダーとオブジェクトデータ
+;   Header1: ttsssmmm  timer/start_y/modifier
+;   Header2: ffbboooo  floor/scenery/floor_pattern
+;   ObjPos : xxxxyyyy  x/y
+;   Obj    : ptttssss  next_page/type/size
 ;*------------------------------------------------------------------------------
 
-.define GET_OBJ_POS(posX, posY)		($c - (posY)) * $10 + (posX)
+.define SMB_LEVEL_HEADER1(timer, start_y, modifier)	((timer) * $40 + (start_y) * $08 + (modifier))
+.define SMB_LEVEL_HEADER2(floor, scenery, pattern)	((floor) * $40 + (scenery) * $10 + (pattern))
+.define SMB_OBJ_POS(posX, posY)						((posX) * $10 + (posY))
+.define SMB_OBJ(type, size)							((type) * $10 + (size))
+.define SMB_OBJ_NEXT(type, size)					(BIT7 + (type) * $10 + (size))
+
+; 短いマップ定義用エイリアス。既存のSMB_*は互換用に残す
+.define LH1(timer, start_y, modifier)				((timer) * $40 + (start_y) * $08 + (modifier))
+.define LH2(floor, scenery, pattern)				((floor) * $40 + (scenery) * $10 + (pattern))
+.define XY(posX, posY)								((posX) * $10 + (posY))
+.define O(type, size)								((type) * $10 + (size))
+.define ON(type, size)								(BIT7 + (type) * $10 + (size))
+.define S(id)										(id)
+.define SN(id)										(BIT7 + (id))
+.define ST(width)									((width) - 1)
+.define STR(width)									((width) - 1)
 
 ;*------------------------------------------------------------------------------
 ; Return negative number

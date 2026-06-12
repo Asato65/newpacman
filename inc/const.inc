@@ -3,8 +3,102 @@ PPU_HORIZONTAL_MODE						= %11111111
 
 ENDCODE									= $ff
 
-OBJMAP_NEXT								= $fe
-OBJMAP_END								= $ff
+OBJMAP_END								= $fd			; SMBと同じタイルデータ終端
+
+; SMB風マップオブジェクトのtype番号（通常配置 y=0..11 の abc）
+SMB_OBJ_SINGLE							= $0
+SMB_OBJ_PLATFORM						= $1
+SMB_OBJ_BRICK_ROW						= $2
+SMB_OBJ_HARD_ROW						= $3
+SMB_OBJ_COIN_ROW						= $4
+SMB_OBJ_BRICK_COLUMN					= $5
+SMB_OBJ_HARD_COLUMN						= $6
+SMB_OBJ_PIPE							= $7
+
+; SMB_OBJ_SINGLE の defg
+SMB_SINGLE_QBLOCK_POWERUP				= $0
+SMB_SINGLE_HIDE							= $1
+SMB_SINGLE_QBLOCK						= $2
+SMB_SINGLE_COIN							= $3
+SMB_SINGLE_BRICK						= $4
+SMB_SINGLE_HARD							= $5
+SMB_SINGLE_HARD2						= $6
+SMB_SINGLE_GROUND						= $7
+SMB_SINGLE_SKY							= $8
+
+; SMB_OBJ_PIPE の efg（d=入れる土管フラグは今は未使用）
+SMB_PIPE_2ROW							= $0
+SMB_PIPE_3ROW							= $1
+SMB_PIPE_4ROW							= $2
+SMB_PIPE_5ROW							= $3
+
+; y=12 の abc（固定位置オブジェクト）
+SMB_SUB2_HOLE							= $0
+SMB_SUB2_LIFT_ROPE						= $1
+SMB_SUB2_BRIDGE_LOW						= $2
+SMB_SUB2_BRIDGE_MIDDLE					= $3
+SMB_SUB2_BRIDGE_HIGH					= $4
+SMB_SUB2_WATER_OR_LAVA_HOLE				= $5
+SMB_SUB2_QBLOCK_ROW						= $6
+SMB_SUB2_QBLOCK_POWERUP_ROW				= $7
+
+; SMB_SUB2_HOLE の defg。任意幅も数値で指定できる
+SMB_HOLE_1COL							= $1
+SMB_HOLE_2COL							= $2
+SMB_HOLE_3COL							= $3
+
+; y=15 の abc（固定位置オブジェクト）
+SMB_SUB3_LIFT_ROPE_UP					= $0
+SMB_SUB3_LIFT_ROPE_DOWN					= $1
+SMB_SUB3_CASTLE							= $2
+SMB_SUB3_STAIRS							= $3
+SMB_SUB3_BIG_PIPE						= $4
+SMB_SUB3_STAIRS_REV						= $5
+SMB_SUB3_UNUSED_GOAL_FLAG				= $6
+
+; SMB_SUB3_STAIRS / SMB_SUB3_STAIRS_REV の defg
+; defg は横幅-1。高さは最大8段までで、9列目以降は8段の高さを維持する。
+SMB_STAIRS_4							= $3
+SMB_STAIRS_4_REVERSE					= $3
+SMB_STAIRS_8							= $7
+
+; SMB_SUB3_CASTLE の defg
+SMB_CASTLE_SMALL						= $0
+
+; 短いマップ定義用エイリアス
+OBJ_END									= OBJMAP_END
+
+OBJ_1									= SMB_OBJ_SINGLE
+OBJ_PLATFORM							= SMB_OBJ_PLATFORM
+OBJ_BRICK_ROW							= SMB_OBJ_BRICK_ROW
+OBJ_HARD_ROW							= SMB_OBJ_HARD_ROW
+OBJ_COIN_ROW							= SMB_OBJ_COIN_ROW
+OBJ_BRICK_COL							= SMB_OBJ_BRICK_COLUMN
+OBJ_HARD_COL							= SMB_OBJ_HARD_COLUMN
+OBJ_PIPE								= SMB_OBJ_PIPE
+
+BLK_QP									= SMB_SINGLE_QBLOCK_POWERUP
+BLK_HIDE								= SMB_SINGLE_HIDE
+BLK_Q									= SMB_SINGLE_QBLOCK
+BLK_COIN								= SMB_SINGLE_COIN
+BLK_BRICK								= SMB_SINGLE_BRICK
+BLK_HARD								= SMB_SINGLE_HARD
+BLK_HARD2								= SMB_SINGLE_HARD2
+BLK_GROUND								= SMB_SINGLE_GROUND
+BLK_SKY									= SMB_SINGLE_SKY
+
+PIPE_2									= SMB_PIPE_2ROW
+PIPE_3									= SMB_PIPE_3ROW
+PIPE_4									= SMB_PIPE_4ROW
+PIPE_5									= SMB_PIPE_5ROW
+
+SP_HOLE									= SMB_SUB2_HOLE
+SP_STAIRS								= SMB_SUB3_STAIRS
+SP_STAIRS_REV							= SMB_SUB3_STAIRS_REV
+SP_CASTLE								= SMB_SUB3_CASTLE
+SP_BIG_PIPE								= SMB_SUB3_BIG_PIPE
+
+CASTLE_SMALL							= SMB_CASTLE_SMALL
 
 PARTS_ENDCODE = $ff
 PARTS_1_OBJ = $fe				; 一つのオブジェクトしか含まないときに使う

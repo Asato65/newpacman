@@ -5,143 +5,85 @@ MAP_ARR_11:
 	.addr $ffff
 
 MAP_11_1_NEW:
-	.byte $bd
-	.byte 'B', %00000000, %00000000
+	.byte (SMB_LEVEL_HEADER1 $0, $5, $0)
+	.byte (SMB_LEVEL_HEADER2 $0, $0, $1)
 
-	.byte OBJMAP_NEXT
+	; SMB風タイルデータ:
+	;   1バイト目 xxxxyyyy = X/Y
+	;   2バイト目 p abc defg = 次画面/type/size
+	;   終端は $fd。次画面に進む最初のオブジェクトだけSMB_OBJ_NEXTを使う
+	.byte (SMB_OBJ_POS $5, $7), (SMB_OBJ_NEXT SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)	; 最初の改ページ後，x=5のハテナ
+	.byte (SMB_OBJ_POS $9, $7), (SMB_OBJ SMB_OBJ_BRICK_ROW, $4)
+	.byte (SMB_OBJ_POS $a, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK_POWERUP)	; レンガ列を上書き
+	.byte (SMB_OBJ_POS $b, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
+	.byte (SMB_OBJ_POS $c, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
 
-	.byte (GET_OBJ_POS $0, $5)
-	.addr PARTS_QBLOCK_1
-	.byte (GET_OBJ_POS $4, $5)
-	.addr PARTS_BLOCK_5COL
-	.byte (GET_OBJ_POS $5, $5)			; レンガ*5を上書き
-	.addr PARTS_QBLOCK_FLWR_1
-	.byte (GET_OBJ_POS $6, $9)
-	.addr PARTS_QBLOCK_1
-	.byte (GET_OBJ_POS $7, $5)			; 上書き
-	.addr PARTS_QBLOCK_1
+	.byte (SMB_OBJ_POS $1, $9), (SMB_OBJ_NEXT SMB_OBJ_PIPE, SMB_PIPE_2ROW)			; 土管1
+	.byte (SMB_OBJ_POS $6, $8), (SMB_OBJ SMB_OBJ_PIPE, SMB_PIPE_3ROW)				; 土管2
+	.byte (SMB_OBJ_POS $e, $7), (SMB_OBJ SMB_OBJ_PIPE, SMB_PIPE_4ROW)				; 土管3
+	.byte (SMB_OBJ_POS $9, $7), (SMB_OBJ_NEXT SMB_OBJ_PIPE, SMB_PIPE_4ROW)			; 土管4
 
-	.byte (GET_OBJ_POS $c, $3)			; 土管1
-	.addr PARTS_PIPE_2ROW
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $6, $4)			; 土管2
-	.addr PARTS_PIPE_3ROW
-	.byte (GET_OBJ_POS $e, $5)			; 土管3
-	.addr PARTS_PIPE_4ROW
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $9, $5)			; 土管4
-	.addr PARTS_PIPE_4ROW
-	.byte OBJMAP_NEXT
+	.byte (SMB_OBJ_POS $0, $6), (SMB_OBJ_NEXT SMB_OBJ_SINGLE, SMB_SINGLE_HIDE)		; 隠し
+	.byte (SMB_OBJ_POS $5, $c), (SMB_OBJ SMB_SUB2_HOLE, SMB_HOLE_2COL)				; y=12: 落とし穴
 
-	.byte (GET_OBJ_POS $0, $6)			; 隠し
-	.addr PARTS_HIDE_1
-	.byte (GET_OBJ_POS $5, $1)			; 落とし穴
-	.addr PARTS_SKY_2ROW2COL
-
-	.byte (GET_OBJ_POS $d, $5)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $e, $5)
-	.addr PARTS_QBLOCK_1
-	.byte (GET_OBJ_POS $f, $5)
-	.addr PARTS_BLOCK_1
+	.byte (SMB_OBJ_POS $d, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $e, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
+	.byte (SMB_OBJ_POS $f, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
 	.byte OBJMAP_END
 
 MAP_11_2_NEW:
-	.byte $bd
-	.byte 'B', %00000010, %00000000
+	.byte (SMB_LEVEL_HEADER1 $0, $5, $0)
+	.byte (SMB_LEVEL_HEADER2 $0, $0, $2)
 
-	.byte (GET_OBJ_POS $6, $1)
-	.addr PARTS_SKY_2ROW3COL
-	.byte (GET_OBJ_POS $8, $9)
-	.addr PARTS_SKY_2ROW3COL			; 少し無駄に書き換えるがマップサイズは小さくなる
-	.byte (GET_OBJ_POS $e, $5)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $e, $9)
-	.addr PARTS_QBLOCK_1
+	.byte (SMB_OBJ_POS $6, $c), (SMB_OBJ SMB_SUB2_HOLE, SMB_HOLE_3COL)				; y=12: 広めの穴
+	.byte (SMB_OBJ_POS $8, $c), (SMB_OBJ SMB_SUB2_HOLE, SMB_HOLE_3COL)				; y=12: 広めの穴
+	.byte (SMB_OBJ_POS $e, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $e, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
 	.byte OBJMAP_END
 
 MAP_11_3_NEW:
-	.byte $bd
-	.byte 'B', %00000000, %00000000
+	.byte (SMB_LEVEL_HEADER1 $0, $5, $0)
+	.byte (SMB_LEVEL_HEADER2 $0, $0, $2)
 
-	.byte (GET_OBJ_POS $4, $5)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $5, $5)			; スターが出る場所
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $a, $5)
-	.addr PARTS_QBLOCK_1
-	.byte (GET_OBJ_POS $d, $5)
-	.addr PARTS_QBLOCK_1
-	.byte (GET_OBJ_POS $d, $9)			; パワーアップアイテム
-	.addr PARTS_QBLOCK_1
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $0, $5)
-	.addr PARTS_QBLOCK_1
+	.byte (SMB_OBJ_POS $4, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $5, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)			; スターが出る場所
+	.byte (SMB_OBJ_POS $a, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
+	.byte (SMB_OBJ_POS $d, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
+	.byte (SMB_OBJ_POS $d, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)			; パワーアップアイテム
 
-	.byte (GET_OBJ_POS $6, $5)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $9, $9)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $a, $9)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $b, $9)
-	.addr PARTS_BLOCK_1
-	.byte OBJMAP_NEXT
+	.byte (SMB_OBJ_POS $0, $7), (SMB_OBJ_NEXT SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
+	.byte (SMB_OBJ_POS $6, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $9, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $a, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $b, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
 
-	.byte (GET_OBJ_POS $0, $9)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $1, $9)
-	.addr PARTS_QBLOCK_1
-	.byte (GET_OBJ_POS $1, $5)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $2, $9)
-	.addr PARTS_QBLOCK_1
-	.byte (GET_OBJ_POS $2, $5)
-	.addr PARTS_BLOCK_1
-	.byte (GET_OBJ_POS $3, $9)
-	.addr PARTS_BLOCK_1
+	.byte (SMB_OBJ_POS $0, $3), (SMB_OBJ_NEXT SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $1, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
+	.byte (SMB_OBJ_POS $1, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $2, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
+	.byte (SMB_OBJ_POS $2, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
+	.byte (SMB_OBJ_POS $3, $3), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
 
-	.byte (GET_OBJ_POS $6, $5)
-	.addr PARTS_4STAIRS
-	.byte (GET_OBJ_POS $c, $5)
-	.addr PARTS_4STAIRS_REV
-	.byte OBJMAP_NEXT
-	.byte (GET_OBJ_POS $4, $5)
-	.addr PARTS_4STAIRS
-	.byte (GET_OBJ_POS $8, $5)
-	.addr PARTS_HARD_4ROW
-	.byte (GET_OBJ_POS $9, $7)
-	.addr PARTS_SKY_4ROW2COL
-	.byte (GET_OBJ_POS $9, $3)
-	.addr PARTS_SKY_4ROW2COL
-	.byte (GET_OBJ_POS $b, $5)
-	.addr PARTS_4STAIRS_REV
-	.byte OBJMAP_NEXT
+	.byte (SMB_OBJ_POS $6, $f), (SMB_OBJ SMB_SUB3_STAIRS, SMB_STAIRS_4)			; y=15: 階段
+	.byte (SMB_OBJ_POS $c, $f), (SMB_OBJ SMB_SUB3_STAIRS_REV, SMB_STAIRS_4_REVERSE)	; y=15: 逆階段
 
-	.byte (GET_OBJ_POS $3, $3)
-	.addr PARTS_PIPE_2ROW
-	.byte (GET_OBJ_POS $8, $5)
-	.addr PARTS_BLOCK_5COL
-	.byte (GET_OBJ_POS $a, $5)
-	.addr PARTS_QBLOCK_1
-	.byte (GET_OBJ_POS $c, $5)
-	.addr PARTS_SKY_1
-	.byte OBJMAP_NEXT
+	.byte (SMB_OBJ_POS $4, $f), (SMB_OBJ_NEXT SMB_SUB3_STAIRS, SMB_STAIRS_4)		; y=15: 階段
+	.byte (SMB_OBJ_POS $8, $7), (SMB_OBJ SMB_OBJ_HARD_COLUMN, $1)
+	.byte (SMB_OBJ_POS $9, $5), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_SKY)
+	.byte (SMB_OBJ_POS $9, $9), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_SKY)
+	.byte (SMB_OBJ_POS $b, $f), (SMB_OBJ SMB_SUB3_STAIRS_REV, SMB_STAIRS_4_REVERSE)	; y=15: 逆階段
 
-	.byte (GET_OBJ_POS $3, $3)
-	.addr PARTS_PIPE_2ROW
-	.byte (GET_OBJ_POS $5, $9)
-	.addr PARTS_8STAIRS
-	.byte (GET_OBJ_POS $d, $9)
-	.addr PARTS_HARD_4ROW
-	.byte (GET_OBJ_POS $d, $5)
-	.addr PARTS_HARD_4ROW
-	.byte OBJMAP_NEXT
+	.byte (SMB_OBJ_POS $3, $9), (SMB_OBJ_NEXT SMB_OBJ_PIPE, SMB_PIPE_2ROW)
+	.byte (SMB_OBJ_POS $8, $7), (SMB_OBJ SMB_OBJ_BRICK_ROW, $4)
+	.byte (SMB_OBJ_POS $a, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_QBLOCK)
+	.byte (SMB_OBJ_POS $c, $7), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_SKY)
 
-	.byte (GET_OBJ_POS $6, $c)
-	.addr PARTS_GOAL
-	.byte (GET_OBJ_POS $d, $2)
-	.addr PARTS_BLOCK_1
+	.byte (SMB_OBJ_POS $3, $9), (SMB_OBJ_NEXT SMB_OBJ_PIPE, SMB_PIPE_2ROW)
+	.byte (SMB_OBJ_POS $5, $f), (SMB_OBJ SMB_SUB3_STAIRS, SMB_STAIRS_8)			; y=15: 8段階段
+	.byte (SMB_OBJ_POS $d, $3), (SMB_OBJ SMB_OBJ_HARD_COLUMN, $1)
+	.byte (SMB_OBJ_POS $d, $7), (SMB_OBJ SMB_OBJ_HARD_COLUMN, $1)
+
+	.byte (SMB_OBJ_POS $6, $f), (SMB_OBJ_NEXT SMB_SUB3_CASTLE, SMB_CASTLE_SMALL)	; y=15: ゴール/城系
+	.byte (SMB_OBJ_POS $d, $a), (SMB_OBJ SMB_OBJ_SINGLE, SMB_SINGLE_BRICK)
 
 	.byte OBJMAP_END
-

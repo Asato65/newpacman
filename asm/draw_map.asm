@@ -5,19 +5,19 @@
 .ZeroPage
 map_buff_num			: .byte 0		; マップの番号（0: 最初のscreen1，1: screen2, 2: 次のscreen1 → というデータ）
 map_arr_addr			: .addr 0
-map_addr				: .addr 0		; Map obj/position data (-> data addr: ROM)
+map_addr				: .addr 0		; SMB風マップデータ（2バイトheader + 2バイトobj列）
 isend_draw_stage		: .byte 0
 row_counter				: .byte 0		; Every time this prg executed -> increment
 index					: .byte 0		; index of map_addr
-cnt_map_next			: .byte 0		; data (read from map_addr) = SP code(go next map) -> increment this counter
+cnt_map_next			: .byte 0		; obj bit7とmap断片切替で進めたページ数
 map_arr_num				: .byte 0
 fill_upper				: .byte 0
 fill_lower				: .byte 0
 fill_ground_block		: .byte 0
 fill_block				: .byte 0
-fill_ground_end			: .byte 0
-fill_ground_start		: .byte 0
-is_read_objmap_next		: .byte 0
+fill_ground_end			: .byte 0		; 下側の地面の厚み。落とし穴で消す行数
+fill_ground_start		: .byte 0		; 下側の地面が始まる行
+hole_remain				: .byte 0		; y=12の落とし穴が残り何列続くか
 objtype					: .byte 0
 objsize					: .byte 0
 
@@ -29,11 +29,18 @@ objsize					: .byte 0
 /* main label
 	@START:
 	@GET_POS_AND_OBJ_LOOP:
-	@END_OF_MAP:						-> goto nextlabel (@LOAD_NEXT_MAP)
-	@LOAD_NEXT_MAP:						-> goto @GET_POS_AND_OBJ_LOOP
+	@END_OF_MAP:						-> load next map chunk
 	@END_OF_STAGE:						-> goto nextlabel (@PREPARE_BG_MAP_BUF)
 	@PREPARE_BG_MAP_BUF:
 	@STORE_BG_MAP_BUF_LOOP:
+*/
+/*
+	大まかな流れ:
+	1. row_counterを進め，今回更新する画面内X列を決める
+	2. fill_block_arrから地面や穴の基本ブロックをBGバッファへ敷く
+	3. 前の列から続いている横長パーツをスロットから再開して描く
+	4. SMB風の「位置($XY) + 設定(p abc defg)」で新しいパーツを読む
+	5. BGバッファの1列分をPPU転送用バッファへ詰め直す
 */
 ;*------------------------------------------------------------------------------
 
@@ -54,17 +61,17 @@ objsize					: .byte 0
 		sta addr_tmp2+LO				; unused
 
 		fillBlocks
+		jsr _applyActiveHole
 
 ; ------------ slot parts --------------
-		lda used_part_slots
 		ldx #$ff
 @SLOT_LOOP:
 		inx
 		cpx #8
 		beq @CHECK_IS_END_STAGE
-		shr
-		bcc @SLOT_LOOP
-		pha
+		lda used_part_slots
+		and NUM2BIT, x
+		beq @SLOT_LOOP
 		txa
 		pha
 		; load slot data
@@ -89,10 +96,7 @@ objsize					: .byte 0
 		jsr _setParts					; arg: tmp1, tmp2, addr_tmp1
 		pla
 		tax
-		pla
-		inx
-		cpx #8
-		bne @SLOT_LOOP
+		jmp @SLOT_LOOP
 
 @CHECK_IS_END_STAGE:
 		lda DrawMap::isend_draw_stage
@@ -103,127 +107,101 @@ objsize					: .byte 0
 @SET_NEW_PARTS:
 		ldy DrawMap::index
 @SET_NEW_PARTS_LOOP:
-		; get parts pos
+		; 1バイト目: xxxxyyyy
+		;   上位4bit = 画面内X列，下位4bit = Y座標
+		;   $fdだけはSMBと同じ終端コードとして扱う
+		sty tmp4						; 位置バイトのindexを保存
 		lda (DrawMap::map_addr), y
-		sta tmp1					; xxxxyyyy
+		sta tmp5						; 位置($XY)
+		cmp #OBJMAP_END
+		beq @END_OF_MAP
+
+		; 2バイト目: p abc defg
+		;   p=1なら，このオブジェクトが次の画面に属する
 		iny
 		lda (DrawMap::map_addr), y
-		sta tmp2					; pabcdefg
+		sta tmp6						; 設定(pabc defg)
+
+		; まず対象画面を確認する。pは対象画面の計算だけに使い，
+		; 実際にオブジェクトを消費するときまでcnt_map_nextは進めない
 		and #BIT7
-		bne @LOAD_NEXT_MAP			; p == 1
+		beq @TARGET_CURRENT_PAGE
+		lda DrawMap::cnt_map_next
+		add #1
+		jmp @CHECK_TARGET_PAGE
+@TARGET_CURRENT_PAGE:
+		lda DrawMap::cnt_map_next
+@CHECK_TARGET_PAGE:
+		cmp DrawMap::map_buff_num
+		bne @SET_NEW_PARTS_LOOP_EXIT
 
-		lda tmp1
-		cmp #$0c
-		beq @SUBTYPE2
-		cmp #$0f
-		beq @SUBTYPE3
-		cmp #$0d
-		beq @SP_TYPE1
-		cmp #$0e
-		beq @NO_TYPE					; 増設可能，今はなにもせず終了？
-
-		; 0 <= y <= 11 ??
-		lda tmp2
-		and #%0111_0000					; 0abc0000
-		beq @SUBTYPE1
-		shr #4							; abc
-		sta objtype
-
-		lda tmp2
-		and #%0000_1111					; defg
-		sta objsize
-
-		; ------------------------
-
-		; type=7なら土管，sizeのbit3が入れる土管かのフラグを示す
-		; 判定は別の場所で行う？
-		; マリオがどの土管に接していて，入れるかどうかをどうやって判定するのか，行先をどうするか
-		; 少なくともここで処理をしなくてもいいのかもしれない
-
-@SUBTYPE1:
-		lda tmp2
-		and #%0000_1111					; defg
-		; indexを使って実際のtype番号を取ってくる？
-		sta objtype
-
-		; -----------------------
-
-@SUBTYPE2:
-		lda tmp2
-		and #%0111_0000
+		; 現在描いているX列に来たオブジェクトだけ展開する
+		lda tmp5
+		and #BYT_GET_HI
 		shr #4
-		; index使用？
-		sta objtype
-
-		lda tmp2
-		and #%00001111
-		sta objsize
-
-@SUBTYPE3:
-	lda tmp2
-	bpl 
-
-
-@SPECIAL_OBJ:
-		lda tmp1
-		and #BYT_GET_LO
-		cmp #((12+2)&$f)
-		bne :+
-
-		; y == 12
-		lda tmp2
-		and #%0111_0000				; abc
-:
-		cmp #((13+2)&$f)
-		bne :+
-
-		; y == 13
-		lda tmp2
-		bmi :+
-		; a == 0
-
-		; cdefg: screen number
-:
-		; a == 1
-
-
-
-@PREPARE_STORE_OBJ:
-		; Check if it can be updated
-		and #BYT_GET_LO
 		cmp DrawMap::row_counter
 		bne @SET_NEW_PARTS_LOOP_EXIT
 
-		lda DrawMap::map_buff_num
-		cmp DrawMap::cnt_map_next		; Count OBJMAP_NEXT (is not reset until the stage changes)
-		bne @SET_NEW_PARTS_LOOP_EXIT
+		; p=1のオブジェクトをここで初めて消費するので，画面カウンタを進める
+		lda tmp6
+		and #BIT7
+		beq :+
+		inc DrawMap::cnt_map_next
+:
+		; y=13/14は描画しないコマンド。現時点では最低限，読み飛ばして動かす
+		lda tmp5
+		and #BYT_GET_LO
+		cmp #$0d
+		beq @SKIP_COMMAND_OBJ
+		cmp #$0e
+		beq @SKIP_COMMAND_OBJ
 
+		; y=12/abc=落とし穴は，床パターンの下側地面だけを列ごとに抜く
+		lda tmp5
+		and #BYT_GET_LO
+		cmp #$0c
+		bne @DRAW_NORMAL_OBJ
+		lda tmp6
+		and #%0111_0000
+		cmp #(SMB_SUB2_HOLE * $10)
+		bne @DRAW_NORMAL_OBJ
+		tya								; 穴処理はtmp1を使うので、読み取り位置はスタックに退避する
+		pha
+		jsr _startHoleFromMapObj
+		pla
+		tay
+		iny								; 位置+落とし穴の2バイトを消費
+		jmp @SET_NEW_PARTS_LOOP
+
+@DRAW_NORMAL_OBJ:
+		lda DrawMap::map_buff_num
 		; -- Set addr of bg map buff ---
 		and #BIT0
 		ora #4
 		sta addr_tmp1+HI
 
-		lda tmp1						; End using tmp1
+		jsr _setObjAddrLoFromSmbPos
+		lda addr_tmp1+LO
 		sta addr_tmp1+LO
 		sta tmp2						; save (to restore)
 
-
-
-
-
-		; ------- get obj contents -----
-		iny
-		sty tmp1						; save Y
+		; tmp1には2バイト目のindexを保存する。
+		; スロット継続時にも，同じpabc defgを読み直してPARTS_*を復元する
+		sty tmp1
 		lda #0
 		sta tmp3
 		ldx #$ff
 		jsr _setParts					; don't break tmp1
 		ldy tmp1
-		add y, #2
+		iny								; 位置+type/sizeの2バイトを消費
+		jmp @SET_NEW_PARTS_LOOP
+
+@SKIP_COMMAND_OBJ:
+		iny								; 位置+コマンドの2バイトを消費
 		jmp @SET_NEW_PARTS_LOOP
 
 @SET_NEW_PARTS_LOOP_EXIT:
-		; ldy tmp1
+		ldy tmp4						; まだ消費していない位置バイトから再開する
 		sty DrawMap::index
 		jmp @PREPARE_BG_MAP_BUF
 		; ------------------------------
@@ -235,14 +213,10 @@ objsize					: .byte 0
 		cmp #ENDCODE
 		beq @END_OF_STAGE
 
-		ldy #3							; この後inyされてy(index) = 4に
-
-@LOAD_NEXT_MAP:
-		lda DrawMap::is_read_objmap_next
-		bne @PREPARE_BG_MAP_BUF
+		; MAP_ARR内の次の断片は，旧ページ送り相当として次画面から始める
 		inc DrawMap::cnt_map_next
-		iny
-		sty DrawMap::index
+
+		ldy DrawMap::index
 		jmp @PREPARE_BG_MAP_BUF
 		; ------------------------------
 
@@ -356,6 +330,154 @@ objsize					: .byte 0
 .endproc
 
 
+;*------------------------------------------------------------------------------
+; SMB風座標($XY)を，このプログラムのBGバッファ列アドレス($YX)へ変換する
+; @PARAMS		tmp5: 位置バイト xxxxyyyy
+;				tmp6: 設定バイト pabcdefg
+; @CLOBBERS		A tmp3
+; @RETURNS		addr_tmp1+LO
+;
+; 通常オブジェクト(y=0..11)はそのまま上からの行として扱う。
+; y=12/15の固定オブジェクトは，本家の意味に完全対応していないので
+; 既存PARTS_*が画面外へはみ出しにくい行へ仮配置する。
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _setObjAddrLoFromSmbPos
+		lda tmp5
+		and #BYT_GET_LO					; y
+		cmp #$0c
+		bne @CHECK_SUBTYPE3
+		lda #$0b						; y=12: 穴など，下端付近に固定
+		jmp @STORE_Y
+
+@CHECK_SUBTYPE3:
+		cmp #$0f
+		bne @STORE_Y
+
+		; y=15: typeによって仮の基準行を変える
+		lda tmp6
+		and #%0111_0000
+		shr #4
+		cmp #SMB_SUB3_CASTLE				; 城/ゴール系
+		bne :+
+		lda #0
+		jmp @STORE_Y
+:
+		cmp #SMB_SUB3_STAIRS				; 階段
+		beq @SET_STAIRS_Y
+		cmp #SMB_SUB3_STAIRS_REV			; 逆階段
+		bne @CHECK_BIG_PIPE
+
+@SET_STAIRS_Y:
+		lda tmp6
+		and #%0000_1111					; defgは横幅-1
+		add #1
+		cmp #9
+		bcc :+
+		lda #8							; 高さは最大8段まで
+:
+		sta tmp3
+		lda DrawMap::fill_ground_start	; 地面の直上に階段の底が来るように上端行を出す
+		sub tmp3
+		bcs :+
+		lda #0							; 高すぎる場合は画面上端から描く
+:
+		jmp @STORE_Y
+
+@CHECK_BIG_PIPE:
+		cmp #SMB_SUB3_BIG_PIPE			; 地下出口の巨大土管
+		bne :+
+		lda #8
+		jmp @STORE_Y
+:
+		lda #0
+
+@STORE_Y:
+		shl #4
+		sta tmp3
+		lda tmp5
+		and #BYT_GET_HI					; x
+		shr #4
+		ora tmp3
+		sta addr_tmp1+LO
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; y=12/abc=落とし穴を開始する
+; @PARAMS		tmp6: 設定バイト p abc defg
+; @CLOBBERS		A X tmp1 addr_tmp1
+; @RETURNS		None
+;
+; defgは穴の幅。size=1なら1列だけ穴を開ける。
+; 穴は床パターンの「下側の地面」だけを消し，天井や中段の床には触らない。
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _startHoleFromMapObj
+		lda tmp6
+		and #%0000_1111
+		beq @EXIT						; size=0は何もしない
+		sta DrawMap::hole_remain
+		jsr _applyActiveHole				; 現在列にもすぐ反映する
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 継続中の落とし穴を現在のX列へ反映する
+; @PARAMS		DrawMap::hole_remain
+; @CLOBBERS		A X tmp1 addr_tmp1
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _applyActiveHole
+		lda DrawMap::hole_remain
+		beq @EXIT
+
+		lda DrawMap::fill_ground_end		; 下側の地面の厚み
+		beq @STEP_HOLE
+		sta tmp1
+
+		lda DrawMap::map_buff_num
+		and #BIT0
+		ora #4
+		sta addr_tmp1+HI
+
+		lda DrawMap::fill_ground_start
+		shl #4
+		add DrawMap::row_counter
+		sta addr_tmp1+LO
+
+		ldx #0
+@CLEAR_GROUND_LOOP:
+		lda #0							; 空ブロック。天井や中段の床は消さない
+		sta (addr_tmp1, x)
+		lda addr_tmp1+LO
+		add #$10
+		sta addr_tmp1+LO
+		dec tmp1
+		bne @CLEAR_GROUND_LOOP
+
+@STEP_HOLE:
+		dec DrawMap::hole_remain
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
 
 ;*------------------------------------------------------------------------------
 ; パーツスロットに保存されているパーツ（描画中のパーツ）を指定して
@@ -374,16 +496,14 @@ objsize					: .byte 0
 
 .proc _setParts
 		stx tmp4						; slot index
+		jsr _loadMapObjMeta
+		jsr _trySetCalculatedParts
+		bcc :+
+		rts
+:
+		jsr _setPartsAddrFromMapObj
 @GET_OBJ_CONTENTS_LOOP:
-		; ldarr DrawMap::map_addr		; map_addr[x][y]: nextline & obj
-		; ldarr[x][y]だと，アドレスのみが格納されている必要がある（xが2倍される）
-		; DrawMap::map_addr[tmp1][tmp3]を求める
-		ldy tmp1
-		lda (DrawMap::map_addr), y
-		sta ldarr_addr_tmp+LO
-		iny
-		lda (DrawMap::map_addr), y
-		sta ldarr_addr_tmp+HI
+		; ldarr_addr_tmpには，type/sizeから選ばれたPARTS_*のアドレスが入っている
 		ldy tmp3
 		lda (DrawMap::ldarr_addr_tmp), y
 		; .byte OBJ('^', 1)などの値が取得できているはず
@@ -401,9 +521,8 @@ objsize					: .byte 0
 		sta addr_tmp1+LO
 
 		; store obj ('H', 'B', '^') -> $04xx, $05xx
-		ldx #0
 		pla								; obj
-		sta (addr_tmp1, x)
+		jsr _storeBlockIfVisible
 
 		; restore addr
 		lda tmp2
@@ -417,42 +536,521 @@ objsize					: .byte 0
 		bpl @GET_OBJ_CONTENTS_LOOP
 		; ------------------------------
 @END_SET_PARTS:
-		ldx tmp4						; slot index(ff: new(no slot))
+		jsr _clearCurrentPartSlot
+		jmp @EXIT
+		; ------------------------------
+
+@BREAK_LOOP:
+		jsr _saveCurrentPartSlot
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; SMB風の位置/設定バイトから，実際に描くPARTS_*のアドレスを決める
+; @PARAMS		tmp1: map_addr内のtype/sizeバイトのindex
+; @CLOBBERS		A Y
+; @RETURNS		ldarr_addr_tmp: PARTS_*のアドレス
+;
+; ざっくりした対応（未実装オブジェクトは今あるPARTS_*へ寄せる）:
+;   y=0..11:
+;     abc=0: defgを単体オブジェクトIDとして扱う
+;     abc=2: レンガ横列 / abc=3: 硬いブロック横列
+;     abc=4: コイン横列 / abc=5: レンガ縦列 / abc=6: 硬いブロック縦列
+;     abc=7: 土管。d(入れるフラグ)は今は無視し，efgを高さとして使う
+;   y=12:
+;     abc=0を穴として扱う。ほかは仮対応
+;   y=15:
+;     abc=2をゴール/城，abc=3を階段，abc=4を巨大土管として扱う
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+;*------------------------------------------------------------------------------
+; SMB風オブジェクトの位置/設定バイトを読み直して、共通メタ情報へ展開する
+; @PARAMS		tmp1: map_addr内のtype/sizeバイトindex
+; @CLOBBERS		A Y tmp5
+; @RETURNS		tmp5: y, DrawMap::objtype, DrawMap::objsize
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _loadMapObjMeta
+		ldy tmp1
+		dey
+		lda (DrawMap::map_addr), y
+		and #BYT_GET_LO
+		sta tmp5						; y
+
+		ldy tmp1
+		lda (DrawMap::map_addr), y
+		and #%0000_1111
+		sta DrawMap::objsize
+
+		lda (DrawMap::map_addr), y
+		and #%0111_0000					; bit7は次ページフラグなので除外
+		shr #4
+		sta DrawMap::objtype
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 計算だけで描けるオブジェクトを処理する
+; @PARAMS		tmp1/tmp2/tmp3/tmp4/addr_tmp1, DrawMap::objtype/objsize, tmp5
+; @RETURNS		C=1: 処理済み, C=0: 固定PARTS表へフォールバック
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _trySetCalculatedParts
+		lda tmp5
+		cmp #$0c
+		beq @NOT_HANDLED				; 穴は専用処理で先に消している
+		cmp #$0f
+		beq @SUBTYPE3
+
+		lda DrawMap::objtype
+		cmp #SMB_OBJ_SINGLE
+		bne :+
+		jsr _drawCalcSingle
+		jmp @HANDLED
+:
+		cmp #SMB_OBJ_BRICK_ROW
+		bne :+
+		lda #'B'
+		sta DrawMap::fill_block
+		jsr _drawCalcRow
+		jmp @HANDLED
+:
+		cmp #SMB_OBJ_HARD_ROW
+		bne :+
+		lda #'H'
+		sta DrawMap::fill_block
+		jsr _drawCalcRow
+		jmp @HANDLED
+:
+		cmp #SMB_OBJ_COIN_ROW
+		bne :+
+		lda #'^'
+		sta DrawMap::fill_block
+		jsr _drawCalcRow
+		jmp @HANDLED
+:
+		cmp #SMB_OBJ_BRICK_COLUMN
+		bne :+
+		lda #'B'
+		sta DrawMap::fill_block
+		jsr _drawCalcColumn
+		jmp @HANDLED
+:
+		cmp #SMB_OBJ_HARD_COLUMN
+		bne @NOT_HANDLED
+		lda #'H'
+		sta DrawMap::fill_block
+		jsr _drawCalcColumn
+		jmp @HANDLED
+
+@SUBTYPE3:
+		lda DrawMap::objtype
+		cmp #SMB_SUB3_STAIRS
+		beq :+
+		cmp #SMB_SUB3_STAIRS_REV
+		bne @NOT_HANDLED
+:
+		jsr _drawCalcStairs
+
+@HANDLED:
+		sec
+		rts
+		; ------------------------------
+
+@NOT_HANDLED:
+		clc
+		rts
+		; ------------------------------
+.endproc
+
+
+; 単体オブジェクトID -> 実際に置くブロック文字。abc=0なのでマップ定義では S(id) だけでよい。
+SINGLE_OBJ_BLOCKS:
+		.byte '[', '_', 'Q', '^', 'B', 'H', 'N', 'G', '@'
+
+
+;*------------------------------------------------------------------------------
+; 画面外/地面内を無視して1ブロックだけ置く
+; @PARAMS		A: ブロック文字, addr_tmp1: 書き込み先
+; @CLOBBERS		A X
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _storeBlockIfVisible
+		pha
+		lda addr_tmp1+LO
+		and #BYT_GET_HI
+		cmp #$d0						; BGバッファは0..12行だけ使う
+		bcs @DROP
+		shr #4
+		cmp DrawMap::fill_ground_start	; 地面の高さ以下は基本床に任せる
+		bcs @DROP
+
+		pla
+		ldx #0
+		sta (addr_tmp1, x)
+		rts
+		; ------------------------------
+
+@DROP:
+		pla
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; size=0だけ1として扱う。通常はsizeの値をそのまま幅/高さにする。
+; @RETURNS		A: 1..15
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _getCalcSize
+		lda DrawMap::objsize
+		bne :+
+		lda #1
+:
+		rts
+		; ------------------------------
+.endproc
+
+
+.code									; ----- code -----
+
+.proc _drawCalcSingle
+		ldx DrawMap::objsize
+		cpx #9
+		bcc :+
+		ldx #SMB_SINGLE_BRICK			; 未定義IDは仮にレンガへ寄せる
+:
+		lda SINGLE_OBJ_BLOCKS, x
+		jsr _storeBlockIfVisible
+		jsr _clearCurrentPartSlot
+		rts
+		; ------------------------------
+.endproc
+
+
+.code									; ----- code -----
+
+.proc _drawCalcRow
+		jsr _getCalcSize
+		sta tmp6						; 横幅
+
+		lda DrawMap::fill_block
+		jsr _storeBlockIfVisible
+
+		inc tmp3						; 次の列で描く何個目か
+		lda tmp3
+		cmp tmp6
+		bcc @SAVE
+		jsr _clearCurrentPartSlot
+		rts
+		; ------------------------------
+
+@SAVE:
+		jsr _saveCurrentPartSlot
+		rts
+		; ------------------------------
+.endproc
+
+
+.code									; ----- code -----
+
+.proc _drawCalcColumn
+		jsr _getCalcSize
+		tay								; 縦の高さ
+
+@LOOP:
+		lda DrawMap::fill_block
+		jsr _storeBlockIfVisible
+		lda addr_tmp1+LO
+		add #$10
+		sta addr_tmp1+LO
+		dey
+		bne @LOOP
+
+		lda tmp2
+		sta addr_tmp1+LO
+		jsr _clearCurrentPartSlot
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; y=15/abc=3,5の階段を計算描画する
+; defg: 横幅-1。高さは最大8段。逆階段はabc=5で指定する
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _drawCalcStairs
+		; sizeは横幅-1として扱う。高さは最大8段に丸める。
+		; 9列目以降は8段の高さを維持して横へ伸ばす。
+		lda DrawMap::objsize
+		and #%0000_1111
+		add #1
+		sta tmp6						; 階段の横幅
+		lda tmp6
+		cmp #9
+		bcc :+
+		lda #8
+:
+		sta DrawMap::fill_block			; 階段の高さ。最大8段
+
+		lda tmp3						; 現在の列番号
+		cmp tmp6
+		bcc :+
+		jsr _clearCurrentPartSlot
+		rts
+:
+		lda DrawMap::objtype
+		cmp #SMB_SUB3_STAIRS_REV
+		beq @REVERSE
+
+		lda tmp3
+		add #1
+		cmp DrawMap::fill_block
+		bcc :+
+		lda DrawMap::fill_block
+:
+		sta tmp5						; この列で積む数
+		lda DrawMap::fill_block
+		sub tmp5						; 上端から何行下げて描き始めるか
+		jmp @DRAW
+
+@REVERSE:
+		lda tmp6
+		sub tmp3
+		cmp DrawMap::fill_block
+		bcc :+
+		lda DrawMap::fill_block
+:
+		sta tmp5						; この列で積む数
+		lda DrawMap::fill_block
+		sub tmp5						; 逆階段も最大高さからの下げ量で開始行を出す
+
+@DRAW:
+		beq @ADDR_READY
+		shl #4
+		add addr_tmp1+LO
+		sta addr_tmp1+LO
+
+@ADDR_READY:
+		ldy tmp5
+@DRAW_LOOP:
+		lda #'H'
+		jsr _storeBlockIfVisible
+		lda addr_tmp1+LO
+		add #$10
+		sta addr_tmp1+LO
+		dey
+		bne @DRAW_LOOP
+
+		lda tmp2
+		sta addr_tmp1+LO
+		inc tmp3
+		lda tmp3
+		cmp tmp6
+		bcc @SAVE
+		jsr _clearCurrentPartSlot
+		rts
+		; ------------------------------
+
+@SAVE:
+		jsr _saveCurrentPartSlot
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 継続描画スロットを消す/保存する
+; tmp4=$ffなら新規、そうでなければ同じスロットを更新する。
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _clearCurrentPartSlot
+		ldx tmp4
 		cpx #$ff
 		beq @EXIT
 		lda NUM2BIT, x
 		eor #$ff
 		and used_part_slots
 		sta used_part_slots
-		jmp @EXIT
-		; ------------------------------
 
-@BREAK_LOOP:
-		; loop end
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+.code									; ----- code -----
+
+.proc _saveCurrentPartSlot
+		ldx tmp4
+		cpx #$ff
+		bne @SAVE
+
 		lda used_part_slots
 		ldx #$ff
-@SAVE_PARTS_LOOP:
+@FIND_FREE_SLOT:
 		inx
 		cpx #8
 		beq @SLOT_OVERFLOW
-		shl
-		bcs @SAVE_PARTS_LOOP
-		lda NUM2BIT, x					; x=0 -> BIT0
+		shr
+		bcs @FIND_FREE_SLOT
+
+@SAVE:
+		lda NUM2BIT, x
 		ora used_part_slots
 		sta used_part_slots
-		lda addr_tmp1+LO
+		lda tmp2						; 次列ではスロット読み込み側が+1する
 		sta part_slot_addr_arr, x
 		lda tmp3
 		sta part_slot_index_arr, x
 		lda tmp1
 		sta map_data_index_arr, x
-@EXIT:
 		rts
 		; ------------------------------
 
 @SLOT_OVERFLOW:
-		; for debug
-		jmp @SLOT_OVERFLOW
+		jmp @SLOT_OVERFLOW				; for debug
+		; ------------------------------
+.endproc
+
+
+.proc _setPartsAddrFromMapObj
+		jsr _loadMapObjMeta
+
+		lda tmp5
+		cmp #$0c
+		bne :+
+		jmp @SUBTYPE2
+:
+		cmp #$0f
+		bne :+
+		jmp @SUBTYPE3
+:
+
+@NORMAL_OBJ:
+		lda DrawMap::objtype
+		cmp #SMB_OBJ_PLATFORM
+		bne :+
+		jmp @SET_HARD_4ROW
+:
+		cmp #SMB_OBJ_PIPE
+		bne :+
+		jmp @TYPE_PIPE
+:
+		jmp @SET_SKY_1
+
+@TYPE_PIPE:
+		lda DrawMap::objsize
+		and #%0000_0111					; d(入れるフラグ)は今は無視
+		cmp #SMB_PIPE_3ROW
+		bne :+
+		jmp @SET_PIPE_3ROW
+:
+		cmp #SMB_PIPE_4ROW
+		bne :+
+		jmp @SET_PIPE_4ROW
+:
+		cmp #SMB_PIPE_5ROW
+		bne :+
+		jmp @SET_PIPE_5ROW
+:
+		jmp @SET_PIPE_2ROW
+
+@SUBTYPE2:
+		; y=12: 固定位置オブジェクト。abc=0を落とし穴として使う
+		lda DrawMap::objtype
+		cmp #SMB_SUB2_QBLOCK_ROW
+		bne :+
+		jmp @SET_QBLOCK_1
+:
+		cmp #SMB_SUB2_QBLOCK_POWERUP_ROW
+		bne :+
+		jmp @SET_QBLOCK_FLWR_1
+:
+		jmp @SET_SKY_1
+
+@SUBTYPE3:
+		; y=15: 城/階段/出口土管など。必要なものだけ仮実装
+		lda DrawMap::objtype
+		cmp #SMB_SUB3_CASTLE
+		bne :+
+		jmp @SET_GOAL
+:
+		cmp #SMB_SUB3_BIG_PIPE
+		bne :+
+		jmp @SET_PIPE_5ROW
+:
+		jmp @SET_SKY_1
+
+@SET_SKY_1:
+		lda #<PARTS_SKY_1
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_SKY_1
+		jmp @STORE_HI
+@SET_QBLOCK_1:
+		lda #<PARTS_QBLOCK_1
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_QBLOCK_1
+		jmp @STORE_HI
+@SET_QBLOCK_FLWR_1:
+		lda #<PARTS_QBLOCK_FLWR_1
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_QBLOCK_FLWR_1
+		jmp @STORE_HI
+@SET_HARD_4ROW:
+		lda #<PARTS_HARD_4ROW
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_HARD_4ROW
+		jmp @STORE_HI
+@SET_PIPE_2ROW:
+		lda #<PARTS_PIPE_2ROW
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_PIPE_2ROW
+		jmp @STORE_HI
+@SET_PIPE_3ROW:
+		lda #<PARTS_PIPE_3ROW
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_PIPE_3ROW
+		jmp @STORE_HI
+@SET_PIPE_4ROW:
+		lda #<PARTS_PIPE_4ROW
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_PIPE_4ROW
+		jmp @STORE_HI
+@SET_PIPE_5ROW:
+		lda #<PARTS_PIPE_5ROW
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_PIPE_5ROW
+		jmp @STORE_HI
+@SET_GOAL:
+		lda #<PARTS_GOAL
+		sta DrawMap::ldarr_addr_tmp+LO
+		lda #>PARTS_GOAL
+		jmp @STORE_HI
+@STORE_HI:
+		sta DrawMap::ldarr_addr_tmp+HI
+		rts
 		; ------------------------------
 .endproc
 
@@ -479,6 +1077,172 @@ objsize					: .byte 0
 		rts
 		; ------------------------------
 .endproc
+
+
+;*------------------------------------------------------------------------------
+; SMB風2バイトヘッダーを，現エンジン用の床バッファへ反映する
+; @PARAMS		DrawMap::map_addr -> レベルデータ先頭
+; @CLOBBERS		A X Y tmp1
+; @RETURNS		None
+;
+; Header1(ttsssmmm)は，今はコメント上の互換だけで未使用。
+; Header2(ffbboooo)は，ffで床ブロックの見た目，ooooで床パターンを決める。
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _applyLevelHeader
+		ldy #1
+		lda (DrawMap::map_addr), y
+		pha
+
+		and #%1100_0000
+		cmp #%0100_0000
+		bne :+
+		lda #'H'
+		jmp @STORE_FLOOR_BLOCK
+:
+		cmp #%1000_0000
+		bne :+
+		lda #'N'
+		jmp @STORE_FLOOR_BLOCK
+:
+		lda #'G'
+
+@STORE_FLOOR_BLOCK:
+		sta DrawMap::fill_ground_block
+
+		; いったん全行を空にする。穴の継続もマップ断片ごとにリセットする
+		lda #0
+		sta DrawMap::hole_remain
+		sta DrawMap::fill_ground_end
+		lda #$0d
+		sta DrawMap::fill_ground_start
+		lda #0
+		ldx #0
+@CLEAR_LOOP:
+		sta fill_block_arr, x
+		inx
+		cpx #$0d
+		bcc @CLEAR_LOOP
+
+		; Header2下位4bit = 本家風の床パターン番号
+		pla
+		and #%0000_1111
+		sta tmp6
+		tax
+
+		lda FLOOR_PATTERN_GROUND_HEIGHT, x
+		jsr _fillGroundRows
+
+		ldx tmp6
+		lda FLOOR_PATTERN_CEILING_HEIGHT, x
+		jsr _fillCeilingRows
+
+		ldx tmp6
+		lda FLOOR_PATTERN_MIDDLE_HEIGHT, x
+		beq @EXIT
+		sta tmp1
+		lda FLOOR_PATTERN_MIDDLE_START, x
+		tax
+		jsr _fillRowsFromX
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 下側の地面を塗る。ここで覚えた厚みを，落とし穴処理が使う
+; @PARAMS		A: 下側の地面の厚み
+; @CLOBBERS		A X tmp1
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _fillGroundRows
+		sta DrawMap::fill_ground_end
+		sta tmp1
+		lda #$0d
+		sta DrawMap::fill_ground_start
+
+		lda tmp1
+		beq @EXIT
+		lda #$0d
+		sub tmp1
+		sta DrawMap::fill_ground_start
+		tax
+		jsr _fillRowsFromX
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 天井を塗る。落とし穴では消さない
+; @PARAMS		A: 天井の厚み
+; @CLOBBERS		A X tmp1
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _fillCeilingRows
+		sta tmp1
+		lda tmp1
+		beq @EXIT
+		ldx #0
+		jsr _fillRowsFromX
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; fill_block_arrの指定行からtmp1行分を床ブロックで塗る
+; @PARAMS		X: 開始行, tmp1: 行数
+; @CLOBBERS		A X tmp1
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _fillRowsFromX
+		lda tmp1
+		beq @EXIT
+		lda DrawMap::fill_ground_block
+@LOOP:
+		sta fill_block_arr, x
+		inx
+		dec tmp1
+		bne @LOOP
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+; 下側地面の厚み。0,1,2,...,f の順
+FLOOR_PATTERN_GROUND_HEIGHT:
+		.byte 0, 2, 2, 2, 2, 2, 5, 5, 5, 6, 0, 6, 9, 2, 2, 13
+
+; 天井の厚み。落とし穴では消さない
+FLOOR_PATTERN_CEILING_HEIGHT:
+		.byte 0, 0, 1, 3, 4, 8, 1, 3, 4, 1, 1, 4, 1, 1, 1, 0
+
+; パターンd/eだけ，下側地面から3マス空けて中段床を置く
+FLOOR_PATTERN_MIDDLE_START:
+		.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 0
+
+FLOOR_PATTERN_MIDDLE_HEIGHT:
+		.byte 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 4, 0
 
 
 ;*------------------------------------------------------------------------------
@@ -517,10 +1281,9 @@ objsize					: .byte 0
 		lda (DrawMap::map_arr_addr), y
 		sta DrawMap::map_addr+LO
 
-		ramFillGround
-		ramFillBlocks
+		jsr _applyLevelHeader
 
-		ldy #4								; マクロ後inyでもy = 4
+		ldy #2								; SMB風ヘッダー2バイトの直後から読む
 		sty DrawMap::index
 
 		pla
