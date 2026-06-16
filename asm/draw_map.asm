@@ -20,6 +20,13 @@ fill_ground_start		: .byte 0		; 下側の地面が始まる行
 hole_remain				: .byte 0		; y=12の落とし穴が残り何列続くか
 objtype					: .byte 0
 objsize					: .byte 0
+bg_page					: .byte 0
+bg_target_page			: .byte 0
+bg_target_tile_x		: .byte 0
+bg_obj_base_x			: .byte 0
+bg_obj_base_y			: .byte 0
+bg_obj_local_x			: .byte 0
+bg_obj_tile				: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Update one row
@@ -249,6 +256,8 @@ objsize					: .byte 0
 		add #$23
 		sta ppu_attr_addr+HI
 
+		jsr _loadBgMap1AttrForColumn
+
 		ldy #0
 		sty bg_map_buff_index
 
@@ -296,7 +305,7 @@ objsize					: .byte 0
 		beq @BLOCK3
 @BLOCK0:
 		shr #4
-		jmp @STORE_TO_PLT_BUFF
+		jmp @ADD_LEFT_BLOCK_PLT
 		; ------------------------------
 @BLOCK1:
 		shr #2
@@ -325,8 +334,235 @@ objsize					: .byte 0
 		cpy #$0d
 		bcc @STORE_BG_MAP_BUF_LOOP
 
+		jsr _drawBgMap1ToBgMapBuff
 		rts
 		;-------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; BG_MAP1_PLTから，現在の16x16列に対応する属性データをppu_attr_buffへ読む
+; @PARAMS		DrawMap::map_buff_num / row_counter
+; @CLOBBERS		A X Y tmp1 tmp2 tmp3
+; @RETURNS		None
+;
+; データ内のbit7は「次画面へ進む」。地形マップと同じく，左から順に読む。
+; ppu_attr_buffはここで0クリアし，背景属性を下地として入れる。
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _loadBgMap1AttrForColumn
+		lda DrawMap::map_buff_num
+		sta DrawMap::bg_target_page
+
+		lda #0
+		sta DrawMap::bg_page
+		tax
+@CLEAR_LOOP:
+		sta ppu_attr_buff, x
+		inx
+		cpx #7
+		bcc @CLEAR_LOOP
+
+		ldy #0
+@LOOP:
+		lda BG_MAP1_PLT, y
+		cmp #BG_SCENERY_END
+		beq @EXIT
+		sta tmp1						; dxxx0yyy
+		iny
+		lda BG_MAP1_PLT, y
+		sta tmp2						; aabbccdd
+		iny
+
+		lda tmp1
+		and #BIT7
+		beq :+
+		inc DrawMap::bg_page
+:
+		lda DrawMap::bg_page
+		cmp DrawMap::bg_target_page
+		bne @LOOP
+
+		lda tmp1
+		and #%0111_0000
+		shr #4
+		sta tmp3						; 属性X
+		lda DrawMap::row_counter
+		shr #1
+		cmp tmp3
+		bne @LOOP
+
+		lda tmp1
+		and #%0000_0111
+		tax								; 属性Y
+		cpx #7
+		bcs @LOOP
+		lda tmp2
+		sta ppu_attr_buff, x
+		jmp @LOOP
+		; ------------------------------
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; BG_MAP1の背景オブジェクトを，現在の8x8タイル2列ぶんだけbg_map_buffへ重ねる
+; @PARAMS		DrawMap::map_buff_num / row_counter
+; @CLOBBERS		A X Y tmp1 tmp2 tmp3 tmp_rgstY addr_tmp1
+; @RETURNS		None
+;
+; 既に地形/ブロックとして展開されたタイルがある場所には書かない。
+; これにより，草の下側や山の下側は地面で自然に隠れる。
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _drawBgMap1ToBgMapBuff
+		lda DrawMap::map_buff_num
+		sta DrawMap::bg_target_page
+
+		lda DrawMap::row_counter
+		shl #1
+		sta DrawMap::bg_target_tile_x	; 今回転送する左側8x8タイルX
+
+		lda #0
+		sta DrawMap::bg_page
+
+		ldy #0
+@LOOP:
+		lda BG_MAP1, y
+		cmp #BG_SCENERY_END
+		beq @EXIT
+		sta tmp1						; d00xxxxx
+		iny
+		lda BG_MAP1, y
+		sta tmp2						; yyy00iii
+		iny
+		sty tmp_rgstY					; 配置リストの読み取り位置を退避
+
+		lda tmp1
+		and #BIT7
+		beq :+
+		inc DrawMap::bg_page
+:
+		lda DrawMap::bg_page
+		cmp DrawMap::bg_target_page
+		bne @NEXT_OBJ
+
+		lda tmp1
+		and #%0001_1111
+		sta DrawMap::bg_obj_base_x
+
+		lda tmp2
+		shr #5
+		tax
+		lda BG_SCENERY_Y_TO_ROW, x
+		sta DrawMap::bg_obj_base_y
+
+		lda tmp2
+		and #%0000_0111
+		tax
+		lda BG_OBJ_ADDR_LO, x
+		sta addr_tmp1+LO
+		lda BG_OBJ_ADDR_HI, x
+		sta addr_tmp1+HI
+
+		jsr _drawSceneryObjectColumns
+
+@NEXT_OBJ:
+		ldy tmp_rgstY
+		jmp @LOOP
+		; ------------------------------
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; 1つの背景オブジェクトから，現在の8x8タイル2列に重なるタイルだけ描く
+; @PARAMS		addr_tmp1: BG_OBJ*_DATA
+; @CLOBBERS		A X Y tmp1 tmp2 DrawMap::bg_obj_*
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _drawSceneryObjectColumns
+		lda #0
+		sta DrawMap::bg_obj_local_x
+
+		ldy #0
+@LOOP:
+		lda (addr_tmp1), y
+		iny
+		cmp #BG_SCENERY_END
+		beq @EXIT
+		sta DrawMap::bg_obj_tile
+
+		and #%1110_0000
+		cmp #BG_SCENERY_NEXT_X
+		beq @NEXT_TILE_X
+
+		lda DrawMap::bg_obj_base_x
+		add DrawMap::bg_obj_local_x
+		sta tmp1						; このタイルの画面内8x8 X
+
+		lda tmp1
+		cmp DrawMap::bg_target_tile_x
+		beq @DRAW_LEFT
+
+		lda DrawMap::bg_target_tile_x
+		add #1
+		cmp tmp1
+		beq @DRAW_RIGHT
+		jmp @LOOP
+		; ------------------------------
+
+@DRAW_LEFT:
+		lda #0
+		sta tmp2
+		jmp @DRAW
+		; ------------------------------
+
+@DRAW_RIGHT:
+		lda #$1a						; bg_map_buff後半は右側8x8列
+		sta tmp2
+
+@DRAW:
+		lda DrawMap::bg_obj_tile
+		and #%1110_0000
+		shr #5
+		add DrawMap::bg_obj_base_y
+		cmp #$1a						; 26タイル行ぶんだけ転送する
+		bcs @LOOP
+		add tmp2
+		tax
+
+		lda bg_map_buff, x
+		bne @LOOP						; 前景や地面がある場所には描かない
+
+		lda DrawMap::bg_obj_tile
+		and #%0001_1111
+		add #BG_SCENERY_TILE_BASE
+		sta bg_map_buff, x
+		jmp @LOOP
+		; ------------------------------
+
+@NEXT_TILE_X:
+		inc DrawMap::bg_obj_local_x
+		jmp @LOOP
+		; ------------------------------
+
+@EXIT:
+		rts
+		; ------------------------------
 .endproc
 
 

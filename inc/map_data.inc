@@ -15,6 +15,233 @@ STAGE_PALETTE_ARR:
 	.byte $1, $0, $0
 
 
+;*------------------------------------------------------------------------------
+; 背景オブジェクトデータ
+;
+; BG_MAP1:
+;   1byte目 %d00xxxxx
+;     d=1なら背景データ内の画面番号を1つ進める。xxxxxは8x8タイル単位のX。
+;   2byte目 %yyy00iii
+;     yyyはBG_SCENERY_Y_TO_ROWのindex。iiiはBG_OBJ*_DATAのindex。
+;
+; BG_OBJ*_DATA:
+;   通常byte %hhhiiiii
+;     hhhはオブジェクト内Y。iiiii + $af が実際の8x8タイル番号。
+;   $e0: 8x8タイルXを+1して続行
+;   $ff: オブジェクト終端
+;*------------------------------------------------------------------------------
+
+BG_SCENERY_TILE_BASE = $af
+BG_SCENERY_NEXT_X = $e0
+BG_SCENERY_END = $ff
+
+.define BG_TILE(yy, tt) (((yy) * $20) + ((tt) - BG_SCENERY_TILE_BASE))
+
+BG_SCENERY_Y_TO_ROW:
+	.byte $00, $02, $08, $0c, $10, $12	; PPU y=$04,$06,$0c,$10,$14,$16 をBG転送バッファ内Yへ変換
+
+BG_MAP1:
+	.byte %00000000, %10100101			; x=00, 大きい山
+	.byte %00010001, %00100000			; x=11, 雲1, y1
+	.byte %00010111, %10100010			; x=17, 草3
+
+	.byte %10000000, %10100110			; 次画面 x=00, 小さい山
+	.byte %00000111, %00000000			; x=07, 雲1, y0
+	.byte %00001111, %10100000			; x=0f, 草1
+	.byte %00010111, %00100001			; x=17, 雲2, y1
+
+	.byte %10001001, %00000001			; 次画面 x=09, 雲2, y0
+	.byte %00010011, %10100001			; x=13, 草2
+	.byte BG_SCENERY_END
+
+BG_MAP1_PLT:
+	.byte %00000101, %10000000
+	.byte %00000110, %00001010
+	.byte %00010101, %10100010
+	.byte %00010110, %00001010
+	.byte %00100101, %00100000
+
+	.byte %01000001, %11110000
+	.byte %01000010, %00001111
+	.byte %01010001, %00110000
+	.byte %01010010, %00000011
+
+	.byte %01010110, %00001000
+	.byte %01100110, %00001010
+	.byte %01110110, %00001010
+	.byte %10000110, %00001010
+	.byte %00010110, %00000010
+
+	.byte %00010001, %11001100
+	.byte %00100001, %11111111
+
+	.byte %00110110, %00001000
+	.byte %01000110, %00000010
+
+	.byte %01010001, %11000000
+	.byte %01010010, %00001100
+	.byte %01100001, %11110000
+	.byte %01100010, %00001111
+	.byte %01110001, %11110000
+	.byte %01110010, %00001111
+
+	.byte %10100001, %11111111
+	.byte %00110001, %11111111
+
+	.byte %01000110, %00001000
+	.byte %01010110, %00001010
+	.byte %01100110, %00000010
+	.byte BG_SCENERY_END
+
+BG_OBJ_ADDR_LO:
+	.byte <BG_OBJ0_DATA, <BG_OBJ1_DATA, <BG_OBJ2_DATA, <BG_OBJ3_DATA
+	.byte <BG_OBJ4_DATA, <BG_OBJ5_DATA, <BG_OBJ6_DATA, <BG_OBJ7_DATA
+
+BG_OBJ_ADDR_HI:
+	.byte >BG_OBJ0_DATA, >BG_OBJ1_DATA, >BG_OBJ2_DATA, >BG_OBJ3_DATA
+	.byte >BG_OBJ4_DATA, >BG_OBJ5_DATA, >BG_OBJ6_DATA, >BG_OBJ7_DATA
+
+BG_OBJ0_DATA:
+	.byte BG_TILE(1, $b4)
+	.byte BG_TILE(2, $b8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b5)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $b9), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b6)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $ba), BG_SCENERY_NEXT_X
+	.byte BG_TILE(1, $b7)
+	.byte BG_TILE(2, $bb)
+	.byte BG_SCENERY_END
+
+BG_OBJ1_DATA:
+	.byte BG_TILE(1, $b4)
+	.byte BG_TILE(2, $b8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b5)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $b9), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b6)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $ba), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b5)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $b9), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b6)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $ba), BG_SCENERY_NEXT_X
+	.byte BG_TILE(1, $b7)
+	.byte BG_TILE(2, $bb)
+	.byte BG_SCENERY_END
+
+BG_OBJ2_DATA:
+	.byte BG_TILE(1, $b4)
+	.byte BG_TILE(2, $b8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b5)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $b9), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b6)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $ba), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b5)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $b9), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b6)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $ba), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b5)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $b9), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b6)
+	.byte BG_TILE(1, $c9)
+	.byte BG_TILE(2, $ba), BG_SCENERY_NEXT_X
+	.byte BG_TILE(1, $b7)
+	.byte BG_TILE(2, $bb)
+	.byte BG_SCENERY_END
+
+BG_OBJ3_DATA:
+	.byte BG_TILE(0, $c0)
+	.byte BG_TILE(1, $c4)
+	.byte BG_TILE(2, $c6)
+	.byte BG_TILE(3, $c6)
+	.byte BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $c1)
+	.byte BG_TILE(1, $c5)
+	.byte BG_TILE(2, $c7)
+	.byte BG_TILE(3, $c7)
+	.byte BG_SCENERY_END
+
+BG_OBJ4_DATA:
+	.byte BG_TILE(0, $c0)
+	.byte BG_TILE(1, $c2)
+	.byte BG_TILE(2, $c2)
+	.byte BG_TILE(3, $c4)
+	.byte BG_TILE(4, $c6)
+	.byte BG_TILE(5, $c6)
+	.byte BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $c1)
+	.byte BG_TILE(1, $c3)
+	.byte BG_TILE(2, $c3)
+	.byte BG_TILE(3, $c5)
+	.byte BG_TILE(4, $c7)
+	.byte BG_TILE(5, $c7)
+	.byte BG_SCENERY_END
+
+BG_OBJ5_DATA:
+	.byte BG_TILE(4, $b0), BG_SCENERY_NEXT_X
+	.byte BG_TILE(3, $b0)
+	.byte BG_TILE(4, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(2, $b0)
+	.byte BG_TILE(3, $c8)
+	.byte BG_TILE(4, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(1, $b0)
+	.byte BG_TILE(2, $c8)
+	.byte BG_TILE(3, $af)
+	.byte BG_TILE(4, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b1)
+	.byte BG_TILE(1, $c8)
+	.byte BG_TILE(2, $c8)
+	.byte BG_TILE(3, $c8)
+	.byte BG_TILE(4, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b2)
+	.byte BG_TILE(1, $af)
+	.byte BG_TILE(2, $c8)
+	.byte BG_TILE(3, $c8)
+	.byte BG_TILE(4, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(1, $b3)
+	.byte BG_TILE(2, $c8)
+	.byte BG_TILE(3, $af)
+	.byte BG_TILE(4, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(2, $b3)
+	.byte BG_TILE(3, $c8)
+	.byte BG_TILE(4, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(3, $b3)
+	.byte BG_TILE(4, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(4, $b3)
+	.byte BG_SCENERY_END
+
+BG_OBJ6_DATA:
+	.byte BG_TILE(2, $b0), BG_SCENERY_NEXT_X
+	.byte BG_TILE(1, $b0)
+	.byte BG_TILE(2, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(1, $b1)
+	.byte BG_TILE(2, $c8)
+	.byte BG_TILE(3, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $b2)
+	.byte BG_TILE(1, $af)
+	.byte BG_TILE(2, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(1, $b3)
+	.byte BG_TILE(2, $c8), BG_SCENERY_NEXT_X
+	.byte BG_TILE(2, $b3)
+	.byte BG_SCENERY_END
+
+BG_OBJ7_DATA:
+	.byte BG_TILE(0, $bc)
+	.byte BG_TILE(1, $be), BG_SCENERY_NEXT_X
+	.byte BG_TILE(0, $bd)
+	.byte BG_TILE(1, $bf)
+	.byte BG_SCENERY_END
+
+
 
 BLOCK_ID_ARR:
 	; 40 = %0100
