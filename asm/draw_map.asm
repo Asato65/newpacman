@@ -23,6 +23,8 @@ objsize					: .byte 0
 bg_page					: .byte 0
 bg_plt_page					: .byte 0
 bg_map_index			: .byte 0
+bg_map_addr				: .addr 0
+bg_plt_addr				: .addr 0
 bg_target_page			: .byte 0
 bg_target_tile_x		: .byte 0
 bg_obj_base_x			: .byte 0
@@ -30,6 +32,7 @@ bg_obj_base_y			: .byte 0
 bg_obj_local_x			: .byte 0
 bg_obj_tile				: .byte 0
 bg_obj_done				: .byte 0
+bg_obj_prev_page		: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Update one row
@@ -446,12 +449,12 @@ bg_obj_done				: .byte 0
 
 		ldy #0
 @LOOP:
-		lda BG_MAP1_PLT, y
+		lda (DrawMap::bg_plt_addr), y
 		cmp #BG_SCENERY_END
 		beq @EXIT
 		sta tmp1						; dxxx0yyy
 		iny
-		lda BG_MAP1_PLT, y
+		lda (DrawMap::bg_plt_addr), y
 		sta tmp2						; aabbccdd
 		iny
 
@@ -514,30 +517,47 @@ bg_obj_done				: .byte 0
 		sta DrawMap::bg_target_tile_x	; 今回転送する左側8x8タイルX
 
 @CHECK_CURRENT_OBJ:
+		lda #0
 		; bg_map_indexが指す1オブジェクトだけを見る。
 		; すでに通り過ぎたオブジェクトならindexを進め，まだ先なら何もしない。
+		lda #0
+		sta DrawMap::bg_obj_prev_page
+
 		lda DrawMap::bg_page
 		cmp DrawMap::bg_target_page
-		bcc @ADVANCE_OBJ
-		bne @EXIT
+		beq @LOAD_OBJ
+		bcs @EXIT
 
+		add #1
+		cmp DrawMap::bg_target_page
+		bne @ADVANCE_OBJ
+		inc DrawMap::bg_obj_prev_page
+
+@LOAD_OBJ:
 		ldy DrawMap::bg_map_index
-		lda BG_MAP1, y
+		lda (DrawMap::bg_map_addr), y
 		cmp #BG_SCENERY_END
 		beq @ADVANCE_OBJ
 		sta tmp1						; ff0xxxxx
 		iny
-		lda BG_MAP1, y
+		lda (DrawMap::bg_map_addr), y
 		sta tmp2						; yyy00iii
 
 		lda tmp1
 		and #%0001_1111
-		sta DrawMap::bg_obj_base_x		; オブジェクトの一番左のタイルX
+		ldx DrawMap::bg_obj_prev_page
+		beq :+
+		sub #$20
+:
+		sta DrawMap::bg_obj_base_x
+		lda DrawMap::bg_obj_prev_page
+		bne @SET_BG_OBJ_Y
 		lda DrawMap::bg_target_tile_x
-		add #1							; 1ブロック列は8x8タイル2列ぶん
+		add #1
 		cmp DrawMap::bg_obj_base_x
-		bcc @EXIT						; まだオブジェクトの左端に届いていない
+		bcc @EXIT
 
+@SET_BG_OBJ_Y:
 		lda tmp2
 		shr #5
 		tax
@@ -582,7 +602,7 @@ bg_obj_done				: .byte 0
 
 .proc _advanceBgMap1ObjIndex
 		ldy DrawMap::bg_map_index
-		lda BG_MAP1, y
+		lda (DrawMap::bg_map_addr), y
 		and #%1100_0000
 		cmp #%1100_0000
 		beq @REPEAT_FROM_NEXT_PAGE
@@ -592,7 +612,7 @@ bg_obj_done				: .byte 0
 		sta DrawMap::bg_map_index
 		tay
 
-		lda BG_MAP1, y
+		lda (DrawMap::bg_map_addr), y
 		cmp #BG_SCENERY_END
 		beq @REPEAT_FROM_NEXT_PAGE
 		and #%1100_0000
@@ -1458,6 +1478,34 @@ SINGLE_OBJ_BLOCKS:
 
 
 ;*------------------------------------------------------------------------------
+; Select BG scenery data for current stage
+; @PARAMS		Y: stage index
+; @CLOBBERS		A X
+; @RETURNS		None
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _setBgSceneryAddr
+		lda STAGE_BG_SCENERY_ARR, y
+		tax
+
+		lda BG_MAP_ADDR_LO, x
+		sta DrawMap::bg_map_addr+LO
+		lda BG_MAP_ADDR_HI, x
+		sta DrawMap::bg_map_addr+HI
+
+		lda BG_PLT_ADDR_LO, x
+		sta DrawMap::bg_plt_addr+LO
+		lda BG_PLT_ADDR_HI, x
+		sta DrawMap::bg_plt_addr+HI
+
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
 ; SMB風2バイトヘッダーを，現エンジン用の床バッファへ反映する
 ; @PARAMS		DrawMap::map_addr -> レベルデータ先頭
 ; @CLOBBERS		A X Y tmp1
@@ -1782,6 +1830,7 @@ FLOOR_PATTERN_MIDDLE_HEIGHT:
 		pla
 		tay
 
+		jsr DrawMap::_setBgSceneryAddr
 		jsr DrawMap::_setStageAddr		; Y破壊（ステージ番号）
 		ldy #0
 		jsr DrawMap::_setMapAddr

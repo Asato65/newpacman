@@ -14,6 +14,12 @@ STAGE_ARR:
 STAGE_PALETTE_ARR:
 	.byte $1, $0, $0
 
+BG_SCENERY_MAP1 = 0
+BG_SCENERY_MAP2 = 1
+
+STAGE_BG_SCENERY_ARR:
+	.byte BG_SCENERY_MAP1, BG_SCENERY_MAP1, BG_SCENERY_MAP2
+
 
 ;*------------------------------------------------------------------------------
 ; 背景オブジェクトデータ
@@ -74,6 +80,30 @@ BG_MAP1:
 	.byte %11010011, %11000001			; x=13, 草2
 
 
+BG_MAP2:
+	.byte %00000001, %00100001			; page0 x=01, y1, obj1
+	.byte %00010110, %10100011			; page0 x=16, y5, obj3
+	.byte %00011010, %10100100			; page0 x=1a, y5, obj4
+	.byte %00011100, %10100111			; page0 x=1c, y5, obj7
+	.byte %00011110, %10100111			; page0 x=1e, y5, obj7
+
+	.byte %10000000, %10100111			; page1 x=00, y5, obj7
+	.byte %00000010, %10100111			; page1 x=02, y5, obj7
+	.byte %00000101, %00100000			; page1 x=05, y1, obj0
+	.byte %00001010, %10100100			; page1 x=0a, y5, obj4
+	.byte %00001110, %10100011			; page1 x=0e, y5, obj3
+	.byte %00010000, %10100011			; page1 x=10, y5, obj3
+	.byte %00010111, %00000000			; page1 x=17, y0, obj0
+	.byte %00011101, %00100001			; page1 x=1d, y1, obj1
+
+	.byte %10001100, %10100111			; page2 x=0c, y5, obj7
+	.byte %00001110, %10100111			; page2 x=0e, y5, obj7
+	.byte %00010000, %10100011			; page2 x=10, y5, obj3
+	.byte %00010010, %10100111			; page2 x=12, y5, obj7
+	.byte %00010110, %10100100			; page2 x=16, y5, obj4
+	.byte %11011011, %00000000			; page2 x=1b, y0, obj0, repeat
+
+
 BG_MAP1_PLT:
 	.byte %00000101, %10000000
 	.byte %00000110, %00001010
@@ -114,6 +144,51 @@ BG_MAP1_PLT:
 	.byte %01010110, %10101010
 	.byte %01100110, %00100010
 	.byte BG_SCENERY_END
+
+BG_MAP2_PLT:
+	.byte %00000001, %11110000
+	.byte %00000010, %00001111
+	.byte %00010001, %11110000
+	.byte %00010010, %00001111
+
+	.byte %01010101, %10000000
+	.byte %01100101, %10001000
+
+	.byte %10010001, %11110000
+	.byte %00010010, %00001111
+	.byte %00100001, %00110000
+	.byte %00100010, %00000011
+
+	.byte %00100101, %10001000
+	.byte %00110101, %10000000
+	.byte %01000101, %00100000
+
+	.byte %01010001, %11001100
+	.byte %01100001, %11111111
+	.byte %01110001, %11110000
+	.byte %01110010, %00001111
+
+	.byte %10000001, %11110000
+	.byte %00000010, %00001111
+
+	.byte %01000101, %00100000
+	.byte %01010101, %10001000
+
+	.byte %01100001, %11001100
+	.byte %01110001, %11111111
+	.byte BG_SCENERY_END
+
+BG_MAP_ADDR_LO:
+	.byte <BG_MAP1, <BG_MAP2
+
+BG_MAP_ADDR_HI:
+	.byte >BG_MAP1, >BG_MAP2
+
+BG_PLT_ADDR_LO:
+	.byte <BG_MAP1_PLT, <BG_MAP2_PLT
+
+BG_PLT_ADDR_HI:
+	.byte >BG_MAP1_PLT, >BG_MAP2_PLT
 
 BG_OBJ_ADDR_LO:
 	.byte <BG_OBJ0_DATA, <BG_OBJ1_DATA, <BG_OBJ2_DATA, <BG_OBJ3_DATA
