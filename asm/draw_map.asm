@@ -21,12 +21,15 @@ hole_remain				: .byte 0		; y=12の落とし穴が残り何列続くか
 objtype					: .byte 0
 objsize					: .byte 0
 bg_page					: .byte 0
+bg_plt_page					: .byte 0
+bg_map_index			: .byte 0
 bg_target_page			: .byte 0
 bg_target_tile_x		: .byte 0
 bg_obj_base_x			: .byte 0
 bg_obj_base_y			: .byte 0
 bg_obj_local_x			: .byte 0
 bg_obj_tile				: .byte 0
+bg_obj_done				: .byte 0
 
 ;*------------------------------------------------------------------------------
 ; Update one row
@@ -256,21 +259,52 @@ bg_obj_tile				: .byte 0
 		add #$23
 		sta ppu_attr_addr+HI
 
+		; 属性テーブルは32x32単位なので，16x16列を2本で1バイトを共有する。
+		; 偶数列でBG属性を下地として作り，奇数列では前回の左半分を残して右半分だけ足す。
+		lda DrawMap::row_counter
+		and #BIT0
+		bne @KEEP_PREV_ATTR_BUFF
 		jsr _loadBgMap1AttrForColumn
+@KEEP_PREV_ATTR_BUFF:
+
+		; 先にPPU転送用バッファを空にして，BG_MAP1の背景を敷く。
+		; このあと通常ブロックだけを上書きするので，空マスでは背景が残る。
+		ldy #0
+		sty bg_map_buff_index
+		sty tmp1
+		tya
+@CLEAR_BG_MAP_BUFF_LOOP:
+		sta bg_map_buff, y
+		iny
+		cpy #$34
+		bcc @CLEAR_BG_MAP_BUFF_LOOP
+
+		jsr _drawBgMap1ToBgMapBuff
+
+		; BG描画でaddr_tmp1はオブジェクトデータのポインタになる。
+		; ここから通常マップRAMを読むので，現在列のアドレスへ戻す。
+		lda DrawMap::row_counter
+		sta addr_tmp1+LO
+		lda DrawMap::map_buff_num
+		and #BIT0
+		ora #4
+		sta addr_tmp1+HI
 
 		ldy #0
 		sty bg_map_buff_index
+		sty tmp1
 
 @STORE_BG_MAP_BUF_LOOP:					; for (y = 0; y < $0d; y++)
 		tya
 		shl #4
 		tay
 		lda (addr_tmp1), y
+		sta tmp4
 
 		; prepare plt data -------------
 		sty tmp2						; (save counter) += $10
 		ldy tmp1						; (save counter) += 1
-		pha								; push
+		lda tmp4
 		and #BIT5|BIT4
 		tax								; X: plt num(bit4-5) : tmp (Start using)
 		lda DrawMap::row_counter
@@ -289,6 +323,14 @@ bg_obj_tile				: .byte 0
 
 		txa								; End using X (plt num)
 		ldx tmp3
+		lda tmp4
+		and #BIT5|BIT4
+		sta tmp5
+		lda tmp4
+		and #BIT5|BIT4|BIT3|BIT2|BIT1|BIT0
+		beq @SKIP_BLOCK_PLT
+		lda tmp5
+		ldx tmp3
 		/*
 		PLT_DATA = BLOCK3|BLOCK2|BLOCK1|BLOCK0
 		-------------------------------
@@ -305,36 +347,63 @@ bg_obj_tile				: .byte 0
 		beq @BLOCK3
 @BLOCK0:
 		shr #4
+		sta tmp5
+		lda ppu_attr_buff, y
+		and #%1111_1100
 		jmp @ADD_LEFT_BLOCK_PLT
 		; ------------------------------
 @BLOCK1:
 		shr #2
+		sta tmp5
+		lda ppu_attr_buff, y
+		and #%1111_0011
 		jmp @ADD_LEFT_BLOCK_PLT
 		; ------------------------------
 @BLOCK3:
 		shl #2
+		sta tmp5
+		lda ppu_attr_buff, y
+		and #%0011_1111
+		jmp @ADD_LEFT_BLOCK_PLT
 @BLOCK2:
+		sta tmp5
+		lda ppu_attr_buff, y
+		and #%1100_1111
 @ADD_LEFT_BLOCK_PLT:
-		ora ppu_attr_buff, y
+		ora tmp5
 @STORE_TO_PLT_BUFF:
 		sta ppu_attr_buff, y
 
-		pla								; pull
+@SKIP_BLOCK_PLT:
 		ldy tmp2
 
+		lda tmp4
 		and #BIT5|BIT4|BIT3|BIT2|BIT1|BIT0
+		beq @SKIP_SKY_BLOCK
 		shl #1
 
 		tax
 		tfrToBgMapBuf
+		jmp @NEXT_BG_MAP_BUFF_ROW
+		; ------------------------------
+
+@SKIP_SKY_BLOCK:
+		ldx bg_map_buff_index
+		inx
+		inx
+		stx bg_map_buff_index
+
+@NEXT_BG_MAP_BUFF_ROW:
 
 		ldy tmp1
 		iny
 		sty tmp1
 		cpy #$0d
-		bcc @STORE_BG_MAP_BUF_LOOP
+		bcs @END_STORE_BG_MAP_BUF_LOOP
+		jmp @STORE_BG_MAP_BUF_LOOP
+		; ------------------------------
 
-		jsr _drawBgMap1ToBgMapBuff
+@END_STORE_BG_MAP_BUF_LOOP:
 		rts
 		;-------------------------------
 .endproc
@@ -354,10 +423,20 @@ bg_obj_tile				: .byte 0
 
 .proc _loadBgMap1AttrForColumn
 		lda DrawMap::map_buff_num
+		; BG_MAP1_PLTは3画面ぶんのパターンを繰り返して使う。
+		; 実際の書き込み先ネームテーブルとは別に，属性パターン内の画面番号へ丸める。
+@MOD_TARGET_PAGE:
+		cmp #3
+		bcc @STORE_TARGET_PAGE
+		sub #3
+		jmp @MOD_TARGET_PAGE
+		; ------------------------------
+
+@STORE_TARGET_PAGE:
 		sta DrawMap::bg_target_page
 
 		lda #0
-		sta DrawMap::bg_page
+		sta DrawMap::bg_plt_page
 		tax
 @CLEAR_LOOP:
 		sta ppu_attr_buff, x
@@ -376,12 +455,14 @@ bg_obj_tile				: .byte 0
 		sta tmp2						; aabbccdd
 		iny
 
+		; bit7は「ここから次の画面の属性データ」という区切り。
+		; 区切り後のbit7=0エントリも，同じ画面の続きとして扱う。
 		lda tmp1
 		and #BIT7
 		beq :+
-		inc DrawMap::bg_page
+		inc DrawMap::bg_plt_page
 :
-		lda DrawMap::bg_page
+		lda DrawMap::bg_plt_page
 		cmp DrawMap::bg_target_page
 		bne @LOOP
 
@@ -396,6 +477,8 @@ bg_obj_tile				: .byte 0
 
 		lda tmp1
 		and #%0000_0111
+		beq @LOOP						; HUD側の属性行はマップ転送では触らない
+		sub #1							; NMIは属性行1から書くので，BGデータのPPU属性YをバッファYへ変換
 		tax								; 属性Y
 		cpx #7
 		bcs @LOOP
@@ -423,40 +506,37 @@ bg_obj_tile				: .byte 0
 .code									; ----- code -----
 
 .proc _drawBgMap1ToBgMapBuff
-		lda DrawMap::map_buff_num
+		lda DrawMap::map_buff_num		; 画面番号(scr0, 1, 2,...)
 		sta DrawMap::bg_target_page
 
 		lda DrawMap::row_counter
 		shl #1
 		sta DrawMap::bg_target_tile_x	; 今回転送する左側8x8タイルX
 
-		lda #0
-		sta DrawMap::bg_page
+@CHECK_CURRENT_OBJ:
+		; bg_map_indexが指す1オブジェクトだけを見る。
+		; すでに通り過ぎたオブジェクトならindexを進め，まだ先なら何もしない。
+		lda DrawMap::bg_page
+		cmp DrawMap::bg_target_page
+		bcc @ADVANCE_OBJ
+		bne @EXIT
 
-		ldy #0
-@LOOP:
+		ldy DrawMap::bg_map_index
 		lda BG_MAP1, y
 		cmp #BG_SCENERY_END
-		beq @EXIT
-		sta tmp1						; d00xxxxx
+		beq @ADVANCE_OBJ
+		sta tmp1						; ff0xxxxx
 		iny
 		lda BG_MAP1, y
 		sta tmp2						; yyy00iii
-		iny
-		sty tmp_rgstY					; 配置リストの読み取り位置を退避
-
-		lda tmp1
-		and #BIT7
-		beq :+
-		inc DrawMap::bg_page
-:
-		lda DrawMap::bg_page
-		cmp DrawMap::bg_target_page
-		bne @NEXT_OBJ
 
 		lda tmp1
 		and #%0001_1111
-		sta DrawMap::bg_obj_base_x
+		sta DrawMap::bg_obj_base_x		; オブジェクトの一番左のタイルX
+		lda DrawMap::bg_target_tile_x
+		add #1							; 1ブロック列は8x8タイル2列ぶん
+		cmp DrawMap::bg_obj_base_x
+		bcc @EXIT						; まだオブジェクトの左端に届いていない
 
 		lda tmp2
 		shr #5
@@ -474,10 +554,58 @@ bg_obj_tile				: .byte 0
 
 		jsr _drawSceneryObjectColumns
 
-@NEXT_OBJ:
-		ldy tmp_rgstY
-		jmp @LOOP
+		lda DrawMap::bg_obj_done
+		beq @EXIT
+
+@ADVANCE_OBJ:
+		jsr _advanceBgMap1ObjIndex
+		jmp @CHECK_CURRENT_OBJ
 		; ------------------------------
+
+@EXIT:
+		rts
+		; ------------------------------
+.endproc
+
+
+;*------------------------------------------------------------------------------
+; BG_MAP1の読み取り位置を次のオブジェクトへ進める
+; @PARAMS		DrawMap::bg_map_index / bg_page
+; @CLOBBERS		A Y
+; @RETURNS		None
+;
+; %10xxxxxx: 次画面の先頭オブジェクトなので，そのオブジェクトを指した時点でpageを+1
+; %11xxxxxx: このオブジェクトでパターン末尾。描き終わったら先頭へ戻し，次画面から繰り返す
+;*------------------------------------------------------------------------------
+
+.code									; ----- code -----
+
+.proc _advanceBgMap1ObjIndex
+		ldy DrawMap::bg_map_index
+		lda BG_MAP1, y
+		and #%1100_0000
+		cmp #%1100_0000
+		beq @REPEAT_FROM_NEXT_PAGE
+
+		tya
+		add #2
+		sta DrawMap::bg_map_index
+		tay
+
+		lda BG_MAP1, y
+		cmp #BG_SCENERY_END
+		beq @REPEAT_FROM_NEXT_PAGE
+		and #%1100_0000
+		cmp #%1000_0000
+		bne @EXIT
+		inc DrawMap::bg_page
+		rts
+		; ------------------------------
+
+@REPEAT_FROM_NEXT_PAGE:
+		lda #0
+		sta DrawMap::bg_map_index
+		inc DrawMap::bg_page
 
 @EXIT:
 		rts
@@ -497,6 +625,7 @@ bg_obj_tile				: .byte 0
 .proc _drawSceneryObjectColumns
 		lda #0
 		sta DrawMap::bg_obj_local_x
+		sta DrawMap::bg_obj_done
 
 		ldy #0
 @LOOP:
@@ -539,6 +668,7 @@ bg_obj_tile				: .byte 0
 		lda DrawMap::bg_obj_tile
 		and #%1110_0000
 		shr #5
+		cnn
 		add DrawMap::bg_obj_base_y
 		cmp #$1a						; 26タイル行ぶんだけ転送する
 		bcs @LOOP
@@ -561,6 +691,18 @@ bg_obj_tile				: .byte 0
 		; ------------------------------
 
 @EXIT:
+		; 最後の8x8タイル列まで今回の1ブロック列に含まれたら，
+		; 次回からBG_MAP1の次オブジェクトを見る。
+		lda DrawMap::bg_obj_base_x
+		add DrawMap::bg_obj_local_x
+		sta tmp1						; オブジェクトの最後の8x8タイルX
+		lda DrawMap::bg_target_tile_x
+		add #1							; 今回転送する右側8x8タイルX
+		cmp tmp1
+		bcc :+
+		lda #1
+		sta DrawMap::bg_obj_done
+:
 		rts
 		; ------------------------------
 .endproc
@@ -1593,6 +1735,10 @@ FLOOR_PATTERN_MIDDLE_HEIGHT:
 		sta DrawMap::map_buff_num
 		sta DrawMap::isend_draw_stage
 		sta DrawMap::map_arr_num
+		sta DrawMap::bg_page
+		sta DrawMap::bg_plt_page
+		sta DrawMap::bg_map_index
+		sta DrawMap::bg_obj_done
 		sta scroll_x
 		sta Player::is_fly
 		sta Player::is_jumping
@@ -1740,6 +1886,8 @@ FLOOR_PATTERN_MIDDLE_HEIGHT:
 		sta timer_dec_num_arr+$1
 		sta timer_dec_num_arr+$2
 
+		; 初期表示では見えている1画面ぶんだけ描画する。
+		; 次画面はスクロール時に順次描くので，開始直後に次画面BGで上書きしない。
 		lda #$18
 @DISP_LOOP:
 		pha
