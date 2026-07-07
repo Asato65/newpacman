@@ -28,6 +28,9 @@ build : $(NES_FILE) $(OBJ_FILE) $(MUSIC_OBJ_FILE) $(MUSIC_ASM_FILE)
 play : $(NES_FILE)
 	$(EMULATOR) $(NES_FILE)
 
+editor :
+	powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Test-Path -LiteralPath 'C:\xampp\htdocs\map-editor') { Remove-Item -LiteralPath 'C:\xampp\htdocs\map-editor' -Recurse -Force }; New-Item -ItemType Directory -Force -Path 'C:\xampp\htdocs\map-editor' | Out-Null; Copy-Item -Path 'tools\map-editor\*' -Destination 'C:\xampp\htdocs\map-editor' -Recurse -Force; Copy-Item -Path 'spr_bg.chr' -Destination 'C:\xampp\htdocs\map-editor\spr_bg.chr' -Force; Copy-Item -Path 'inc\palette.inc' -Destination 'C:\xampp\htdocs\map-editor\palette.inc' -Force; Start-Process 'http://localhost/map-editor/'"
+
 $(MUSIC_ASM_FILE) : $(MUSIC_MML_FILE)
 	$(MUSIC_COMPILER) -a $(MUSIC_MML_FILE)
 

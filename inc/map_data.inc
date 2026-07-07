@@ -18,7 +18,7 @@ BG_SCENERY_MAP1 = 0
 BG_SCENERY_MAP2 = 1
 
 STAGE_BG_SCENERY_ARR:
-	.byte BG_SCENERY_MAP1, BG_SCENERY_MAP1, BG_SCENERY_MAP2
+	.byte BG_SCENERY_MAP1, BG_SCENERY_MAP1, BG_SCENERY_MAP1
 
 
 ;*------------------------------------------------------------------------------
@@ -74,10 +74,10 @@ BG_MAP1:
 	.byte %10000000, %10100110			; 次画面 x=00, 小さい山
 	.byte %00000111, %00000000			; x=07, 雲1, y0
 	.byte %00001111, %11000000			; x=0f, 草1
-	.byte %00010111, %00100001			; x=17, 雲2, y1
+	.byte %00010111, %00100010			; x=17, 雲3, y1
 
 	.byte %10001001, %00000001			; 次画面 x=09, 雲2, y0
-	.byte %11010011, %11000001			; x=13, 草2
+	.byte %11010011, %11000001			; x=19, 草2
 
 
 BG_MAP2:

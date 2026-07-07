@@ -17,5 +17,4 @@
 		lda Engine::ENGINE_ADDR+1, x
 		sta addr_tmp1+1
 		jmp (addr_tmp1)
-
 .endproc

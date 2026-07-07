@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>SMB Map Editor</title>
+		<link rel="stylesheet" href="./style.css?v=26" />
+	</head>
+	<body>
+		<header class="app-header">
+			<div>
+				<h1>SMB Map Editor</h1>
+				<p>16x16ブロック単位で配置し、ASM形式へ出力します。</p>
+			</div>
+			<div class="header-actions">
+				<button id="undoButton" type="button">戻る</button>
+				<button id="redoButton" type="button">進む</button>
+				<button id="newMapButton" type="button">新規</button>
+				<button id="saveLocalButton" type="button">保存</button>
+				<button id="loadLocalButton" type="button">読込</button>
+			</div>
+		</header>
+
+		<main class="app-shell">
+			<aside class="side-panel" aria-label="操作パネル">
+								<section>
+					<h2>配置ツール</h2>
+					<label class="field">
+						<span>種類</span>
+						<select id="toolKindInput">
+							<option value="single">単体ブロック</option>
+							<option value="brickRow">レンガ横列</option>
+							<option value="hardRow">固いブロック横列</option>
+							<option value="coinRow">コイン横列</option>
+							<option value="brickColumn">レンガ縦列</option>
+							<option value="hardColumn">固いブロック縦列</option>
+							<option value="pipe">土管</option>
+							<option value="hole">落とし穴</option>
+							<option value="stairs">階段</option>
+							<option value="stairsRev">逆階段</option>
+							<option value="castle">ゴール/城</option>
+							<option value="bigPipe">巨大土管</option>
+						</select>
+					</label>
+
+					<label id="singleKindField" class="field">
+						<span>ブロック</span>
+						<select id="singleKindInput">
+							<option value="2">Q ハテナ</option>
+							<option value="-1">[ パワーアップ</option>
+							<option value="4">B レンガ</option>
+							<option value="5">H 固いブロック</option>
+							<option value="6">N 固いブロック2</option>
+							<option value="7">G 地面</option>
+							<option value="3">^ コイン</option>
+							<option value="1">_ 隠し</option>
+							<option value="8">@ 空</option>
+						</select>
+					</label>
+
+					<label id="pipeKindField" class="field is-hidden">
+						<span>土管の高さ</span>
+						<select id="pipeKindInput">
+							<option value="-1">2行</option>
+							<option value="1">3行</option>
+							<option value="2">4行</option>
+							<option value="3">5行</option>
+						</select>
+					</label>
+
+					<label id="sizeField" class="field">
+						<span id="sizeLabel">サイズ</span>
+						<input id="sizeInput" type="number" min="1" max="15" value="4" />
+					</label>
+
+					<p id="toolHint" class="hint">クリックで配置、右クリックで削除します。</p>
+				</section>
+<section>
+					<h2>マップ設定</h2>
+					<label class="field">
+						<span>ラベル</span>
+						<input
+							id="mapLabelInput"
+							type="text"
+							value="MAP_CUSTOM"
+							spellcheck="false"
+						/>
+					</label>
+
+					<div class="field-grid">
+						<label class="field">
+							<span>timer</span>
+							<input
+								id="timerInput"
+								type="number"
+								min="0"
+								max="3"
+								value="0"
+							/>
+						</label>
+						<label class="field">
+							<span>start_y</span>
+							<input
+								id="startYInput"
+								type="number"
+								min="0"
+								max="7"
+								value="5"
+							/>
+						</label>
+						<label class="field">
+							<span>modifier</span>
+							<input
+								id="modifierInput"
+								type="number"
+								min="0"
+								max="7"
+								value="0"
+							/>
+						</label>
+						<label class="field">
+							<span>floor</span>
+							<select id="floorInput">
+								<option value="-1">G 地面</option>
+								<option value="1">H 固い床</option>
+								<option value="2">N 別床</option>
+							</select>
+						</label>
+						<label class="field">
+							<span>scenery</span>
+							<input
+								id="sceneryInput"
+								type="number"
+								min="0"
+								max="3"
+								value="0"
+							/>
+						</label>
+						<label class="field">
+							<span>pattern</span>
+							<input
+								id="patternInput"
+								type="number"
+								min="0"
+								max="15"
+								value="1"
+							/>
+						</label>
+						<label class="field">
+							<span>BG</span>
+							<select id="bgSceneryInput">
+								<option value="0">BG_MAP1</option>
+								<option value="1">BG_MAP2</option>
+								<option value="-1">なし</option>
+							</select>
+						</label>
+					</div>
+				</section>
+			</aside>
+
+			<section class="center-panel" aria-label="マップ編集">
+				<div class="stage-toolbar">
+					<div>
+						<h2>編集グリッド</h2>
+						<p>
+							上がY=0、下がY=Fです。Y=Cは穴、Y=Fは階段などの特殊行です。
+						</p>
+					</div>
+					<div class="page-controls" aria-label="ページ操作">
+						<strong id="pageLabel">Page 0</strong>
+						<button id="addPageButton" type="button">追加</button>
+						<button
+							id="deletePageButton"
+							type="button"
+							class="danger"
+						>
+							削除
+						</button>
+					</div>
+										<div class="editor-mode-toolbar" role="toolbar" aria-label="編集モード">
+						<button id="selectModeButton" class="mode-button" type="button" aria-pressed="false" title="範囲選択">範囲選択</button>
+						<button id="drawModeButton" class="mode-button" type="button" aria-pressed="true" title="ブロック配置">配置</button>
+						<button id="eraseModeButton" class="mode-button danger" type="button" aria-pressed="false" title="ブロック削除">削除</button>
+					</div><div class="grid-scroll-actions">
+						<button id="scrollLeftButton" type="button">←</button>
+						<button id="scrollRightButton" type="button">→</button>
+					</div>
+					<div
+						id="statusText"
+						class="status"
+						aria-live="polite"
+					></div>
+				</div>
+
+				<div id="gridWrap" class="grid-wrap">
+					<canvas
+						id="mapCanvas"
+						class="map-canvas"
+						aria-label="Map editing canvas"
+						tabindex="0"
+					></canvas>
+					<div
+						id="mapGrid"
+						class="map-grid"
+						aria-label="マップ編集グリッド"
+					></div>
+				</div>
+
+				<div class="object-panel">
+					<div class="object-panel-head">
+						<h2>配置済みオブジェクト</h2>
+						<button id="clearPageButton" type="button">
+							ページを空にする
+						</button>
+					</div>
+					<div class="object-list-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>Page</th>
+									<th>X</th>
+									<th>Y</th>
+									<th>種類</th>
+									<th>size</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody id="objectList"></tbody>
+						</table>
+					</div>
+				</div>
+			</section>
+
+			<aside class="right-panel" aria-label="設定と入出力">
+				<details class="collapsible" open>
+					<summary>CHR設定</summary>
+					<div class="collapsible-body">
+						<label class="field">
+							<span>CHRファイル</span>
+							<input
+								id="chrFileInput"
+								type="file"
+								accept=".chr,application/octet-stream"
+							/>
+						</label>
+						<button id="chrReloadButton" type="button">
+							spr_bg.chrを再読込
+						</button>
+						<p id="chrStatus" class="hint">
+							spr_bg.chrを自動読込します。失敗した場合はファイルを選択してください。
+						</p>
+						<canvas
+							id="chrPreviewCanvas"
+							class="chr-preview"
+							width="128"
+							height="128"
+							aria-label="CHR tile preview"
+						></canvas>
+					</div>
+				</details>
+
+				<details class="collapsible">
+					<summary>パレット</summary>
+					<div class="collapsible-body">
+						<label class="field">
+							<span>対象</span>
+							<select id="paletteTargetInput">
+								<option value="palette0">palette0</option>
+								<option value="palette1">palette1</option>
+								<option value="palette2">palette2</option>
+								<option value="palette3">palette3</option>
+							</select>
+						</label>
+						<label class="field">
+							<span>.pal file</span>
+							<input
+								id="paletteFileInput"
+								type="file"
+								accept=".pal,application/octet-stream"
+							/>
+						</label>
+						<div class="palette-fields">
+							<label class="field palette-field">
+								<span>color 0 hex</span>
+								<span class="palette-color-row">
+									<input
+										id="paletteColor0Input"
+										class="palette-hex-input"
+										type="text"
+										spellcheck="false"
+									/>
+									<input
+										id="palettePicker0Input"
+										class="palette-picker"
+										type="color"
+										aria-label="color 0 picker"
+									/>
+								</span>
+							</label>
+							<label class="field palette-field">
+								<span>color 1 hex</span>
+								<span class="palette-color-row">
+									<input
+										id="paletteColor1Input"
+										class="palette-hex-input"
+										type="text"
+										spellcheck="false"
+									/>
+									<input
+										id="palettePicker1Input"
+										class="palette-picker"
+										type="color"
+										aria-label="color 1 picker"
+									/>
+								</span>
+							</label>
+							<label class="field palette-field">
+								<span>color 2 hex</span>
+								<span class="palette-color-row">
+									<input
+										id="paletteColor2Input"
+										class="palette-hex-input"
+										type="text"
+										spellcheck="false"
+									/>
+									<input
+										id="palettePicker2Input"
+										class="palette-picker"
+										type="color"
+										aria-label="color 2 picker"
+									/>
+								</span>
+							</label>
+							<label class="field palette-field">
+								<span>color 3 hex</span>
+								<span class="palette-color-row">
+									<input
+										id="paletteColor3Input"
+										class="palette-hex-input"
+										type="text"
+										spellcheck="false"
+									/>
+									<input
+										id="palettePicker3Input"
+										class="palette-picker"
+										type="color"
+										aria-label="color 3 picker"
+									/>
+								</span>
+							</label>
+						</div>
+						<div class="compact-actions palette-actions">
+							<button id="paletteExportButton" type="button">
+								出力
+							</button>
+							<button id="paletteImportButton" type="button">
+								読込
+							</button>
+							<button id="paletteResetButton" type="button">
+								初期化
+							</button>
+						</div>
+						<textarea
+							id="paletteText"
+							class="palette-text"
+							spellcheck="false"
+							placeholder=".byte $22, $36, $17, $0f"
+						></textarea>
+					</div>
+				</details>
+
+				<details class="collapsible">
+					<summary>ASM読込</summary>
+					<div class="collapsible-body">
+						<textarea
+							id="asmInput"
+							spellcheck="false"
+							placeholder="inc/map/*.inc の MAP_xxx: ブロックを貼り付け"
+						></textarea>
+						<button id="importButton" type="button">
+							貼り付け内容を読み込む
+						</button>
+					</div>
+				</details>
+
+				<details class="collapsible" open>
+					<summary>ASM出力</summary>
+					<div class="collapsible-body">
+						<div class="compact-actions output-actions">
+							<button id="copyButton" type="button">
+								コピー
+							</button>
+							<button id="downloadButton" type="button">
+								保存
+							</button>
+						</div>
+						<textarea
+							id="asmOutput"
+							spellcheck="false"
+							readonly
+						></textarea>
+					</div>
+				</details>
+			</aside>
+		</main>
+		<dialog id="editObjectDialog" class="object-dialog">
+			<form class="object-dialog-body" method="dialog">
+				<header class="object-dialog-head">
+					<h2 id="editObjectTitle">オブジェクト編集</h2>
+					<button id="editCancelButton" type="button" aria-label="閉じる">×</button>
+				</header>
+				<p id="editObjectSummary" class="hint"></p>
+				<label id="editSingleKindField" class="field">
+					<span>中身</span>
+					<select id="editSingleKindInput"></select>
+				</label>
+				<label id="editSizeField" class="field">
+					<span id="editSizeLabel">サイズ</span>
+					<input id="editSizeInput" type="number" min="1" max="15" value="1" />
+				</label>
+				<div class="object-dialog-actions">
+					<button id="editApplyButton" class="primary" type="button">反映</button>
+				</div>
+			</form>
+		</dialog>
+
+		<script src="./app.js?v=26"></script>
+	</body>
+</html>
